@@ -3,9 +3,9 @@
 		"GitLocal": ".",
 		"GitRepo": "https://github.com/sleepyparadox/SiegeTrain.Demo",
 		"GitBranch": "main",
-		"DistPath": "packages/SiegeTrain.Demo/dist",
-		"SlnPath": "packages/SiegeTrain.Demo/src/SiegeTrain.Demo.sln",
-		"SrcPath": "packages/SiegeTrain.Demo/src",
+		"DistPath": "packages/SiegeTower.K8sExternalAdmin/dist",
+		"SlnPath": "packages/SiegeTower.K8sExternalAdmin/src/SiegeTower.K8sExternalAdmin.sln",
+		"SrcPath": "packages/SiegeTower.K8sExternalAdmin/src",
 		"ReleasesFiles": [],
 		"DependsOn": []
 	}
