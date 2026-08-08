@@ -1,7 +1,7 @@
 {
-	"run":
+	"push":
 	{
 		"Directory": "packages/SiegeTower.K8sExternalAdmin/dist",
-		"Command": "SiegeTower.K8sExternalAdmin"
+		"Command": "siegetower-k8s-external-admin push"
 	}
 }
