@@ -1,0 +1,7 @@
+{
+	"run":
+	{
+		"Directory": "packages/SiegeTower.K8sExternalAdmin/dist",
+		"Command": "SiegeTower.K8sExternalAdmin"
+	}
+}

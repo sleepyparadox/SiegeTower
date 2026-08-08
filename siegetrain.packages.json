@@ -1,0 +1,12 @@
+{
+	"SiegeTower.K8sExternalAdmin": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTrain.Demo",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTrain.Demo/dist",
+		"SlnPath": "packages/SiegeTrain.Demo/src/SiegeTrain.Demo.sln",
+		"SrcPath": "packages/SiegeTrain.Demo/src",
+		"ReleasesFiles": [],
+		"DependsOn": []
+	}
+}
