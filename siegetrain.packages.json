@@ -8,5 +8,15 @@
 		"SrcPath": "packages/SiegeTower.K8sExternalAdmin/src",
 		"ReleasesFiles": [],
 		"DependsOn": []
+	},
+	"SiegeTower.Client": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTrain.Demo",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.Client/dist",
+		"SlnPath": "packages/SiegeTower.Client/src/SiegeTower.Client.sln",
+		"SrcPath": "packages/SiegeTower.Client/src",
+		"ReleasesFiles": [],
+		"DependsOn": []
 	}
 }
