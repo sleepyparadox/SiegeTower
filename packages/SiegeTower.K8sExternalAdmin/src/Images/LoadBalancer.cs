@@ -56,15 +56,15 @@ public static class LoadBalancer
 	    }
 
 	    location = /api {
-	        proxy_pass http://st-tower:80/api;
+		        proxy_pass http://st-api:80/api;
 	    }
 
 	    location = /api/ {
-	        proxy_pass http://st-tower:80/api/;
+		        proxy_pass http://st-api:80/api/;
 	    }
 
 	    location /api/ {
-	        proxy_pass http://st-tower:80;
+		        proxy_pass http://st-api:80;
 	    }
 
 	    # DEBUG ONLY: expose the nginx access log temporarily.

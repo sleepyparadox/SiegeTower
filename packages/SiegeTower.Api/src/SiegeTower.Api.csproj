@@ -10,4 +10,13 @@
   <ItemGroup>
     <ProjectReference Include="../../SiegeTower.Data/src/SiegeTower.Data.csproj" />
   </ItemGroup>
+
+  <Target Name="PublishAfterBuild"
+          AfterTargets="Build"
+          Condition="'$(PublishAfterBuild)' != 'true'">
+    <MSBuild
+      Projects="$(MSBuildProjectFullPath)"
+      Targets="Publish"
+      Properties="PublishAfterBuild=true" />
+  </Target>
 </Project>

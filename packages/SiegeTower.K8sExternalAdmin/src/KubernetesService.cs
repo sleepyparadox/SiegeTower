@@ -8,7 +8,7 @@ public sealed class KubernetesService(IKubernetes client)
 {
 	public async Task PushAsync(
 		string loadBalancerImage,
-		string towerImage,
+		string apiImage,
 		string workspaceImage,
 		string @namespace = "siegetower")
 	{
@@ -16,7 +16,7 @@ public sealed class KubernetesService(IKubernetes client)
 		await RemoveLegacyServiceAsync(@namespace);
 
 		await ApplyApplicationAsync("st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
-		await ApplyApplicationAsync("st-tower", towerImage, @namespace);
+		await ApplyApplicationAsync("st-api", apiImage, @namespace);
 		await ApplyApplicationAsync("st-workspace-1", workspaceImage, @namespace);
 		await ApplyApplicationAsync("st-workspace-2", workspaceImage, @namespace);
 	}
