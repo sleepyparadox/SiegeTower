@@ -17,6 +17,26 @@
 		"SlnPath": "packages/SiegeTower.Client/src/SiegeTower.Client.sln",
 		"SrcPath": "packages/SiegeTower.Client/src",
 		"ReleasesFiles": [],
+		"DependsOn": ["SiegeTower.Data"]
+	},
+	"SiegeTower.Api": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.Api/dist",
+		"SlnPath": "packages/SiegeTower.Api/src/SiegeTower.Api.sln",
+		"SrcPath": "packages/SiegeTower.Api/src",
+		"ReleasesFiles": [],
+		"DependsOn": ["SiegeTower.Data"]
+	},
+	"SiegeTower.Data": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.Data/dist",
+		"SlnPath": "packages/SiegeTower.Data/src/SiegeTower.Data.sln",
+		"SrcPath": "packages/SiegeTower.Data/src",
+		"ReleasesFiles": [],
 		"DependsOn": []
 	}
 }
