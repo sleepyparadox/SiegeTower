@@ -1,17 +1,17 @@
 {
 	"SiegeTower.K8sExternalAdmin": {
 		"GitLocal": ".",
-		"GitRepo": "https://github.com/sleepyparadox/SiegeTrain.Demo",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
 		"GitBranch": "main",
 		"DistPath": "packages/SiegeTower.K8sExternalAdmin/dist",
 		"SlnPath": "packages/SiegeTower.K8sExternalAdmin/src/SiegeTower.K8sExternalAdmin.sln",
 		"SrcPath": "packages/SiegeTower.K8sExternalAdmin/src",
 		"ReleasesFiles": [],
-		"DependsOn": []
+		"DependsOn": ["SiegeTower.Client"]
 	},
 	"SiegeTower.Client": {
 		"GitLocal": ".",
-		"GitRepo": "https://github.com/sleepyparadox/SiegeTrain.Demo",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
 		"GitBranch": "main",
 		"DistPath": "packages/SiegeTower.Client/dist",
 		"SlnPath": "packages/SiegeTower.Client/src/SiegeTower.Client.sln",
