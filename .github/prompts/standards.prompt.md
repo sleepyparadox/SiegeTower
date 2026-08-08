@@ -5,16 +5,16 @@ SiegeTrain is a global CLI tool but should be run from repo root (the directory 
 
 ```bash
 SiegeTrain
-Usage: siegetrain <package|release> <action> [--option value] [--root-dir path]
-	siegetrain build [--id package-id] [--root-dir path]
-	siegetrain cmd [command-name] [--root-dir path]
-	siegetrain release add-candidate {major-version} [--author email] [--description text] [--repair-releases versions] [--duplicated-releases versions] [--root-dir path]
-	siegetrain release list [--root-dir path]
-	siegetrain release add-major {major-version} [--author email] [--description text] [--repair-releases versions] [--duplicated-releases versions] [--root-dir path]
-	siegetrain release promote --minor|--patch [--root-dir path]
-	siegetrain release write {src_path}/Releases.cs [--namespace name] [--classname name] [--latest-only true|false] [--root-dir path]
-	siegetrain release write-all [--root-dir path]
-	siegetrain web [port] [--local|--public] [--root-dir path]
+Usage: SiegeTrain <package|release> <action> [--option value] [--root-dir path]
+	SiegeTrain build [--id package-id] [--root-dir path]
+	SiegeTrain cmd [command-name] [--root-dir path]
+	SiegeTrain release add-candidate {major-version} [--author email] [--description text] [--repair-releases versions] [--duplicated-releases versions] [--root-dir path]
+	SiegeTrain release list [--root-dir path]
+	SiegeTrain release add-major {major-version} [--author email] [--description text] [--repair-releases versions] [--duplicated-releases versions] [--root-dir path]
+	SiegeTrain release promote --minor|--patch [--root-dir path]
+	SiegeTrain release write {src_path}/Releases.cs [--namespace name] [--classname name] [--latest-only true|false] [--root-dir path]
+	SiegeTrain release write-all [--root-dir path]
+	SiegeTrain web [port] [--local|--public] [--root-dir path]
 Package actions: add, delete, get, list
 Release commands: add-candidate, list, promote, add-major
 ```
