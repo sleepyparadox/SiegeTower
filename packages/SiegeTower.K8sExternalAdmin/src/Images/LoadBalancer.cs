@@ -46,6 +46,10 @@ public static class LoadBalancer
 	        proxy_pass http://st-tower:80/api/;
 	    }
 
+	    location /api/ {
+	        proxy_pass http://st-tower:80;
+	    }
+
 	    # DEBUG ONLY: expose the nginx access log temporarily.
 	    location = /log/nginx/access.log {
 	        default_type text/plain;

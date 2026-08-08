@@ -28,8 +28,8 @@ public static class Tower
 	server {
 	    listen 80;
 	    location /api {
-	        default_type text/plain;
-	        return 200 "tower connected\\n";
+	        default_type text/html;
+	        return 200 "<!doctype html><html><body><h1>tower connected</h1><p>method: $request_method</p><p>local route: $uri</p><p>request URI: $request_uri</p><p>args: $args</p></body></html>";
 	    }
 	}
 	""";
