@@ -35,10 +35,9 @@ Log out and log back in
 (Run as local user)
 
 ```bash
-kind create cluster --name siegetower-local
+kind create cluster --name siegetower-local --config kind.siegetower-local.yaml
 ```
 
-This will create credentials in your ./
 
 3 Verify cluster
 
@@ -51,3 +50,12 @@ should return `kind-siegetower-local`
 if not, you will need to switch context using kubectl
 
 4 Push siegetower
+
+
+```bash
+siegetower-k8s-external-admin push
+```
+
+The app listens on `http://localhost:5006/`
+
+(Kubernetes Service listens on NodePort `30006`)

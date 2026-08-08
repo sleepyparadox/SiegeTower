@@ -56,7 +56,7 @@ public sealed class CommandLineApplication
 
 		LogService.Info("Applying nginx Deployment and Service to Kubernetes.");
 		await new KubernetesService(new Kubernetes(config)).PushNginxAsync(image);
-		LogService.Info($"Image '{image}' is available through the service on port 5006.");
+		LogService.Info($"Image '{image}' is available at http://localhost:5006/ when the Kind host port mapping is configured; Kubernetes NodePort is 30006.");
 	}
 
 	private static void PrintCurrentContext()
