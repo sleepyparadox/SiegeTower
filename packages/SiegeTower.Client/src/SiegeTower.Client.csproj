@@ -15,6 +15,32 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.10" PrivateAssets="all" />
   </ItemGroup>
 
+  <Target Name="CopyDataDist"
+          BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <DataProject>$(MSBuildThisFileDirectory)..\..\SiegeTower.Data\src\SiegeTower.Data.csproj</DataProject>
+      <DataDist>$(MSBuildThisFileDirectory)..\..\SiegeTower.Data\dist\</DataDist>
+    </PropertyGroup>
+
+    <MSBuild
+      Projects="$(DataProject)"
+      Targets="Publish"
+      Properties="PublishAfterBuild=true" />
+
+    <ItemGroup>
+      <DataDistFiles Include="$(DataDist)**\*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(DataDistFiles)"
+      DestinationFiles="@(DataDistFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="@(DataDistFiles)"
+      DestinationFiles="@(DataDistFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
   <Target Name="PublishAfterBuild"
           AfterTargets="Build"
           Condition="'$(PublishAfterBuild)' != 'true'">

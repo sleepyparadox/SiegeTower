@@ -6,4 +6,13 @@
     <BaseOutputPath>../bin/</BaseOutputPath>
     <PublishDir>../dist/</PublishDir>
   </PropertyGroup>
+
+  <Target Name="PublishAfterBuild"
+          AfterTargets="Build"
+          Condition="'$(PublishAfterBuild)' != 'true'">
+    <MSBuild
+      Projects="$(MSBuildProjectFullPath)"
+      Targets="Publish"
+      Properties="PublishAfterBuild=true" />
+  </Target>
 </Project>
