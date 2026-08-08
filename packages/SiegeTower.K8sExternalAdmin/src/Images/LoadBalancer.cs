@@ -14,6 +14,7 @@ public static class LoadBalancer
 		[
 			new From("nginx"),
 			new Run("mkdir -p /var/siegetower"),
+			new Run("rm -f /var/log/nginx/access.log /var/log/nginx/error.log && touch /var/log/nginx/access.log /var/log/nginx/error.log && chown nginx:nginx /var/log/nginx/access.log /var/log/nginx/error.log && chmod 644 /var/log/nginx/access.log /var/log/nginx/error.log"),
 			new Run(WriteFile("/etc/nginx/conf.d/default.conf", Configuration)),
 			new Run(WriteFile("/var/siegetower/index.html", IndexPage))
 		],
@@ -30,6 +31,8 @@ public static class LoadBalancer
 	server {
 	    listen 80;
 	    root /var/siegetower;
+	    access_log /var/log/nginx/access.log;
+	    error_log /var/log/nginx/error.log notice;
 
 	    location = / {
 	        try_files /index.html =404;
@@ -43,12 +46,21 @@ public static class LoadBalancer
 	        proxy_pass http://st-tower:80/api/;
 	    }
 
-	    location /workspace/1/ {
-	        proxy_pass http://st-workspace-1:80/api/;
+	    # DEBUG ONLY: expose the nginx access log temporarily.
+	    location = /log/nginx/access.log {
+	        default_type text/plain;
+	        alias /var/log/nginx/access.log;
 	    }
 
-	    location /workspace/2/ {
-	        proxy_pass http://st-workspace-2:80/api/;
+	    # DEBUG ONLY: expose the nginx error log temporarily.
+	    location = /log/nginx/error.log {
+	        default_type text/plain;
+	        alias /var/log/nginx/error.log;
+	    }
+
+	    location ~ ^/workspace/(?<workspace_id>[0-9]+)(?<workspace_path>/api(?:/.*)?)$ {
+	        resolver 10.96.0.10 valid=10s;
+	        proxy_pass http://st-workspace-$workspace_id.siegetower.svc.cluster.local:80$workspace_path$is_args$args;
 	    }
 
 	    location / {
@@ -67,6 +79,8 @@ public static class LoadBalancer
 			<li><a href="/api/">Tower API</a></li>
 			<li><a href="/workspace/1/api">Workspace 1 API</a></li>
 			<li><a href="/workspace/2/api">Workspace 2 API</a></li>
+			<li><a href="/log/nginx/access.log">Nginx access log</a></li>
+			<li><a href="/log/nginx/error.log">Nginx error log</a></li>
 		</ul>
 	</body>
 	</html>
