@@ -1,6 +1,6 @@
 using k8s;
 using SiegeTower.K8sExternalAdmin.Docker;
-using SiegeTower.K8sExternalAdmin.Docker.DockerFileOperation;
+using SiegeTower.K8sExternalAdmin.Images;
 
 namespace SiegeTower.K8sExternalAdmin;
 
@@ -40,9 +40,13 @@ public sealed class CommandLineApplication
 
 	private static async Task PushAsync()
 	{
-		const string image = "test-nginx";
-		LogService.Info($"Building Docker image '{image}'.");
-		new DockerService().Build([new From("nginx")], [image]);
+		var docker = new DockerService();
+		LogService.Info($"Building Docker image '{LoadBalancer.ImageName}'.");
+		LoadBalancer.Build(docker);
+		LogService.Info($"Building Docker image '{Tower.ImageName}'.");
+		Tower.Build(docker);
+		LogService.Info($"Building Docker image '{Workspace.ImageName}'.");
+		Workspace.Build(docker);
 
 		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
 		if (!config.CurrentContext.StartsWith("kind-", StringComparison.Ordinal))
@@ -51,12 +55,12 @@ public sealed class CommandLineApplication
 		}
 
 		var cluster = config.CurrentContext["kind-".Length..];
-		LogService.Info($"Loading image '{image}' into Kind cluster '{cluster}'.");
-		new KindService().Load(cluster, [image]);
+		LogService.Info($"Loading SiegeTower images into Kind cluster '{cluster}'.");
+		new KindService().Load(cluster, [LoadBalancer.ImageName, Tower.ImageName, Workspace.ImageName]);
 
-		LogService.Info("Applying nginx Deployment and Service to Kubernetes.");
-		await new KubernetesService(new Kubernetes(config)).PushNginxAsync(image);
-		LogService.Info($"Image '{image}' is available at http://localhost:5006/ when the Kind host port mapping is configured; Kubernetes NodePort is 30006.");
+		LogService.Info("Applying SiegeTower Deployments and Services to Kubernetes.");
+		await new KubernetesService(new Kubernetes(config)).PushAsync(LoadBalancer.ImageName, Tower.ImageName, Workspace.ImageName);
+		LogService.Info("SiegeTower is available at http://localhost:5006/ when the Kind host port mapping is configured.");
 	}
 
 	private static void PrintCurrentContext()
