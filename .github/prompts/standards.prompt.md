@@ -152,7 +152,8 @@ Use tabs not spaces
 
 Use pascal naming for classes, methods, and properties
 Use "_" prefix for private fields
-Do not use the "private keyword" assume private is default
+Do not use the "private" keyword assume private is default
+Do not use the "internal" keyword just make it public if required or leave as private (without "private" keyword)
 
 Example
 
