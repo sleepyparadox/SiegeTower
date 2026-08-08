@@ -13,8 +13,9 @@ public static class LoadBalancer
 		docker.Build(
 		[
 			new From("nginx"),
+			new Run("mkdir -p /var/siegetower"),
 			new Run(WriteFile("/etc/nginx/conf.d/default.conf", Configuration)),
-			new Run(WriteFile("/usr/share/nginx/html/index.html", IndexPage))
+			new Run(WriteFile("/var/siegetower/index.html", IndexPage))
 		],
 		[ImageName]);
 	}
@@ -28,9 +29,10 @@ public static class LoadBalancer
 	private const string Configuration = """
 	server {
 	    listen 80;
+	    root /var/siegetower;
 
 	    location = / {
-	        alias /usr/share/nginx/html/index.html;
+	        try_files /index.html =404;
 	    }
 
 	    location = /api {
