@@ -13,6 +13,7 @@ public sealed class KubernetesService(IKubernetes client)
 		string @namespace = "siegetower")
 	{
 		await EnsureNamespaceAsync(@namespace);
+		await EnsureApiServiceAccountAsync(@namespace);
 		await RemoveLegacyServiceAsync(@namespace);
 
 		await ApplyApplicationAsync("st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
@@ -55,6 +56,7 @@ public sealed class KubernetesService(IKubernetes client)
 					},
 					Spec = new V1PodSpec
 					{
+						ServiceAccountName = name == "st-api" ? "st-api" : null,
 						Containers =
 						[
 							new V1Container
@@ -106,6 +108,64 @@ public sealed class KubernetesService(IKubernetes client)
 		}
 
 		LogService.Info($"Applied Deployment and Service '{name}'.");
+	}
+
+	private async Task EnsureApiServiceAccountAsync(string @namespace)
+	{
+		const string serviceAccountName = "st-api";
+
+		var serviceAccount = new V1ServiceAccount
+		{
+			Metadata = new V1ObjectMeta
+			{
+				Name = serviceAccountName,
+				NamespaceProperty = @namespace
+			}
+		};
+
+		try
+		{
+			var existing = await client.CoreV1.ReadNamespacedServiceAccountAsync(serviceAccountName, @namespace);
+			serviceAccount.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			await client.CoreV1.ReplaceNamespacedServiceAccountAsync(serviceAccount, serviceAccountName, @namespace);
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.CoreV1.CreateNamespacedServiceAccountAsync(serviceAccount, @namespace);
+		}
+
+		var binding = new V1ClusterRoleBinding
+		{
+			Metadata = new V1ObjectMeta { Name = serviceAccountName },
+			RoleRef = new V1RoleRef
+			{
+				ApiGroup = "rbac.authorization.k8s.io",
+				Kind = "ClusterRole",
+				Name = "edit"
+			},
+			Subjects =
+			[
+				new Rbacv1Subject
+				{
+					Kind = "ServiceAccount",
+					Name = serviceAccountName,
+					NamespaceProperty = @namespace
+				}
+			]
+		};
+
+		try
+		{
+			var existing = await client.RbacAuthorizationV1.ReadClusterRoleBindingAsync(serviceAccountName);
+			binding.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			await client.RbacAuthorizationV1.ReplaceClusterRoleBindingAsync(binding, serviceAccountName);
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.RbacAuthorizationV1.CreateClusterRoleBindingAsync(binding);
+		}
+
+		LogService.Info($"Applied ServiceAccount and cluster edit binding '{serviceAccountName}'.");
 	}
 
 	private async Task WaitForDeploymentAsync(string name, string @namespace)
