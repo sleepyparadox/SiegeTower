@@ -10,18 +10,35 @@ public static class LoadBalancer
 
 	public static void Build(DockerService docker)
 	{
+		var clientDist = Path.Combine(FindRepositoryRoot(), "packages", "SiegeTower.Client", "dist", "wwwroot");
+
 		docker.Build(
 		[
 			new From("nginx"),
 			new Run("mkdir -p /var/siegetower"),
 			new Run("rm -f /var/log/nginx/access.log /var/log/nginx/error.log && touch /var/log/nginx/access.log /var/log/nginx/error.log && chown nginx:nginx /var/log/nginx/access.log /var/log/nginx/error.log && chmod 644 /var/log/nginx/access.log /var/log/nginx/error.log"),
-			new Run(WriteFile("/etc/nginx/conf.d/default.conf", Configuration)),
-			new Run(WriteFile("/var/siegetower/index.html", IndexPage))
+			new Run(CreateWriteFileCommand("/etc/nginx/conf.d/default.conf", Configuration)),
+			new Copy("client", "/var/siegetower")
 		],
-		[ImageName]);
+		[ImageName],
+		new Dictionary<string, string>
+		{
+			[clientDist] = "client"
+		});
 	}
 
-	private static string WriteFile(string path, string contents)
+	private static string FindRepositoryRoot()
+	{
+		var directory = new DirectoryInfo(AppContext.BaseDirectory);
+		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "siegetrain.packages.json")))
+		{
+			directory = directory.Parent;
+		}
+
+		return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the SiegeTower repository root.");
+	}
+
+	private static string CreateWriteFileCommand(string path, string contents)
 	{
 		var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(contents));
 		return $"printf '%s' '{encoded}' | base64 -d > {path}";
@@ -39,15 +56,15 @@ public static class LoadBalancer
 	    }
 
 	    location = /api {
-	        proxy_pass http://st-tower:80/api;
+		        proxy_pass http://st-api:80/api;
 	    }
 
 	    location = /api/ {
-	        proxy_pass http://st-tower:80/api/;
+		        proxy_pass http://st-api:80/api/;
 	    }
 
 	    location /api/ {
-	        proxy_pass http://st-tower:80;
+		        proxy_pass http://st-api:80;
 	    }
 
 	    # DEBUG ONLY: expose the nginx access log temporarily.
@@ -62,31 +79,14 @@ public static class LoadBalancer
 	        alias /var/log/nginx/error.log;
 	    }
 
-	    location ~ ^/workspace/(?<workspace_id>[0-9]+)(?<workspace_path>/api(?:/.*)?)$ {
+	    location ~ ^/workspace/(?<workspace_id>[a-zA-Z0-9-]+)(?<workspace_path>/api(?:/.*)?)$ {
 	        resolver 10.96.0.10 valid=10s;
-	        proxy_pass http://st-workspace-$workspace_id.siegetower.svc.cluster.local:80$workspace_path$is_args$args;
+	        proxy_pass http://st-workspace-$workspace_id.siegetower-workspace.svc.cluster.local:80$workspace_path$is_args$args;
 	    }
 
 	    location / {
 	        try_files $uri $uri/ /index.html;
 	    }
 	}
-	""";
-
-	private const string IndexPage = """
-	<!doctype html>
-	<html lang="en">
-	<head><meta charset="utf-8"><title>SiegeTower</title></head>
-	<body>
-		<h1>SiegeTower</h1>
-		<ul>
-			<li><a href="/api/">Tower API</a></li>
-			<li><a href="/workspace/1/api">Workspace 1 API</a></li>
-			<li><a href="/workspace/2/api">Workspace 2 API</a></li>
-			<li><a href="/log/nginx/access.log">Nginx access log</a></li>
-			<li><a href="/log/nginx/error.log">Nginx error log</a></li>
-		</ul>
-	</body>
-	</html>
 	""";
 }

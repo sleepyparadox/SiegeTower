@@ -43,8 +43,8 @@ public sealed class CommandLineApplication
 		var docker = new DockerService();
 		LogService.Info($"Building Docker image '{LoadBalancer.ImageName}'.");
 		LoadBalancer.Build(docker);
-		LogService.Info($"Building Docker image '{Tower.ImageName}'.");
-		Tower.Build(docker);
+		LogService.Info($"Building Docker image '{Api.ImageName}'.");
+		Api.Build(docker);
 		LogService.Info($"Building Docker image '{Workspace.ImageName}'.");
 		Workspace.Build(docker);
 
@@ -56,10 +56,10 @@ public sealed class CommandLineApplication
 
 		var cluster = config.CurrentContext["kind-".Length..];
 		LogService.Info($"Loading SiegeTower images into Kind cluster '{cluster}'.");
-		new KindService().Load(cluster, [LoadBalancer.ImageName, Tower.ImageName, Workspace.ImageName]);
+		new KindService().Load(cluster, [LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName]);
 
 		LogService.Info("Applying SiegeTower Deployments and Services to Kubernetes.");
-		await new KubernetesService(new Kubernetes(config)).PushAsync(LoadBalancer.ImageName, Tower.ImageName, Workspace.ImageName);
+		await new KubernetesService(new Kubernetes(config)).PushAsync(LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName);
 		LogService.Info("SiegeTower is available at http://localhost:5006/ when the Kind host port mapping is configured.");
 	}
 

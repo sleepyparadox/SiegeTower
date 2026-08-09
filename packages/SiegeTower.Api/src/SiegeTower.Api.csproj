@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BaseOutputPath>../bin/</BaseOutputPath>
+    <PublishDir>../dist/</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../SiegeTower.Data/src/SiegeTower.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="KubernetesClient" Version="19.0.2" />
+  </ItemGroup>
+
+  <Target Name="PublishAfterBuild" AfterTargets="Build" Condition="'$(PublishAfterBuild)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish" Properties="PublishAfterBuild=true" />
+  </Target>
+</Project>

@@ -8,28 +8,40 @@ public sealed class KubernetesService(IKubernetes client)
 {
 	public async Task PushAsync(
 		string loadBalancerImage,
-		string towerImage,
+		string apiImage,
 		string workspaceImage,
 		string @namespace = "siegetower")
 	{
 		await EnsureNamespaceAsync(@namespace);
-		await RemoveLegacyServiceAsync(@namespace);
+		await EnsureNamespaceAsync("siegetower-workspace");
+		await EnsureApiServiceAccountAsync(@namespace);
+		await RemoveLegacyApplicationsAsync(@namespace);
 
 		await ApplyApplicationAsync("st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
-		await ApplyApplicationAsync("st-tower", towerImage, @namespace);
-		await ApplyApplicationAsync("st-workspace-1", workspaceImage, @namespace);
-		await ApplyApplicationAsync("st-workspace-2", workspaceImage, @namespace);
+		await ApplyApplicationAsync("st-api", apiImage, @namespace);
 	}
 
-	private async Task RemoveLegacyServiceAsync(string @namespace)
+	private async Task RemoveLegacyApplicationsAsync(string @namespace)
 	{
-		try
+		foreach (var name in new[] { "st-tower", "st-workspace-1", "st-workspace-2", "test-nginx" })
 		{
-			await client.CoreV1.DeleteNamespacedServiceAsync("test-nginx", @namespace);
-			LogService.Info("Removed legacy test-nginx Service.");
-		}
-		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
-		{
+			try
+			{
+				await client.AppsV1.DeleteNamespacedDeploymentAsync(name, @namespace);
+				LogService.Info($"Removed legacy {name} Deployment.");
+			}
+			catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+			}
+
+			try
+			{
+				await client.CoreV1.DeleteNamespacedServiceAsync(name, @namespace);
+				LogService.Info($"Removed legacy {name} Service.");
+			}
+			catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+			}
 		}
 	}
 
@@ -55,6 +67,7 @@ public sealed class KubernetesService(IKubernetes client)
 					},
 					Spec = new V1PodSpec
 					{
+						ServiceAccountName = name == "st-api" ? "st-api" : null,
 						Containers =
 						[
 							new V1Container
@@ -106,6 +119,64 @@ public sealed class KubernetesService(IKubernetes client)
 		}
 
 		LogService.Info($"Applied Deployment and Service '{name}'.");
+	}
+
+	private async Task EnsureApiServiceAccountAsync(string @namespace)
+	{
+		const string serviceAccountName = "st-api";
+
+		var serviceAccount = new V1ServiceAccount
+		{
+			Metadata = new V1ObjectMeta
+			{
+				Name = serviceAccountName,
+				NamespaceProperty = @namespace
+			}
+		};
+
+		try
+		{
+			var existing = await client.CoreV1.ReadNamespacedServiceAccountAsync(serviceAccountName, @namespace);
+			serviceAccount.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			await client.CoreV1.ReplaceNamespacedServiceAccountAsync(serviceAccount, serviceAccountName, @namespace);
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.CoreV1.CreateNamespacedServiceAccountAsync(serviceAccount, @namespace);
+		}
+
+		var binding = new V1ClusterRoleBinding
+		{
+			Metadata = new V1ObjectMeta { Name = serviceAccountName },
+			RoleRef = new V1RoleRef
+			{
+				ApiGroup = "rbac.authorization.k8s.io",
+				Kind = "ClusterRole",
+				Name = "edit"
+			},
+			Subjects =
+			[
+				new Rbacv1Subject
+				{
+					Kind = "ServiceAccount",
+					Name = serviceAccountName,
+					NamespaceProperty = @namespace
+				}
+			]
+		};
+
+		try
+		{
+			var existing = await client.RbacAuthorizationV1.ReadClusterRoleBindingAsync(serviceAccountName);
+			binding.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			await client.RbacAuthorizationV1.ReplaceClusterRoleBindingAsync(binding, serviceAccountName);
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.RbacAuthorizationV1.CreateClusterRoleBindingAsync(binding);
+		}
+
+		LogService.Info($"Applied ServiceAccount and cluster edit binding '{serviceAccountName}'.");
 	}
 
 	private async Task WaitForDeploymentAsync(string name, string @namespace)

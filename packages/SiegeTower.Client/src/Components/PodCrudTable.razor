@@ -1,0 +1,104 @@
+@using SiegeTower.Data
+@inherits CrudTable
+
+<section class="crud-table">
+    @if (IsLoading)
+    {
+        <div class="crud-loading" role="status">Loading...</div>
+    }
+
+    <div class="table-wrap">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Namespace</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pod in pods)
+            {
+                <tr>
+                    <td>@pod.Name</td>
+                    <td>@pod.Namespace</td>
+                    <td class="row-actions">
+                        <a class="table-action" href="@GetWorkspaceUrl(pod)" target="_blank" rel="noopener">View</a>
+                        <button class="table-action danger" type="button" @onclick="() => DeletePodAsync(pod.Name)" disabled="@(deletingPodName is not null)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+
+    <div class="pod-create-panel">
+        <label for="pod-name">Create pod</label>
+        <input id="pod-name" @bind="podName" placeholder="st-workspace-x" />
+        <button class="refresh-button" type="button" @onclick="CreatePodAsync" disabled="@IsCreating">
+            @(IsCreating ? "Creating..." : "Create")
+        </button>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public SessionContext SessionContext { get; set; } = null!;
+
+    private IReadOnlyList<Pod> pods = [];
+    private string podName = "st-workspace-x";
+    private bool IsCreating;
+    private string? deletingPodName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    protected override async Task RefreshPressedAsync()
+    {
+        pods = await APIService.Get<Pod>(SessionContext);
+    }
+
+    private async Task CreatePodAsync()
+    {
+        if (string.IsNullOrWhiteSpace(podName))
+        {
+            return;
+        }
+
+        IsCreating = true;
+        try
+        {
+            await APIService.CreatePod(SessionContext, podName.Trim());
+            await RefreshAsync();
+        }
+        finally
+        {
+            IsCreating = false;
+        }
+    }
+
+    private async Task DeletePodAsync(string name)
+    {
+        deletingPodName = name;
+        try
+        {
+            await APIService.DeleteWorkspace(SessionContext, name);
+            await RefreshAsync();
+        }
+        finally
+        {
+            deletingPodName = null;
+        }
+    }
+
+    private static string GetWorkspaceUrl(Pod pod)
+    {
+        const string prefix = "st-workspace-";
+        var id = pod.Name.StartsWith(prefix, StringComparison.Ordinal)
+            ? pod.Name[prefix.Length..]
+            : pod.Name;
+        return $"/workspace/{Uri.EscapeDataString(id)}/api";
+    }
+}

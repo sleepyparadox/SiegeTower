@@ -1,5 +1,17 @@
 [
 	{
+		"Version": "0.1.0",
+		"Description": "K8s External Admin",
+		"Date": "2026-08-08T02:24:06.9182526Z",
+		"Author": "sleepyparadox@gmail.com",
+		"RepairReleases": [],
+		"DuplicatedReleases": [],
+		"MajorVersion": 0,
+		"MinorVersion": 1,
+		"PatchVersion": 0,
+		"IsReleaseCandidate": false
+	},
+	{
 		"Version": "0.0.0",
 		"Description": "Init",
 		"Date": "2026-07-31",
