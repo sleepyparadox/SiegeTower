@@ -6,7 +6,7 @@ namespace SiegeTower.Client;
 
 public sealed class OllamaService(HttpClient httpClient)
 {
-	private const string OllamaBasePath = "ollama/api";
+	private const string OllamaBasePath = "/ollama/api";
 	private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
 	public async Task<IReadOnlyList<OllamaModel>> ListModelsAsync(CancellationToken cancellationToken = default)
