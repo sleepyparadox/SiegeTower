@@ -1,0 +1,14 @@
+[
+	{
+		"Version": "0.RELEASE_CANDIDATE",
+		"Description": "Ollama workspaces",
+		"Date": "2026-08-09T06:21:29.5605138Z",
+		"Author": "sleepyparadox@gmail.com",
+		"RepairReleases": [],
+		"DuplicatedReleases": [],
+		"MajorVersion": 0,
+		"MinorVersion": 4294967295,
+		"PatchVersion": 4294967295,
+		"IsReleaseCandidate": true
+	}
+]
