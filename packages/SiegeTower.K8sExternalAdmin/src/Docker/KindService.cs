@@ -2,9 +2,9 @@ using System.Text.Json;
 
 namespace SiegeTower.K8sExternalAdmin.Docker;
 
-public sealed class KindService
+public static class KindService
 {
-	public void Load(string cluster, string[] tags)
+	public static void Load(string cluster, string[] tags)
 	{
 		if (string.IsNullOrWhiteSpace(cluster))
 		{
@@ -29,7 +29,7 @@ public sealed class KindService
 		}
 	}
 
-	private static bool IsAlreadyLoaded(string cluster, string tag)
+	static bool IsAlreadyLoaded(string cluster, string tag)
 	{
 		try
 		{
@@ -66,7 +66,7 @@ public sealed class KindService
 		return false;
 	}
 
-	private static string? GetLocalBuildHash(string tag)
+	static string? GetLocalBuildHash(string tag)
 	{
 		var result = CommandRunner.RunAndCapture(
 			"docker",
@@ -74,7 +74,7 @@ public sealed class KindService
 		return result is "" or "<no value>" ? null : result;
 	}
 
-	private static string NormalizeTag(string tag)
+	static string NormalizeTag(string tag)
 	{
 		if (tag.Contains('/', StringComparison.Ordinal))
 		{

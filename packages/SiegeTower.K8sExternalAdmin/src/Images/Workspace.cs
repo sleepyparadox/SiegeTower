@@ -8,9 +8,9 @@ public static class Workspace
 {
 	public const string ImageName = "st-workspace";
 
-	public static void Build(DockerService docker)
+	public static void Build()
 	{
-		docker.Build(
+		DockerService.Build(
 		[
 			new From("nginx"),
 			new Run(WriteFile("/etc/nginx/conf.d/default.conf", Configuration))
@@ -18,7 +18,7 @@ public static class Workspace
 		[ImageName]);
 	}
 
-	private static string WriteFile(string path, string contents)
+	static string WriteFile(string path, string contents)
 	{
 		var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(contents));
 		return $"printf '%s' '{encoded}' | base64 -d > {path}";

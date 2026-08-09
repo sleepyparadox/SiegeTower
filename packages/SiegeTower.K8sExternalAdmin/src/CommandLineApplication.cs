@@ -44,17 +44,16 @@ public sealed class CommandLineApplication
 		}
 	}
 
-	private static async Task PushAsync()
+	static async Task PushAsync()
 	{
-		var docker = new DockerService();
 		LogService.Info($"Building Docker image '{LoadBalancer.ImageName}'.");
-		LoadBalancer.Build(docker);
+		LoadBalancer.Build();
 		LogService.Info($"Building Docker image '{Api.ImageName}'.");
-		Api.Build(docker);
+		Api.Build();
 		LogService.Info($"Building Docker image '{Workspace.ImageName}'.");
-		Workspace.Build(docker);
+		Workspace.Build();
 		LogService.Info($"Building Docker image '{Ollama.ImageName}'.");
-		Ollama.Build(docker);
+		Ollama.Build();
 
 		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
 		if (!config.CurrentContext.StartsWith("kind-", StringComparison.Ordinal))
@@ -64,21 +63,21 @@ public sealed class CommandLineApplication
 
 		var cluster = config.CurrentContext["kind-".Length..];
 		LogService.Info($"Loading SiegeTower images into Kind cluster '{cluster}'.");
-		new KindService().Load(cluster, [LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName]);
+		KindService.Load(cluster, [LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName]);
 
 		LogService.Info("Applying SiegeTower Deployments and Services to Kubernetes.");
-		await new KubernetesService(new Kubernetes(config)).PushAsync(LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName);
+		await KubernetesService.PushAsync(new Kubernetes(config), LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName);
 		LogService.Info("SiegeTower is available at http://localhost:5006/ when the Kind host port mapping is configured.");
 	}
 
-	private static void PrintCurrentContext()
+	static void PrintCurrentContext()
 	{
 		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
 		Console.WriteLine(config.CurrentContext);
 		LogService.Info($"Current Kubernetes context: {config.CurrentContext}");
 	}
 
-	private static async Task GetAsync(string resource)
+	static async Task GetAsync(string resource)
 	{
 		LogService.Info($"Listing Kubernetes resource '{resource}'.");
 		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
@@ -100,7 +99,7 @@ public sealed class CommandLineApplication
 		}
 	}
 
-	private static async Task LogsAsync(string pod, string @namespace = "siegetower")
+	static async Task LogsAsync(string pod, string @namespace = "siegetower")
 	{
 		if (string.IsNullOrWhiteSpace(pod))
 		{
@@ -117,7 +116,7 @@ public sealed class CommandLineApplication
 		Console.Write(await reader.ReadToEndAsync());
 	}
 
-	private static void PrintUsage()
+	static void PrintUsage()
 	{
 		Console.Error.WriteLine("Usage: siegetower-k8s-external-admin push");
 		Console.Error.WriteLine("       siegetower-k8s-external-admin config current-context");

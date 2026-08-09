@@ -8,11 +8,11 @@ public static class LoadBalancer
 {
 	public const string ImageName = "st-load-balancer";
 
-	public static void Build(DockerService docker)
+	public static void Build()
 	{
 		var clientDist = Path.Combine(FindRepositoryRoot(), "packages", "SiegeTower.Client", "dist", "wwwroot");
 
-		docker.Build(
+		DockerService.Build(
 		[
 			new From("nginx"),
 			new Run("mkdir -p /var/siegetower"),
@@ -27,7 +27,7 @@ public static class LoadBalancer
 		});
 	}
 
-	private static string FindRepositoryRoot()
+	static string FindRepositoryRoot()
 	{
 		var directory = new DirectoryInfo(AppContext.BaseDirectory);
 		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "siegetrain.packages.json")))
@@ -38,7 +38,7 @@ public static class LoadBalancer
 		return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the SiegeTower repository root.");
 	}
 
-	private static string CreateWriteFileCommand(string path, string contents)
+	static string CreateWriteFileCommand(string path, string contents)
 	{
 		var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(contents));
 		return $"printf '%s' '{encoded}' | base64 -d > {path}";

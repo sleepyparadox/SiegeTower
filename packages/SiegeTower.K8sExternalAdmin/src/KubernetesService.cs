@@ -4,26 +4,27 @@ using k8s.Models;
 
 namespace SiegeTower.K8sExternalAdmin;
 
-public sealed class KubernetesService(IKubernetes client)
+public static class KubernetesService
 {
-	public async Task PushAsync(
+	public static async Task PushAsync(
+		IKubernetes client,
 		string loadBalancerImage,
 		string apiImage,
 		string workspaceImage,
 		string ollamaImage,
 		string @namespace = "siegetower")
 	{
-		await EnsureNamespaceAsync(@namespace);
-		await EnsureNamespaceAsync("siegetower-workspace");
-		await EnsureApiServiceAccountAsync(@namespace);
-		await RemoveLegacyApplicationsAsync(@namespace);
+		await EnsureNamespaceAsync(client, @namespace);
+		await EnsureNamespaceAsync(client, "siegetower-workspace");
+		await EnsureApiServiceAccountAsync(client, @namespace);
+		await RemoveLegacyApplicationsAsync(client, @namespace);
 
-		await ApplyApplicationAsync("st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
-		await ApplyApplicationAsync("st-api", apiImage, @namespace);
-		await ApplyApplicationAsync("st-ollama", ollamaImage, @namespace, port: 11434, persistOllamaModels: true);
+		await ApplyApplicationAsync(client, "st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
+		await ApplyApplicationAsync(client, "st-api", apiImage, @namespace);
+		await ApplyApplicationAsync(client, "st-ollama", ollamaImage, @namespace, port: 11434, persistOllamaModels: true);
 	}
 
-	private async Task RemoveLegacyApplicationsAsync(string @namespace)
+	static async Task RemoveLegacyApplicationsAsync(IKubernetes client, string @namespace)
 	{
 		foreach (var name in new[] { "st-tower", "st-workspace-1", "st-workspace-2", "test-nginx" })
 		{
@@ -47,7 +48,7 @@ public sealed class KubernetesService(IKubernetes client)
 		}
 	}
 
-	private async Task ApplyApplicationAsync(string name, string image, string @namespace, int port = 80, int? nodePort = null, bool persistOllamaModels = false)
+	static async Task ApplyApplicationAsync(IKubernetes client, string name, string image, string @namespace, int port = 80, int? nodePort = null, bool persistOllamaModels = false)
 	{
 		var labels = new Dictionary<string, string> { ["app"] = name };
 		var deployment = new V1Deployment
@@ -106,7 +107,7 @@ public sealed class KubernetesService(IKubernetes client)
 			await client.AppsV1.CreateNamespacedDeploymentAsync(deployment, @namespace);
 		}
 
-		await WaitForDeploymentAsync(name, @namespace);
+		await WaitForDeploymentAsync(client, name, @namespace);
 
 		var service = new V1Service
 		{
@@ -133,7 +134,7 @@ public sealed class KubernetesService(IKubernetes client)
 		LogService.Info($"Applied Deployment and Service '{name}'.");
 	}
 
-	private async Task EnsureApiServiceAccountAsync(string @namespace)
+	static async Task EnsureApiServiceAccountAsync(IKubernetes client, string @namespace)
 	{
 		const string serviceAccountName = "st-api";
 
@@ -191,7 +192,7 @@ public sealed class KubernetesService(IKubernetes client)
 		LogService.Info($"Applied ServiceAccount and cluster edit binding '{serviceAccountName}'.");
 	}
 
-	private async Task WaitForDeploymentAsync(string name, string @namespace)
+	static async Task WaitForDeploymentAsync(IKubernetes client, string name, string @namespace)
 	{
 		LogService.Info($"Waiting for Deployment '{name}' to become ready.");
 
@@ -211,7 +212,7 @@ public sealed class KubernetesService(IKubernetes client)
 		throw new TimeoutException($"Deployment '{name}' did not become ready within 60 seconds.");
 	}
 
-	private async Task EnsureNamespaceAsync(string @namespace)
+	static async Task EnsureNamespaceAsync(IKubernetes client, string @namespace)
 	{
 		try
 		{

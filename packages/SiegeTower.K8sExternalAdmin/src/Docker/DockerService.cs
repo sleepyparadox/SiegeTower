@@ -4,11 +4,11 @@ using SiegeTower.K8sExternalAdmin.Docker.DockerFileOperation;
 
 namespace SiegeTower.K8sExternalAdmin.Docker;
 
-public sealed class DockerService
+public static class DockerService
 {
 	private const string BuildHashLabel = "siegetower.build-hash";
 
-	public void Build(IDockerFileOperation[] operations, string[] tags, IReadOnlyDictionary<string, string>? contextDirectories = null)
+	public static void Build(IDockerFileOperation[] operations, string[] tags, IReadOnlyDictionary<string, string>? contextDirectories = null)
 	{
 		if (tags.Length == 0)
 		{
@@ -54,7 +54,7 @@ public sealed class DockerService
 		}
 	}
 
-	private static string? GetBuildHash(string tag)
+	static string? GetBuildHash(string tag)
 	{
 		try
 		{
@@ -72,7 +72,7 @@ public sealed class DockerService
 		}
 	}
 
-	private static string CalculateBuildHash(IDockerFileOperation[] operations, IReadOnlyDictionary<string, string>? contextDirectories)
+	static string CalculateBuildHash(IDockerFileOperation[] operations, IReadOnlyDictionary<string, string>? contextDirectories)
 	{
 		using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 		AddText(hash, "operations\n");
@@ -106,12 +106,12 @@ public sealed class DockerService
 		return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
 	}
 
-	private static void AddText(IncrementalHash hash, string value)
+	static void AddText(IncrementalHash hash, string value)
 	{
 		hash.AppendData(Encoding.UTF8.GetBytes(value));
 	}
 
-	private static void CopyDirectory(string source, string destination)
+	static void CopyDirectory(string source, string destination)
 	{
 		if (!Directory.Exists(source))
 		{

@@ -10,7 +10,7 @@ public static class Ollama
 	private const string DownloadUrl = "https://ollama.com/download/ollama-linux-amd64.tar.zst";
 	private const string ArchiveName = "ollama-linux-amd64.tar.zst";
 
-	public static void Build(DockerService docker)
+	public static void Build()
 	{
 		var repositoryRoot = FindRepositoryRoot();
 		var downloadDirectory = Path.Combine(repositoryRoot, "packages", "SiegeTower.K8sExternalAdmin", "download");
@@ -28,7 +28,7 @@ public static class Ollama
 			source.CopyTo(destination);
 		}
 
-		docker.Build(
+		DockerService.Build(
 		[
 			new From("ubuntu:24.04"),
 			new Copy(ArchiveName, $"/tmp/{ArchiveName}"),
@@ -43,7 +43,7 @@ public static class Ollama
 		});
 	}
 
-	private static string FindRepositoryRoot()
+	static string FindRepositoryRoot()
 	{
 		var directory = new DirectoryInfo(AppContext.BaseDirectory);
 		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "siegetrain.packages.json")))

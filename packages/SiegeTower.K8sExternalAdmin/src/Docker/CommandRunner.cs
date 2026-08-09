@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace SiegeTower.K8sExternalAdmin.Docker;
 
-internal static class CommandRunner
+public static class CommandRunner
 {
 	public static void Run(string command, IEnumerable<string> arguments)
 	{
@@ -14,7 +14,7 @@ internal static class CommandRunner
 		return Run(command, arguments, captureOutput: true);
 	}
 
-	private static string Run(string command, IEnumerable<string> arguments, bool captureOutput)
+	static string Run(string command, IEnumerable<string> arguments, bool captureOutput)
 	{
 		var argumentList = arguments.ToArray();
 		LogService.Info($"Running '{command} {string.Join(' ', argumentList)}'.");
