@@ -159,6 +159,55 @@ a, .btn-link {
     font-size: 1.05rem;
 }
 
+.row-actions {
+    display: flex;
+    gap: .5rem;
+}
+
+.table-action {
+    background: #e8efe2;
+    border: 0;
+    color: #294336;
+    cursor: pointer;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: .75rem;
+    padding: .45rem .7rem;
+    text-decoration: none;
+}
+
+.table-action.danger {
+    background: #f3e3df;
+    color: #8c392e;
+}
+
+.table-action:disabled {
+    cursor: wait;
+    opacity: .55;
+}
+
+.pod-create-panel {
+    align-items: center;
+    border-top: 1px solid #e5eae4;
+    display: flex;
+    gap: .75rem;
+    padding: 1rem;
+}
+
+.pod-create-panel label {
+    color: #587061;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-right: auto;
+}
+
+.pod-create-panel input {
+    border: 1px solid #cbd5ca;
+    font: inherit;
+    padding: .55rem .7rem;
+    width: 13rem;
+}
+
 @media (max-width: 640px) {
     .dashboard-shell {
         display: block;
@@ -177,6 +226,15 @@ a, .btn-link {
         flex-direction: column;
         gap: 1rem;
         padding-top: 2rem;
+    }
+
+    .pod-create-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .pod-create-panel input {
+        width: auto;
     }
 }
 

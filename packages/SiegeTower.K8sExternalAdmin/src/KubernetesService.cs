@@ -13,24 +13,35 @@ public sealed class KubernetesService(IKubernetes client)
 		string @namespace = "siegetower")
 	{
 		await EnsureNamespaceAsync(@namespace);
+		await EnsureNamespaceAsync("siegetower-workspace");
 		await EnsureApiServiceAccountAsync(@namespace);
-		await RemoveLegacyServiceAsync(@namespace);
+		await RemoveLegacyApplicationsAsync(@namespace);
 
 		await ApplyApplicationAsync("st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
 		await ApplyApplicationAsync("st-api", apiImage, @namespace);
-		await ApplyApplicationAsync("st-workspace-1", workspaceImage, @namespace);
-		await ApplyApplicationAsync("st-workspace-2", workspaceImage, @namespace);
 	}
 
-	private async Task RemoveLegacyServiceAsync(string @namespace)
+	private async Task RemoveLegacyApplicationsAsync(string @namespace)
 	{
-		try
+		foreach (var name in new[] { "st-tower", "st-workspace-1", "st-workspace-2", "test-nginx" })
 		{
-			await client.CoreV1.DeleteNamespacedServiceAsync("test-nginx", @namespace);
-			LogService.Info("Removed legacy test-nginx Service.");
-		}
-		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
-		{
+			try
+			{
+				await client.AppsV1.DeleteNamespacedDeploymentAsync(name, @namespace);
+				LogService.Info($"Removed legacy {name} Deployment.");
+			}
+			catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+			}
+
+			try
+			{
+				await client.CoreV1.DeleteNamespacedServiceAsync(name, @namespace);
+				LogService.Info($"Removed legacy {name} Service.");
+			}
+			catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+			}
 		}
 	}
 

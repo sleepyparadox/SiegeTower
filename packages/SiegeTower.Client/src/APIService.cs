@@ -23,6 +23,28 @@ public static class APIService
 			?? [];
 	}
 
+	public static async Task<Pod> CreatePod(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(sessionContext);
+
+		using var httpClient = new HttpClient();
+		var requestUri = BuildRequestUri(sessionContext.ApiBase, "pod");
+		using var response = await httpClient.PostAsJsonAsync(requestUri, new { Name = name }, cancellationToken);
+		response.EnsureSuccessStatusCode();
+		return await response.Content.ReadFromJsonAsync<Pod>(cancellationToken: cancellationToken)
+			?? throw new InvalidOperationException("The API returned an empty Pod response.");
+	}
+
+	public static async Task DeleteWorkspace(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(sessionContext);
+
+		using var httpClient = new HttpClient();
+		var requestUri = BuildRequestUri(sessionContext.ApiBase, $"workspace/{Uri.EscapeDataString(name)}");
+		using var response = await httpClient.DeleteAsync(requestUri, cancellationToken);
+		response.EnsureSuccessStatusCode();
+	}
+
 	private static Uri BuildRequestUri(string apiBase, string route)
 	{
 		if (string.IsNullOrWhiteSpace(apiBase))

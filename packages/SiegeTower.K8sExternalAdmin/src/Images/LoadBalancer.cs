@@ -79,9 +79,9 @@ public static class LoadBalancer
 	        alias /var/log/nginx/error.log;
 	    }
 
-	    location ~ ^/workspace/(?<workspace_id>[0-9]+)(?<workspace_path>/api(?:/.*)?)$ {
+	    location ~ ^/workspace/(?<workspace_id>[a-zA-Z0-9-]+)(?<workspace_path>/api(?:/.*)?)$ {
 	        resolver 10.96.0.10 valid=10s;
-	        proxy_pass http://st-workspace-$workspace_id.siegetower.svc.cluster.local:80$workspace_path$is_args$args;
+	        proxy_pass http://st-workspace-$workspace_id.siegetower-workspace.svc.cluster.local:80$workspace_path$is_args$args;
 	    }
 
 	    location / {
