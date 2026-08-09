@@ -10,6 +10,7 @@ public sealed class KubernetesService(IKubernetes client)
 		string loadBalancerImage,
 		string apiImage,
 		string workspaceImage,
+		string ollamaImage,
 		string @namespace = "siegetower")
 	{
 		await EnsureNamespaceAsync(@namespace);
@@ -19,6 +20,7 @@ public sealed class KubernetesService(IKubernetes client)
 
 		await ApplyApplicationAsync("st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
 		await ApplyApplicationAsync("st-api", apiImage, @namespace);
+		await ApplyApplicationAsync("st-ollama", ollamaImage, @namespace, port: 11434, persistOllamaModels: true);
 	}
 
 	private async Task RemoveLegacyApplicationsAsync(string @namespace)
@@ -45,7 +47,7 @@ public sealed class KubernetesService(IKubernetes client)
 		}
 	}
 
-	private async Task ApplyApplicationAsync(string name, string image, string @namespace, int? nodePort = null)
+	private async Task ApplyApplicationAsync(string name, string image, string @namespace, int port = 80, int? nodePort = null, bool persistOllamaModels = false)
 	{
 		var labels = new Dictionary<string, string> { ["app"] = name };
 		var deployment = new V1Deployment
@@ -68,6 +70,13 @@ public sealed class KubernetesService(IKubernetes client)
 					Spec = new V1PodSpec
 					{
 						ServiceAccountName = name == "st-api" ? "st-api" : null,
+						Volumes = persistOllamaModels
+							? [new V1Volume
+							{
+								Name = "ollama-models",
+								HostPath = new V1HostPathVolumeSource { Path = "/var/lib/siegetower/ollama-models", Type = "DirectoryOrCreate" }
+							}]
+							: null,
 						Containers =
 						[
 							new V1Container
@@ -75,7 +84,10 @@ public sealed class KubernetesService(IKubernetes client)
 								Name = name,
 								Image = image,
 								ImagePullPolicy = "Never",
-								Ports = [new V1ContainerPort { ContainerPort = 80 }]
+								Ports = [new V1ContainerPort { ContainerPort = port }],
+								VolumeMounts = persistOllamaModels
+									? [new V1VolumeMount { Name = "ollama-models", MountPath = "/root/.ollama" }]
+									: null
 							}
 						]
 					}
@@ -103,7 +115,7 @@ public sealed class KubernetesService(IKubernetes client)
 			{
 				Type = nodePort.HasValue ? "NodePort" : "ClusterIP",
 				Selector = labels,
-				Ports = [new V1ServicePort { Name = "http", Port = 80, TargetPort = 80, NodePort = nodePort }]
+				Ports = [new V1ServicePort { Name = "http", Port = port, TargetPort = port, NodePort = nodePort }]
 			}
 		};
 

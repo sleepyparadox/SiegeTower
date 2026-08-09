@@ -28,6 +28,12 @@ public sealed class CommandLineApplication
 				return 0;
 			}
 
+			if (args is ["logs", var pod])
+			{
+				await LogsAsync(pod);
+				return 0;
+			}
+
 			PrintUsage();
 			return 1;
 		}
@@ -47,6 +53,8 @@ public sealed class CommandLineApplication
 		Api.Build(docker);
 		LogService.Info($"Building Docker image '{Workspace.ImageName}'.");
 		Workspace.Build(docker);
+		LogService.Info($"Building Docker image '{Ollama.ImageName}'.");
+		Ollama.Build(docker);
 
 		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
 		if (!config.CurrentContext.StartsWith("kind-", StringComparison.Ordinal))
@@ -56,10 +64,10 @@ public sealed class CommandLineApplication
 
 		var cluster = config.CurrentContext["kind-".Length..];
 		LogService.Info($"Loading SiegeTower images into Kind cluster '{cluster}'.");
-		new KindService().Load(cluster, [LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName]);
+		new KindService().Load(cluster, [LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName]);
 
 		LogService.Info("Applying SiegeTower Deployments and Services to Kubernetes.");
-		await new KubernetesService(new Kubernetes(config)).PushAsync(LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName);
+		await new KubernetesService(new Kubernetes(config)).PushAsync(LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName);
 		LogService.Info("SiegeTower is available at http://localhost:5006/ when the Kind host port mapping is configured.");
 	}
 
@@ -92,10 +100,28 @@ public sealed class CommandLineApplication
 		}
 	}
 
+	private static async Task LogsAsync(string pod, string @namespace = "siegetower")
+	{
+		if (string.IsNullOrWhiteSpace(pod))
+		{
+			throw new ArgumentException("A pod name is required.", nameof(pod));
+		}
+
+		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
+		var client = new Kubernetes(config);
+		await using var logStream = await client.CoreV1.ReadNamespacedPodLogAsync(
+			name: pod,
+			namespaceParameter: @namespace,
+			follow: false);
+		using var reader = new StreamReader(logStream);
+		Console.Write(await reader.ReadToEndAsync());
+	}
+
 	private static void PrintUsage()
 	{
 		Console.Error.WriteLine("Usage: siegetower-k8s-external-admin push");
 		Console.Error.WriteLine("       siegetower-k8s-external-admin config current-context");
 		Console.Error.WriteLine("       siegetower-k8s-external-admin get <pods|services|deployments|namespaces>");
+		Console.Error.WriteLine("       siegetower-k8s-external-admin logs <pod>");
 	}
 }

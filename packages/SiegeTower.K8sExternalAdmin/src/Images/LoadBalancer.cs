@@ -67,6 +67,14 @@ public static class LoadBalancer
 		        proxy_pass http://st-api:80;
 	    }
 
+	    location = /ollama {
+		        proxy_pass http://st-ollama:11434/;
+	    }
+
+	    location /ollama/ {
+		        proxy_pass http://st-ollama:11434/;
+	    }
+
 	    # DEBUG ONLY: expose the nginx access log temporarily.
 	    location = /log/nginx/access.log {
 	        default_type text/plain;

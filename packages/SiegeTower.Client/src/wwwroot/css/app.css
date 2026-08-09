@@ -208,6 +208,79 @@ a, .btn-link {
     width: 13rem;
 }
 
+.ollama-panel {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 62rem;
+}
+
+.ollama-toolbar {
+    align-items: end;
+    display: flex;
+    justify-content: space-between;
+}
+
+.ollama-toolbar h2 {
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin: .35rem 0 0;
+}
+
+.ollama-models, .ollama-chat {
+    background: #fff;
+    border: 1px solid #dce2da;
+    box-shadow: 0 1rem 2.5rem rgba(36, 52, 42, .06);
+}
+
+.ollama-section-heading {
+    align-items: center;
+    border-bottom: 1px solid #e5eae4;
+    color: #294336;
+    display: flex;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    justify-content: space-between;
+    letter-spacing: .1em;
+    padding: 1rem;
+    text-transform: uppercase;
+}
+
+.model-count {
+    background: #e8efe2;
+    border-radius: 999px;
+    padding: .2rem .5rem;
+}
+
+.ollama-table th:last-child, .ollama-table td:last-child { text-align: right; }
+.table-action-cell { white-space: nowrap; }
+
+.ollama-empty, .ollama-message {
+    color: #587061;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: .82rem;
+    padding: 1rem;
+}
+
+.ollama-message { background: #e8efe2; }
+.error-message { background: #f3e3df; color: #8c392e; }
+
+.ollama-chat { padding-bottom: 1rem; }
+.ollama-label { color: #587061; display: block; font-size: .8rem; margin: 1rem 1rem .35rem; }
+.ollama-chat select { border: 1px solid #cbd5ca; font: inherit; margin: 0 1rem 1rem; padding: .55rem .7rem; width: calc(100% - 2rem); }
+
+.chat-transcript { border-top: 1px solid #e5eae4; max-height: 28rem; overflow-y: auto; padding: 1rem; }
+.chat-message { border-left: 3px solid #d8eb66; margin-bottom: 1rem; padding-left: .8rem; }
+.chat-message.user { border-left-color: #8ca997; }
+.chat-role { color: #587061; font-family: 'Trebuchet MS', sans-serif; font-size: .7rem; font-weight: 700; text-transform: uppercase; }
+.chat-message p { margin: .3rem 0 0; white-space: pre-wrap; }
+.chat-compose { align-items: end; display: flex; gap: .75rem; padding: 0 1rem; }
+.chat-compose textarea { border: 1px solid #cbd5ca; box-sizing: border-box; flex: 1; font: inherit; min-height: 5rem; padding: .7rem; resize: vertical; }
+
+@media (max-width: 640px) {
+    .ollama-toolbar, .chat-compose { align-items: stretch; flex-direction: column; }
+}
+
 @media (max-width: 640px) {
     .dashboard-shell {
         display: block;

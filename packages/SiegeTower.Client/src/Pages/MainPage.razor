@@ -7,11 +7,14 @@
     <aside class="dashboard-sidebar">
         <div class="brand-mark">SiegeTower</div>
         <div class="sidebar-label">Explore</div>
-        <button class="sidebar-option @(showWorkspaces ? "selected" : "")" type="button" @onclick="ShowWorkspaces">
+        <button class="sidebar-option @(activeTab == DashboardTab.Workspaces ? "selected" : "")" type="button" @onclick="ShowWorkspaces">
             <span>Workspaces</span>
         </button>
-        <button class="sidebar-option @(!showWorkspaces ? "selected" : "")" type="button" @onclick="ShowPods">
+        <button class="sidebar-option @(activeTab == DashboardTab.Pods ? "selected" : "")" type="button" @onclick="ShowPods">
             <span>Pods</span>
+        </button>
+        <button class="sidebar-option @(activeTab == DashboardTab.Ollama ? "selected" : "")" type="button" @onclick="ShowOllama">
+            <span>Ollama</span>
         </button>
     </aside>
 
@@ -19,7 +22,7 @@
         <header class="dashboard-header">
             <div>
                 <div class="eyebrow">Control plane</div>
-                <h1>@(showWorkspaces ? "Workspaces" : "Pods")</h1>
+                <h1>@activeTab</h1>
             </div>
             <button class="refresh-button" type="button" @onclick="RefreshCurrentTable" disabled="@IsRefreshing">
                 @(IsRefreshing ? "Loading..." : "Refresh")
@@ -27,13 +30,17 @@
         </header>
 
         <div class="dashboard-content">
-            @if (showWorkspaces)
+            @if (activeTab == DashboardTab.Workspaces)
             {
                 <WorkspaceCrudTable @ref="workspaceTable" SessionContext="sessionContext" />
             }
-            else
+            else if (activeTab == DashboardTab.Pods)
             {
                 <PodCrudTable @ref="podTable" SessionContext="sessionContext" />
+            }
+            else
+            {
+                <OllamaPanel />
             }
         </div>
     </main>
@@ -41,7 +48,7 @@
 
 @code {
     private readonly SessionContext sessionContext = new() { ApiBase = "localhost:5006/api" };
-    private bool showWorkspaces = true;
+    private DashboardTab activeTab = DashboardTab.Workspaces;
     private bool IsRefreshing;
     private WorkspaceCrudTable? workspaceTable;
     private PodCrudTable? podTable;
@@ -51,11 +58,11 @@
         IsRefreshing = true;
         try
         {
-            if (showWorkspaces && workspaceTable is not null)
+            if (activeTab == DashboardTab.Workspaces && workspaceTable is not null)
             {
                 await workspaceTable.RefreshAsync();
             }
-            else if (!showWorkspaces && podTable is not null)
+            else if (activeTab == DashboardTab.Pods && podTable is not null)
             {
                 await podTable.RefreshAsync();
             }
@@ -68,11 +75,18 @@
 
     private void ShowWorkspaces()
     {
-        showWorkspaces = true;
+        activeTab = DashboardTab.Workspaces;
     }
 
     private void ShowPods()
     {
-        showWorkspaces = false;
+        activeTab = DashboardTab.Pods;
     }
+
+    private void ShowOllama()
+    {
+        activeTab = DashboardTab.Ollama;
+    }
+
+    private enum DashboardTab { Workspaces, Pods, Ollama }
 }

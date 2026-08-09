@@ -1,0 +1,255 @@
+@using System.Globalization
+@inject OllamaService OllamaApi
+
+<section class="ollama-panel">
+    <div class="ollama-toolbar">
+        <div>
+            <div class="eyebrow">Local model runtime</div>
+            <h2>Ollama models</h2>
+        </div>
+        <button class="refresh-button" type="button" @onclick="() => RefreshAsync()" disabled="@IsBusy">Refresh</button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="ollama-message error-message">@ErrorMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+    {
+        <div class="ollama-message">@StatusMessage</div>
+    }
+
+    <div class="ollama-models">
+        <div class="ollama-section-heading">Supported models</div>
+        <div class="table-wrap">
+            <table class="data-table ollama-table">
+                <thead>
+                    <tr><th>Model</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var supportedModel in SupportedModels)
+                    {
+                        var installedModel = FindModel(supportedModel);
+                        <tr>
+                            <td><strong>@supportedModel</strong></td>
+                            <td>@(installedModel is null ? "Not installed" : FormatSize(installedModel.Size))</td>
+                            <td class="table-action-cell">
+                                @if (installedModel is null)
+                                {
+                                    <button class="table-action" type="button" @onclick="() => DownloadAsync(supportedModel)" disabled="@IsBusy">Download</button>
+                                }
+                                else
+                                {
+                                    <button class="table-action danger" type="button" @onclick="() => DeleteAsync(installedModel.Name)" disabled="@IsBusy">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (OtherModels.Count > 0)
+    {
+        <div class="ollama-models">
+            <div class="ollama-section-heading">Other installed models</div>
+            <div class="table-wrap">
+                <table class="data-table ollama-table">
+                    <thead><tr><th>Model</th><th>Size</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var model in OtherModels)
+                        {
+                            <tr>
+                                <td><strong>@model.Name</strong></td>
+                                <td>@FormatSize(model.Size)</td>
+                                <td class="table-action-cell"><button class="table-action danger" type="button" @onclick="() => DeleteAsync(model.Name)" disabled="@IsBusy">Delete</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <div class="ollama-chat">
+        <div class="ollama-section-heading">Chat</div>
+        <label class="ollama-label" for="ollama-model">Model</label>
+        <select id="ollama-model" @bind="selectedModel" disabled="@IsBusy">
+            @foreach (var model in models)
+            {
+                <option value="@model.Name">@model.Name</option>
+            }
+        </select>
+        <div class="chat-transcript" aria-live="polite">
+            @if (messages.Count == 0)
+            {
+                <div class="ollama-empty">Ask a question to start a conversation.</div>
+            }
+            @foreach (var message in messages)
+            {
+                <div class="chat-message @message.Role">
+                    <span class="chat-role">@(message.Role == "user" ? "You" : "Ollama")</span>
+                    <p>@message.Content</p>
+                </div>
+            }
+        </div>
+        <div class="chat-compose">
+            <textarea @bind="prompt" placeholder="Ask Ollama something..." disabled="@IsBusy"></textarea>
+            <button class="refresh-button" type="button" @onclick="SendAsync" disabled="@(IsBusy || string.IsNullOrWhiteSpace(prompt) || string.IsNullOrWhiteSpace(selectedModel))">Send</button>
+        </div>
+    </div>
+</section>
+
+@code {
+    private static readonly string[] SupportedModels = ["qwen3.5:2b"];
+    private readonly List<OllamaModel> models = [];
+    private readonly List<ChatLine> messages = [];
+    private string selectedModel = string.Empty;
+    private string prompt = string.Empty;
+    private string? StatusMessage;
+    private string? ErrorMessage;
+    private bool IsBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        IsBusy = true;
+        ErrorMessage = null;
+        try
+        {
+            await LoadModelsAsync();
+            StatusMessage = null;
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task LoadModelsAsync()
+    {
+        models.Clear();
+        models.AddRange(await OllamaApi.ListModelsAsync());
+        selectedModel = models.FirstOrDefault(model => SupportedModels.Contains(model.Name, StringComparer.OrdinalIgnoreCase))?.Name
+            ?? models.FirstOrDefault()?.Name
+            ?? string.Empty;
+    }
+
+    private IReadOnlyList<OllamaModel> OtherModels => models
+        .Where(model => !SupportedModels.Contains(model.Name, StringComparer.OrdinalIgnoreCase))
+        .ToList();
+
+    private OllamaModel? FindModel(string name) => models.FirstOrDefault(model => string.Equals(model.Name, name, StringComparison.OrdinalIgnoreCase));
+
+    private async Task DownloadAsync(string model)
+    {
+        IsBusy = true;
+        ErrorMessage = null;
+        StatusMessage = $"Downloading {model}...";
+        try
+        {
+            await OllamaApi.PullModelAsync(model, status =>
+            {
+                StatusMessage = status;
+                InvokeAsync(StateHasChanged);
+            });
+            await LoadModelsAsync();
+            StatusMessage = $"Downloaded {model}.";
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task DeleteAsync(string model)
+    {
+        IsBusy = true;
+        ErrorMessage = null;
+        try
+        {
+            await OllamaApi.DeleteModelAsync(model);
+            await LoadModelsAsync();
+            StatusMessage = null;
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task SendAsync()
+    {
+        var content = prompt.Trim();
+        if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(selectedModel))
+        {
+            return;
+        }
+
+        prompt = string.Empty;
+        messages.Add(new ChatLine("user", content));
+        var assistant = new ChatLine("assistant", string.Empty);
+        messages.Add(assistant);
+        IsBusy = true;
+        ErrorMessage = null;
+        try
+        {
+            var conversation = messages
+                .Where(message => message.Role is "user" or "assistant")
+                .Where(message => !string.IsNullOrWhiteSpace(message.Content))
+                .Select(message => new OllamaChatMessage(message.Role, message.Content))
+                .ToList();
+            await OllamaApi.ChatAsync(selectedModel, conversation, token =>
+            {
+                assistant.Content += token;
+                InvokeAsync(StateHasChanged);
+            });
+        }
+        catch (Exception exception)
+        {
+            messages.Remove(assistant);
+            ErrorMessage = exception.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private static string FormatSize(long size)
+    {
+        if (size <= 0) return "";
+        var units = new[] { "B", "KB", "MB", "GB", "TB" };
+        var index = 0;
+        var value = (double)size;
+        while (value >= 1024 && index < units.Length - 1)
+        {
+            value /= 1024;
+            index++;
+        }
+        return $"{value.ToString("0.#", CultureInfo.InvariantCulture)} {units[index]}";
+    }
+
+    private sealed class ChatLine(string role, string content)
+    {
+        public string Role { get; } = role;
+        public string Content { get; set; } = content;
+    }
+}
