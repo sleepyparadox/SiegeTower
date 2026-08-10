@@ -18,7 +18,7 @@ public static class DockerService
 		var buildHash = CalculateBuildHash(operations, contextDirectories);
 		if (tags.All(tag => GetBuildHash(tag) == buildHash))
 		{
-			LogService.Info($"Docker image '{string.Join("', '", tags)}' is up to date; skipping rebuild.");
+			LogService.Siege($"Docker image '{string.Join("', '", tags)}' is up to date; skipping rebuild.");
 			return;
 		}
 

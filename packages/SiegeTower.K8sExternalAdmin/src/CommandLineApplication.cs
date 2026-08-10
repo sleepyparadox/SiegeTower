@@ -46,13 +46,13 @@ public sealed class CommandLineApplication
 
 	static async Task PushAsync()
 	{
-		LogService.Info($"Building Docker image '{LoadBalancer.ImageName}'.");
+		LogService.Siege($"Building Docker image '{LoadBalancer.ImageName}'.");
 		LoadBalancer.Build();
-		LogService.Info($"Building Docker image '{Api.ImageName}'.");
+		LogService.Siege($"Building Docker image '{Api.ImageName}'.");
 		Api.Build();
-		LogService.Info($"Building Docker image '{Workspace.ImageName}'.");
+		LogService.Siege($"Building Docker image '{Workspace.ImageName}'.");
 		Workspace.Build();
-		LogService.Info($"Building Docker image '{Ollama.ImageName}'.");
+		LogService.Siege($"Building Docker image '{Ollama.ImageName}'.");
 		Ollama.Build();
 
 		var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
@@ -62,12 +62,12 @@ public sealed class CommandLineApplication
 		}
 
 		var cluster = config.CurrentContext["kind-".Length..];
-		LogService.Info($"Loading SiegeTower images into Kind cluster '{cluster}'.");
+		LogService.Siege($"Loading SiegeTower images into Kind cluster '{cluster}'.");
 		KindService.Load(cluster, [LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName]);
 
-		LogService.Info("Applying SiegeTower Deployments and Services to Kubernetes.");
+		LogService.Siege("Applying SiegeTower Deployments and Services to Kubernetes.");
 		await KubernetesService.PushAsync(new Kubernetes(config), LoadBalancer.ImageName, Api.ImageName, Workspace.ImageName, Ollama.ImageName);
-		LogService.Info("SiegeTower is available at http://localhost:5006/ when the Kind host port mapping is configured.");
+		LogService.Siege("SiegeTower is available at http://localhost:5006/ when the Kind host port mapping is configured.");
 	}
 
 	static void PrintCurrentContext()

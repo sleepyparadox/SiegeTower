@@ -20,7 +20,7 @@ public static class KindService
 		{
 			if (IsAlreadyLoaded(cluster, tag))
 			{
-				LogService.Info($"Docker image '{tag}' with the same build hash is already loaded in Kind cluster '{cluster}'.");
+				LogService.Siege($"Docker image '{tag}' with the same build hash is already loaded in Kind cluster '{cluster}'; skipping load.");
 				continue;
 			}
 
