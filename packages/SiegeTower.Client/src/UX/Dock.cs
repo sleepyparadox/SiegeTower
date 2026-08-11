@@ -1,4 +1,4 @@
-namespace SiegeTower.Client.Screens;
+namespace SiegeTower.Client.UX;
 
 public sealed class Dock
 {

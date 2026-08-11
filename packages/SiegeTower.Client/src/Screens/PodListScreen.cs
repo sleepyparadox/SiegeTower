@@ -1,4 +1,5 @@
 using SiegeTower.Data;
+using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client.Screens;
 
@@ -12,16 +13,20 @@ public sealed class PodListScreen : Screen
 		ArgumentNullException.ThrowIfNull(appService);
 		this.appService = appService;
 		PodListDockContent = new();
-		Left = CreateDock(
-			PodListDockContent,
-			new ColorDockContent { Color = "Red" },
-			new ColorDockContent { Color = "Blue" });
-		Center = CreateDock(
-			new ColorDockContent { Color = "Yellow" },
-			new ColorDockContent { Color = "Green" });
-		Right = CreateDock(
-			new ColorDockContent { Color = "Purple" },
-			new ColorDockContent { Color = "Orange" });
+		DockGrid = new DockGrid(
+			[
+				PodListDockContent,
+				new ColorDockContent { Color = "Red" },
+				new ColorDockContent { Color = "Blue" }
+			],
+			[
+				new ColorDockContent { Color = "Yellow" },
+				new ColorDockContent { Color = "Green" }
+			],
+			[
+				new ColorDockContent { Color = "Purple" },
+				new ColorDockContent { Color = "Orange" }
+			]);
 		appService.SetActiveScreen(this);
 	}
 
@@ -29,11 +34,7 @@ public sealed class PodListScreen : Screen
 
 	public PodListDockContent PodListDockContent { get; }
 
-	public Dock Left { get; }
-
-	public Dock Right { get; }
-
-	public Dock Center { get; }
+	public DockGrid DockGrid { get; }
 
 	public Task LoadAsync(CancellationToken cancellationToken = default)
 	{
@@ -47,14 +48,5 @@ public sealed class PodListScreen : Screen
 		PodListDockContent.Pods = fakeData;
 		appService.Redraw();
 		return Task.CompletedTask;
-	}
-
-	private static Dock CreateDock(params object[] contents)
-	{
-		return new Dock
-		{
-			Contents = contents,
-			ActiveContent = contents[0]
-		};
 	}
 }

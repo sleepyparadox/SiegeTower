@@ -1,0 +1,16 @@
+<div class="pod-list-screen-row">
+    <div class="pod-list-screen-dock pod-list-screen-dock-left">
+        <DockView Dock="DockGrid.Left" />
+    </div>
+    <div class="pod-list-screen-dock pod-list-screen-dock-center">
+        <DockView Dock="DockGrid.Center" />
+    </div>
+    <div class="pod-list-screen-dock pod-list-screen-dock-right">
+        <DockView Dock="DockGrid.Right" />
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public DockGrid DockGrid { get; set; } = null!;
+}

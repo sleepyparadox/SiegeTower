@@ -1,14 +1,4 @@
-<div class="pod-list-screen-row">
-    <div class="pod-list-screen-dock pod-list-screen-dock-left">
-        <DockView Dock="PodListScreen.Left" />
-    </div>
-    <div class="pod-list-screen-dock pod-list-screen-dock-center">
-        <DockView Dock="PodListScreen.Center" />
-    </div>
-    <div class="pod-list-screen-dock pod-list-screen-dock-right">
-        <DockView Dock="PodListScreen.Right" />
-    </div>
-</div>
+<DockGridView DockGrid="PodListScreen.DockGrid" />
 
 @code {
     [Parameter, EditorRequired]
