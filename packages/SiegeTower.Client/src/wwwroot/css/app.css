@@ -3,6 +3,7 @@ html, body {
     color: #17201b;
     font-family: Georgia, 'Times New Roman', serif;
     margin: 0;
+    min-height: 100%;
 }
 
 h1:focus {
@@ -102,6 +103,64 @@ a, .btn-link {
 
 .dashboard-content {
     padding: 2rem clamp(1.5rem, 5vw, 5rem);
+}
+
+.pod-list-screen-row {
+    display: flex;
+    gap: 1rem;
+    height: 100vh;
+    min-width: 0;
+}
+
+.pod-list-screen-dock {
+    min-width: 0;
+}
+
+.dock-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.dock-content {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.color-dock-content {
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+}
+
+.pod-list-screen-dock-left,
+.pod-list-screen-dock-right {
+    flex: 0 0 40rem;
+}
+
+.pod-list-screen-dock-center {
+    flex: 1 1 auto;
+}
+
+.dock-tabs {
+    display: flex;
+    gap: .25rem;
+    margin-bottom: .75rem;
+}
+
+.dock-tab {
+    background: #e8efe2;
+    border: 0;
+    color: #294336;
+    cursor: pointer;
+    font-family: 'Trebuchet MS', sans-serif;
+    padding: .55rem .8rem;
+}
+
+.dock-tab.active {
+    background: #18231e;
+    color: #f2f5ee;
 }
 
 .crud-table {

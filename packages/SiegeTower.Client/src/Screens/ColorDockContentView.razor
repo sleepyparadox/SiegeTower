@@ -1,0 +1,6 @@
+<div class="color-dock-content" style="background-color: @Content.Color"></div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ColorDockContent Content { get; set; } = null!;
+}

@@ -1,0 +1,24 @@
+@using SiegeTower.Data
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Namespace</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pod in Content.Pods)
+        {
+            <tr>
+                <td>@pod.Name</td>
+                <td>@pod.Namespace</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter, EditorRequired]
+    public PodListDockContent Content { get; set; } = null!;
+}

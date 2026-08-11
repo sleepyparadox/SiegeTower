@@ -1,92 +1,27 @@
 @page "/"
-@using SiegeTower.Data
+@inject AppService AppService
+@implements IDisposable
 
-<PageTitle>SiegeTower</PageTitle>
+<PageTitle>@AppService.ActiveScreen.Title</PageTitle>
 
-<div class="dashboard-shell">
-    <aside class="dashboard-sidebar">
-        <div class="brand-mark">SiegeTower</div>
-        <div class="sidebar-label">Explore</div>
-        <button class="sidebar-option @(activeTab == DashboardTab.Workspaces ? "selected" : "")" type="button" @onclick="ShowWorkspaces">
-            <span>Workspaces</span>
-        </button>
-        <button class="sidebar-option @(activeTab == DashboardTab.Pods ? "selected" : "")" type="button" @onclick="ShowPods">
-            <span>Pods</span>
-        </button>
-        <button class="sidebar-option @(activeTab == DashboardTab.Ollama ? "selected" : "")" type="button" @onclick="ShowOllama">
-            <span>Ollama</span>
-        </button>
-    </aside>
-
-    <main class="dashboard-main">
-        <header class="dashboard-header">
-            <div>
-                <div class="eyebrow">Control plane</div>
-                <h1>@activeTab</h1>
-            </div>
-            <button class="refresh-button" type="button" @onclick="RefreshCurrentTable" disabled="@IsRefreshing">
-                @(IsRefreshing ? "Loading..." : "Refresh")
-            </button>
-        </header>
-
-        <div class="dashboard-content">
-            @if (activeTab == DashboardTab.Workspaces)
-            {
-                <WorkspaceCrudTable @ref="workspaceTable" SessionContext="sessionContext" />
-            }
-            else if (activeTab == DashboardTab.Pods)
-            {
-                <PodCrudTable @ref="podTable" SessionContext="sessionContext" />
-            }
-            else
-            {
-                <OllamaPanel />
-            }
-        </div>
-    </main>
-</div>
+@if (AppService.ActiveScreen is PodListScreen podListScreen)
+{
+	<PodListScreenView PodListScreen="podListScreen" />
+}
 
 @code {
-    private readonly SessionContext sessionContext = new() { ApiBase = "localhost:5006/api" };
-    private DashboardTab activeTab = DashboardTab.Workspaces;
-    private bool IsRefreshing;
-    private WorkspaceCrudTable? workspaceTable;
-    private PodCrudTable? podTable;
+	protected override void OnInitialized()
+	{
+		AppService.RedrawRequested += HandleRedrawRequested;
+	}
 
-    private async Task RefreshCurrentTable()
-    {
-        IsRefreshing = true;
-        try
-        {
-            if (activeTab == DashboardTab.Workspaces && workspaceTable is not null)
-            {
-                await workspaceTable.RefreshAsync();
-            }
-            else if (activeTab == DashboardTab.Pods && podTable is not null)
-            {
-                await podTable.RefreshAsync();
-            }
-        }
-        finally
-        {
-            IsRefreshing = false;
-        }
-    }
+	private void HandleRedrawRequested(object? sender, EventArgs args)
+	{
+		_ = InvokeAsync(StateHasChanged);
+	}
 
-    private void ShowWorkspaces()
-    {
-        activeTab = DashboardTab.Workspaces;
-    }
-
-    private void ShowPods()
-    {
-        activeTab = DashboardTab.Pods;
-    }
-
-    private void ShowOllama()
-    {
-        activeTab = DashboardTab.Ollama;
-    }
-
-    private enum DashboardTab { Workspaces, Pods, Ollama }
+	public void Dispose()
+	{
+		AppService.RedrawRequested -= HandleRedrawRequested;
+	}
 }
