@@ -1,34 +1,65 @@
 /* Shared UX layout styles for docks, tabs, and flexible screen regions. */
 
+html,
+body {
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1rem;
+}
+
+.ux-line {
+    display: flex;
+    height: 2rem;
+    width: 100%;
+}
+
+.ux-box {
+    box-sizing: border-box;
+    margin: 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.ux-padded {
+    padding: .5rem;
+}
+
+.ux-height-fill {
+    height: 100%;
+    min-height: 0;
+}
+
+.ux-width-sidedock-default {
+    flex: 0 0 20rem;
+    width: 20rem;
+}
+
+.ux-width-fill {
+    width: 100%;
+}
+
 .pod-list-screen-row {
     display: flex;
     gap: 1rem;
     height: 100vh;
-    min-width: 0;
+    width: 100%;
 }
 
 .pod-list-screen-dock {
-    min-width: 0;
+    flex: 1 1 0;
 }
 
-.pod-list-screen-dock-left,
-.pod-list-screen-dock-right {
-    flex: 0 0 40rem;
-}
-
-.pod-list-screen-dock-center {
-    flex: 1 1 auto;
+.pod-list-screen-dock.ux-width-sidedock-default {
+    flex: 0 0 20rem;
 }
 
 .dock-view {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 0;
 }
 
 .dock-tabs {
-    display: flex;
     gap: .25rem;
     margin-bottom: .75rem;
 }
@@ -38,8 +69,8 @@
     border: 0;
     color: #294336;
     cursor: pointer;
-    font-family: 'Trebuchet MS', sans-serif;
-    padding: .55rem .8rem;
+    font-family: inherit;
+    line-height: 1rem;
 }
 
 .dock-tab.active {
@@ -49,11 +80,13 @@
 
 .dock-content {
     flex: 1 1 auto;
-    min-height: 0;
 }
 
 .color-dock-content {
-    height: 100%;
-    min-height: 0;
     width: 100%;
+}
+
+.data-table tr.ux-line {
+    display: table-row;
+    height: 2rem;
 }

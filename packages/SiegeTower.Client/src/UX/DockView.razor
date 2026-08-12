@@ -1,16 +1,16 @@
-<div class="dock-view">
-    <div class="dock-tabs" role="tablist">
+<div class="dock-view ux-box ux-height-fill">
+    <div class="dock-tabs ux-line" role="tablist">
         @foreach (var content in Dock.Contents)
         {
             <button type="button"
-                    class="dock-tab @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
+                    class="dock-tab ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
                     @onclick="() => ActivateContent(content)">
                 @content.GetType().Name
             </button>
         }
     </div>
 
-    <div class="dock-content">
+    <div class="dock-content ux-box ux-height-fill">
         @if (Dock.ActiveContentType == typeof(PodListDockContent) && Dock.ActiveContent is PodListDockContent podListContent)
         {
             <PodListDockView Content="podListContent" />

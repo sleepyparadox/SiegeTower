@@ -1,22 +1,24 @@
 @using SiegeTower.Data
 
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Namespace</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var pod in Content.Pods)
-        {
-            <tr>
-                <td>@pod.Name</td>
-                <td>@pod.Namespace</td>
+<div class="ux-box ux-height-fill">
+    <table class="data-table ux-width-fill">
+        <thead>
+            <tr class="ux-line">
+                <th><div class="ux-padded">Name</div></th>
+                <th><div class="ux-padded">Namespace</div></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var pod in Content.Pods)
+            {
+                <tr class="ux-line">
+                    <td><div class="ux-padded">@pod.Name</div></td>
+                    <td><div class="ux-padded">@pod.Namespace</div></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
 @code {
     [Parameter, EditorRequired]

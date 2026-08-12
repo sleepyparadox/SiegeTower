@@ -7,7 +7,7 @@
 
 .data-table th, .data-table td {
     border-bottom: 1px solid #e5eae4;
-    padding: 1rem;
+    padding: 0;
     text-align: left;
 }
 
@@ -20,5 +20,5 @@
 }
 
 .data-table td {
-    font-size: 1.05rem;
+    font-size: inherit;
 }
