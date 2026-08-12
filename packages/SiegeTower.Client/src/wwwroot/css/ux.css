@@ -13,6 +13,16 @@ body {
     width: 100%;
 }
 
+.ux-line-x2 {
+    display: flex;
+    height: 4rem;
+    width: 100%;
+}
+
+.ux-center-vertically {
+    align-items: center;
+}
+
 .ux-box {
     box-sizing: border-box;
     margin: 0;
@@ -39,10 +49,35 @@ body {
     width: 100%;
 }
 
+.title-bar {
+    gap: 1rem;
+}
+
+.title-bar-menu {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
+.title-bar-breadcrumbs {
+    white-space: nowrap;
+}
+
+.pod-list-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+}
+
 .pod-list-screen-row {
     display: flex;
     gap: 1rem;
-    height: 100vh;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
 }
 

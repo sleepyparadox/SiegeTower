@@ -11,6 +11,11 @@ public sealed class PodListScreen : Screen
 		: base("Pods")
 	{
 		ArgumentNullException.ThrowIfNull(appService);
+		TitleBar = new()
+		{
+			Title = Title,
+			Breadcrumbs = ["SiegeTower", "Pods"]
+		};
 		this.appService = appService;
 		PodListDockContent = new();
 		DockGrid = new DockGrid(
@@ -31,6 +36,8 @@ public sealed class PodListScreen : Screen
 	}
 
 	public IReadOnlyList<Pod> Pods { get; private set; } = [];
+
+	public TitleBar TitleBar { get; }
 
 	public PodListDockContent PodListDockContent { get; }
 
