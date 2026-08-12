@@ -16,6 +16,12 @@ public sealed class PodListScreen : Screen
 			Title = Title,
 			Breadcrumbs = ["SiegeTower", "Pods"]
 		};
+		FileToolbar = new() { Items = ["File", "Open", "Save"] };
+		HelpToolbar = new() { Items = ["Help"] };
+		ToolbarGrid = new()
+		{
+			Toolbars = [FileToolbar, HelpToolbar]
+		};
 		this.appService = appService;
 		PodListDockContent = new();
 		DockGrid = new DockGrid(
@@ -38,6 +44,12 @@ public sealed class PodListScreen : Screen
 	public IReadOnlyList<Pod> Pods { get; private set; } = [];
 
 	public TitleBar TitleBar { get; }
+
+	public ToolbarGrid ToolbarGrid { get; }
+
+	public Toolbar FileToolbar { get; }
+
+	public Toolbar HelpToolbar { get; }
 
 	public PodListDockContent PodListDockContent { get; }
 

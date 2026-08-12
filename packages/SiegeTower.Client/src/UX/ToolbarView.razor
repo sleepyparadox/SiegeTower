@@ -1,0 +1,11 @@
+<div class="ux-line ux-width-fill">
+    @foreach (var item in Toolbar.Items)
+    {
+        <div>@item</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Toolbar Toolbar { get; set; } = null!;
+}

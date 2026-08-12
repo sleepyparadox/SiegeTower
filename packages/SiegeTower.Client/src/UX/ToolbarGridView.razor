@@ -1,0 +1,11 @@
+<div class="ux-width-fill">
+    @foreach (var toolbar in ToolbarGrid.Toolbars)
+    {
+        <ToolbarView Toolbar="toolbar" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ToolbarGrid ToolbarGrid { get; set; } = null!;
+}

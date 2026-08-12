@@ -10,13 +10,11 @@ body {
 .ux-line {
     display: flex;
     height: 2rem;
-    width: 100%;
 }
 
 .ux-line-x2 {
     display: flex;
     height: 4rem;
-    width: 100%;
 }
 
 .ux-center-vertically {
