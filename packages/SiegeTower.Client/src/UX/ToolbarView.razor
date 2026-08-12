@@ -1,4 +1,7 @@
-<div class="ux-line ux-width-fill">
+@inject IJSRuntime JS
+
+<div @ref="HorizontalScrollElement" class="ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal">
+    <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
     @foreach (var item in Toolbar.Items)
     {
         <div>@item</div>
@@ -8,4 +11,14 @@
 @code {
     [Parameter, EditorRequired]
     public Toolbar Toolbar { get; set; } = null!;
+
+    private ElementReference HorizontalScrollElement { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("window.siegetower.ux.SetHorizontalScrollable", HorizontalScrollElement);
+        }
+    }
 }

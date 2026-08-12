@@ -1,5 +1,7 @@
+@inject IJSRuntime JS
+
 <div class="dock-view ux-box ux-height-fill">
-    <div class="dock-tabs ux-line ux-width-fill" role="tablist">
+    <div @ref="HorizontalScrollElement" class="dock-tabs ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal" role="tablist">
         @foreach (var content in Dock.Contents)
         {
             <button type="button"
@@ -26,8 +28,18 @@
     [Parameter, EditorRequired]
     public Dock Dock { get; set; } = null!;
 
+    private ElementReference HorizontalScrollElement { get; set; }
+
     private void ActivateContent(object content)
     {
         Dock.ActiveContent = content;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("window.siegetower.ux.SetHorizontalScrollable", HorizontalScrollElement);
+        }
     }
 }
