@@ -45,19 +45,18 @@ public sealed class AppService
 		if (DragOperation.Target is IDockContent dockContent)
 		{
 			if (over is Dock overDock)
-			{
 				DockService.Attach(overDock, dockContent);
-			}
+			else if (over is DockGrid.Divider dockDivider)
+				DockService.Attach(dockDivider.PrimaryDock, dockContent);
 			else if (over is IDockContent overDockContent)
-			{
 				DockService.Attach(overDockContent.Parent!, dockContent);
-			}
-
 		}
 		else 
-
-		Console.WriteLine($"Drag stopped: {DragOperation.Target?.GetType().Name ?? "none"} over {over.GetType().Name}");
-		DragOperation.Target = null;
+		{
+			Console.WriteLine($"Drag stopped: {DragOperation.Target?.GetType().Name ?? "none"} over {over.GetType().Name}");
+			DragOperation.Target = null;
+		}
+		
 		Redraw();
 	}
 

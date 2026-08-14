@@ -2,7 +2,7 @@ namespace SiegeTower.Client.UX;
 
 public static class DockService
 {
-	public static void Attach(Dock dock, IDockContent dockContent, bool makeActive = true)
+	public static void Attach(Dock dock, IDockContent dockContent, bool setAsActiveContent = true)
 	{
 		ArgumentNullException.ThrowIfNull(dock);
 		ArgumentNullException.ThrowIfNull(dockContent);
@@ -28,10 +28,11 @@ public static class DockService
 		}
 
 		dockContent.Parent = dock;
-		if (makeActive || dock.Contents.Count == 1)
+		if (setAsActiveContent || dock.Contents.Count == 1)
 		{
 			dock.ActiveContent = dockContent;
 		}
+		dock.IsHidden = false;
 	}
 
 	public static void Detach(Dock dock, IDockContent dockContent)
@@ -44,10 +45,15 @@ public static class DockService
 		{
 			dockContent.Parent = null;
 		}
-
+		
 		if (dock.ActiveContent == dockContent)
 		{
 			dock.ActiveContent = dock.Contents.FirstOrDefault();
+		}
+
+		if (dock.IsHiddenOnLastDetach && dock.ActiveContent is null)
+		{
+			dock.IsHidden = true;
 		}
 	}
 }

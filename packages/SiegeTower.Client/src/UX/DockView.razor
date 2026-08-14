@@ -9,7 +9,7 @@
         {
             <button type="button"
                     class="dock-tab ux-i-draggable ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
-                    @onmousedown="() => AppService.DragStart(content)"
+                    @onmousedown="() => StartPreviewDrag(content)"
                     @onmouseup="() => AppService.DragStop(content)"
                     @onclick="() => ActivateContent(content)">
                 @content.Name
@@ -46,6 +46,12 @@
         {
             AppService.DragStop(content);
         }
+    }
+
+    private async Task StartPreviewDrag(IDockContent content)
+    {
+        AppService.DragStart(content);
+        await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

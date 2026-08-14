@@ -6,7 +6,7 @@
      @onmouseup="() => AppService.DragStop(Toolbar)">
     <i class="fa-solid fa-grip-vertical ux-i-dragable"
        aria-hidden="true"
-       @onmousedown="() => AppService.DragStart(Toolbar)"
+    @onmousedown="StartPreviewDrag"
        @onmouseup="() => AppService.DragStop(Toolbar)"></i>
     @foreach (var item in Toolbar.Items)
     {
@@ -19,6 +19,12 @@
     public Toolbar Toolbar { get; set; } = null!;
 
     private ElementReference HorizontalScrollElement { get; set; }
+
+    private async Task StartPreviewDrag()
+    {
+        AppService.DragStart(Toolbar);
+        await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -23,8 +23,10 @@
 				case IDockContent dockContent:
 					<DockTabDragPreview Content="dockContent" />
 					break;
+				case DockGrid.Divider:
+					break;
 				default:
-					<div>no preview</div>
+					<div>@AppService.DragOperation.Target?.GetType().Name</div>
 					break;
 			}
 		}
