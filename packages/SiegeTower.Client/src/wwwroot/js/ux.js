@@ -18,7 +18,7 @@ window.siegetower.drag.UpdatePreview = function (timestamp) {
             const deltaTime = drag.lastFrameTime === undefined
                 ? 0
                 : (timestamp - drag.lastFrameTime) / 1000;
-            const lerpAmount = deltaTime * 10;
+            const lerpAmount = deltaTime * 20;
 
             drag.dragPreviewPosition.x += (drag.mousePosition.x - drag.dragPreviewPosition.x) * lerpAmount;
             drag.dragPreviewPosition.y += (drag.mousePosition.y - drag.dragPreviewPosition.y) * lerpAmount;

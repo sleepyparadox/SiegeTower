@@ -5,7 +5,13 @@ namespace SiegeTower.Client.Screens;
 
 public sealed class PodListDockContent : IDockContent
 {
-	public string Name { get; init; } = "Pods";
+	#region  IDockContent
+
+	string IDockContent.Name { get => "Pods"; }
+
+	Dock? IDockContent.Parent { get; set; }
+
+	#endregion
 
 	public IReadOnlyList<Pod> Pods { get; set; } = [];
 }

@@ -38,10 +38,24 @@ public sealed class AppService
 		Redraw();
 	}
 
-	public void DragStop(object target)
+	public void DragStop(object over)
 	{
-		ArgumentNullException.ThrowIfNull(target);
-		Console.WriteLine($"Drag stopped: {DragOperation.Target?.GetType().Name ?? "none"} over {target.GetType().Name}");
+		ArgumentNullException.ThrowIfNull(over);
+		if (DragOperation.Target is IDockContent dockContent)
+		{
+			if (over is Dock overDock)
+			{
+				DockService.Attach(overDock, dockContent);
+			}
+			else if (over is IDockContent overDockContent)
+			{
+				DockService.Attach(overDockContent.Parent!, dockContent);
+			}
+
+		}
+		else 
+
+		Console.WriteLine($"Drag stopped: {DragOperation.Target?.GetType().Name ?? "none"} over {over.GetType().Name}");
 		DragOperation.Target = null;
 		Redraw();
 	}

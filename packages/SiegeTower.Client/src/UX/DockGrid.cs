@@ -26,10 +26,13 @@ public sealed class DockGrid
 			throw new ArgumentException("A dock must contain at least one content item.", nameof(contents));
 		}
 
-		return new Dock
+		var dock = new Dock();
+		foreach (var content in contents)
 		{
-			Contents = contents,
-			ActiveContent = contents[0]
-		};
+			DockService.Attach(dock, content);
+		}
+
+		dock.ActiveContent = contents[0];
+		return dock;
 	}
 }
