@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Web;
 using SiegeTower.Client.Screens;
 using SiegeTower.Client.UX;
 
@@ -60,14 +61,17 @@ public sealed class AppService
 		Redraw();
 	}
 
-	public void DragStop()
+	public void DragStop(MouseEventArgs args)
 	{
 		if (DragOperation.Target is null)
 		{
 			return;
 		}
 
-		Console.WriteLine($"Drag stopped: {DragOperation.Target.GetType().Name} over no supported drop target");
+		Console.WriteLine($"Drag stopped: {DragOperation.Target.GetType().Name} over no supported drop target " +
+			$"at client ({args.ClientX}, {args.ClientY}), screen ({args.ScreenX}, {args.ScreenY}), " +
+			$"button {args.Button}, buttons {args.Buttons}, " +
+			$"modifiers [alt={args.AltKey}, ctrl={args.CtrlKey}, meta={args.MetaKey}, shift={args.ShiftKey}]");
 		DragOperation.Target = null;
 		Redraw();
 	}

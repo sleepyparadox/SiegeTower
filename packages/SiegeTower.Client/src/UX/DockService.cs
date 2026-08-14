@@ -2,16 +2,16 @@ namespace SiegeTower.Client.UX;
 
 public static class DockService
 {
-	public static void Attach(Dock dock, IDockContent dockContent)
+	public static void Attach(Dock dock, IDockContent dockContent, bool makeActive = true)
 	{
 		ArgumentNullException.ThrowIfNull(dock);
 		ArgumentNullException.ThrowIfNull(dockContent);
 
 		if (dockContent.Parent == dock)
 		{
-			if (!dock.MutableContents.Contains(dockContent))
+			if (!dock.Contents.Contains(dockContent))
 			{
-				dock.MutableContents.Add(dockContent);
+				dock.Contents.Add(dockContent);
 			}
 
 			return;
@@ -22,12 +22,16 @@ public static class DockService
 			Detach(dockContent.Parent, dockContent);
 		}
 
-		if (!dock.MutableContents.Contains(dockContent))
+		if (!dock.Contents.Contains(dockContent))
 		{
-			dock.MutableContents.Add(dockContent);
+			dock.Contents.Add(dockContent);
 		}
 
 		dockContent.Parent = dock;
+		if (makeActive || dock.Contents.Count == 1)
+		{
+			dock.ActiveContent = dockContent;
+		}
 	}
 
 	public static void Detach(Dock dock, IDockContent dockContent)
@@ -35,7 +39,7 @@ public static class DockService
 		ArgumentNullException.ThrowIfNull(dock);
 		ArgumentNullException.ThrowIfNull(dockContent);
 
-		dock.MutableContents.Remove(dockContent);
+		dock.Contents.Remove(dockContent);
 		if (dockContent.Parent == dock)
 		{
 			dockContent.Parent = null;
@@ -43,7 +47,7 @@ public static class DockService
 
 		if (dock.ActiveContent == dockContent)
 		{
-			dock.ActiveContent = dock.MutableContents.FirstOrDefault();
+			dock.ActiveContent = dock.Contents.FirstOrDefault();
 		}
 	}
 }

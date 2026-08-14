@@ -1,11 +1,10 @@
 @inject IJSRuntime JS
 @inject AppService AppService
 
-<div class="dock-view ux-box ux-height-fill">
+<div class="dock-view ux-box ux-height-fill" @onmouseup="() => DragStop(Dock)">
     <div @ref="HorizontalScrollElement"
          class="dock-tabs ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
-         role="tablist"
-         @onmouseup="() => DragStop(Dock.ActiveContent)">
+         role="tablist">
         @foreach (var content in Dock.Contents)
         {
             <button type="button"
@@ -18,12 +17,12 @@
         }
     </div>
 
-    <div class="dock-content ux-box ux-height-fill">
-        @if (Dock.ActiveContentType == typeof(PodListDockContent) && Dock.ActiveContent is PodListDockContent podListContent)
+    <div class="dock-content ux-box ux-height-fill" @onmouseup="() => DragStop(Dock.ActiveContent)">
+        @if (Dock.ActiveContent is PodListDockContent podListContent)
         {
             <PodListDockView Content="podListContent" />
         }
-        else if (Dock.ActiveContentType == typeof(ColorDockContent) && Dock.ActiveContent is ColorDockContent colorContent)
+        else if (Dock.ActiveContent is ColorDockContent colorContent)
         {
             <ColorDockContentView Content="colorContent" />
         }

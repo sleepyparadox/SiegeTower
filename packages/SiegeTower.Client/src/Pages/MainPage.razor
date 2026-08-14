@@ -42,9 +42,9 @@
 		_ = InvokeAsync(StateHasChanged);
 	}
 
-	private void StopDrag()
+	private void StopDrag(MouseEventArgs args)
 	{
-		AppService.DragStop();
+		AppService.DragStop(args);
 	}
 
 	public void Dispose()
