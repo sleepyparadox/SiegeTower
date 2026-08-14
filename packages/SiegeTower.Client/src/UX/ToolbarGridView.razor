@@ -1,4 +1,4 @@
-<div class="ux-width-fill">
+<div class="ux-width-fill" @onmouseup="() => AppService.DragStop(ToolbarGrid)">
     @foreach (var toolbar in ToolbarGrid.Toolbars)
     {
         <ToolbarView Toolbar="toolbar" />
@@ -6,6 +6,9 @@
 </div>
 
 @code {
+    [Inject]
+    private AppService AppService { get; set; } = null!;
+
     [Parameter, EditorRequired]
     public ToolbarGrid ToolbarGrid { get; set; } = null!;
 }

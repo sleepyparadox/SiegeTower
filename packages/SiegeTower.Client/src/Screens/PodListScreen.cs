@@ -16,8 +16,8 @@ public sealed class PodListScreen : Screen
 			Title = Title,
 			Breadcrumbs = ["SiegeTower", "Pods"]
 		};
-		FileToolbar = new() { Items = ["File", "Open", "Save"] };
-		HelpToolbar = new() { Items = ["Help"] };
+		FileToolbar = new() { Name = "File", Items = ["File", "Open", "Save"] };
+		HelpToolbar = new() { Name = "Help", Items = ["Help"] };
 		ToolbarGrid = new()
 		{
 			Toolbars = [FileToolbar, HelpToolbar]
@@ -27,16 +27,16 @@ public sealed class PodListScreen : Screen
 		DockGrid = new DockGrid(
 			[
 				PodListDockContent,
-				new ColorDockContent { Color = "Red" },
-				new ColorDockContent { Color = "Blue" }
+				new ColorDockContent { Name = "Red", Color = "Red" },
+				new ColorDockContent { Name = "Blue", Color = "Blue" }
 			],
 			[
-				new ColorDockContent { Color = "Yellow" },
-				new ColorDockContent { Color = "Green" }
+				new ColorDockContent { Name = "Yellow", Color = "Yellow" },
+				new ColorDockContent { Name = "Green", Color = "Green" }
 			],
 			[
-				new ColorDockContent { Color = "Purple" },
-				new ColorDockContent { Color = "Orange" }
+				new ColorDockContent { Name = "Purple", Color = "Purple" },
+				new ColorDockContent { Name = "Orange", Color = "Orange" }
 			]);
 		appService.SetActiveScreen(this);
 	}

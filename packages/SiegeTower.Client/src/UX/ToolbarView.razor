@@ -1,7 +1,13 @@
 @inject IJSRuntime JS
+@inject AppService AppService
 
-<div @ref="HorizontalScrollElement" class="ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal">
-    <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+<div @ref="HorizontalScrollElement"
+     class="ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
+     @onmouseup="() => AppService.DragStop(Toolbar)">
+    <i class="fa-solid fa-grip-vertical ux-i-dragable"
+       aria-hidden="true"
+       @onmousedown="() => AppService.DragStart(Toolbar)"
+       @onmouseup="() => AppService.DragStop(Toolbar)"></i>
     @foreach (var item in Toolbar.Items)
     {
         <div>@item</div>

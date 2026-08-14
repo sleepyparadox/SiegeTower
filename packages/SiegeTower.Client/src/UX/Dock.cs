@@ -2,9 +2,9 @@ namespace SiegeTower.Client.UX;
 
 public sealed class Dock
 {
-	public IReadOnlyList<object> Contents { get; init; } = [];
+	public IReadOnlyList<IDockContent> Contents { get; init; } = [];
 
-	public object? ActiveContent { get; set; }
+	public IDockContent? ActiveContent { get; set; }
 
 	public Type? ActiveContentType => ActiveContent?.GetType();
 }

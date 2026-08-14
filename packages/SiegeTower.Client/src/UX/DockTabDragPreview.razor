@@ -1,0 +1,8 @@
+<div class="dock-tab ux-padded" aria-hidden="true">
+    @Content.Name
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IDockContent Content { get; set; } = null!;
+}

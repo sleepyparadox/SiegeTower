@@ -3,9 +3,9 @@ namespace SiegeTower.Client.UX;
 public sealed class DockGrid
 {
 	public DockGrid(
-		IReadOnlyList<object> leftContents,
-		IReadOnlyList<object> centerContents,
-		IReadOnlyList<object> rightContents)
+		IReadOnlyList<IDockContent> leftContents,
+		IReadOnlyList<IDockContent> centerContents,
+		IReadOnlyList<IDockContent> rightContents)
 	{
 		Left = CreateDock(leftContents);
 		Center = CreateDock(centerContents);
@@ -18,7 +18,7 @@ public sealed class DockGrid
 
 	public Dock Right { get; }
 
-	private static Dock CreateDock(IReadOnlyList<object> contents)
+	private static Dock CreateDock(IReadOnlyList<IDockContent> contents)
 	{
 		ArgumentNullException.ThrowIfNull(contents);
 		if (contents.Count == 0)

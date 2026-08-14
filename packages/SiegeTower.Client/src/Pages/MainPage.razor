@@ -4,10 +4,32 @@
 
 <PageTitle>@AppService.ActiveScreen.Title</PageTitle>
 
-@if (AppService.ActiveScreen is PodListScreen podListScreen)
-{
-	<PodListScreenView PodListScreen="podListScreen" />
-}
+<div class="app-background" @onmouseup="StopDrag">
+	@if (AppService.ActiveScreen is PodListScreen podListScreen)
+	{
+		<PodListScreenView PodListScreen="podListScreen" />
+	}
+
+	<div id="DragPreview"
+	     class="drag-preview @(AppService.DragOperation.Target is not null ? "drag-preview-active" : "")"
+	     aria-hidden="true">
+		@if (AppService.DragOperation.Target is not null)
+		{
+			@switch (AppService.DragOperation.Target)
+			{
+				case Toolbar toolbar:
+					<ToolbarDragPreview Toolbar="toolbar" />
+					break;
+				case IDockContent dockContent:
+					<DockTabDragPreview Content="dockContent" />
+					break;
+				default:
+					<div>no preview</div>
+					break;
+			}
+		}
+	</div>
+</div>
 
 @code {
 	protected override void OnInitialized()
@@ -18,6 +40,11 @@
 	private void HandleRedrawRequested(object? sender, EventArgs args)
 	{
 		_ = InvokeAsync(StateHasChanged);
+	}
+
+	private void StopDrag()
+	{
+		AppService.DragStop();
 	}
 
 	public void Dispose()

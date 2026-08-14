@@ -1,13 +1,19 @@
 @inject IJSRuntime JS
+@inject AppService AppService
 
 <div class="dock-view ux-box ux-height-fill">
-    <div @ref="HorizontalScrollElement" class="dock-tabs ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal" role="tablist">
+    <div @ref="HorizontalScrollElement"
+         class="dock-tabs ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
+         role="tablist"
+         @onmouseup="() => DragStop(Dock.ActiveContent)">
         @foreach (var content in Dock.Contents)
         {
             <button type="button"
-                    class="dock-tab ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
+                    class="dock-tab ux-i-draggable ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
+                    @onmousedown="() => AppService.DragStart(content)"
+                    @onmouseup="() => AppService.DragStop(content)"
                     @onclick="() => ActivateContent(content)">
-                @content.GetType().Name
+                @content.Name
             </button>
         }
     </div>
@@ -30,9 +36,17 @@
 
     private ElementReference HorizontalScrollElement { get; set; }
 
-    private void ActivateContent(object content)
+    private void ActivateContent(IDockContent content)
     {
         Dock.ActiveContent = content;
+    }
+
+    private void DragStop(object? content)
+    {
+        if (content is not null)
+        {
+            AppService.DragStop(content);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
