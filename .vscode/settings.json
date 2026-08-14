@@ -1,0 +1,11 @@
+{
+	"editor.detectIndentation": false,
+	"[csharp]": {
+		"editor.insertSpaces": false,
+		"editor.tabSize": 4
+	},
+	"[razor]": {
+		"editor.insertSpaces": false,
+		"editor.tabSize": 4
+	}
+}

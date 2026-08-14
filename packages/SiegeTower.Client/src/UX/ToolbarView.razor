@@ -2,35 +2,35 @@
 @inject AppService AppService
 
 <div @ref="HorizontalScrollElement"
-     class="ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
-     @onmouseup="() => AppService.DragStop(Toolbar)">
-    <i class="fa-solid fa-grip-vertical ux-i-dragable"
-       aria-hidden="true"
-    @onmousedown="StartPreviewDrag"
-       @onmouseup="() => AppService.DragStop(Toolbar)"></i>
-    @foreach (var item in Toolbar.Items)
-    {
-        <div>@item</div>
-    }
+	 class="ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
+	 @onmouseup="() => AppService.DragStop(Toolbar)">
+	<i class="fa-solid fa-grip-vertical ux-i-dragable"
+	   aria-hidden="true"
+	@onmousedown="StartPreviewDrag"
+	   @onmouseup="() => AppService.DragStop(Toolbar)"></i>
+	@foreach (var item in Toolbar.Items)
+	{
+		<div>@item</div>
+	}
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public Toolbar Toolbar { get; set; } = null!;
+	[Parameter, EditorRequired]
+	public Toolbar Toolbar { get; set; } = null!;
 
-    private ElementReference HorizontalScrollElement { get; set; }
+	private ElementReference HorizontalScrollElement { get; set; }
 
-    private async Task StartPreviewDrag()
-    {
-        AppService.DragStart(Toolbar);
-        await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
-    }
+	private async Task StartPreviewDrag()
+	{
+		AppService.DragStart(Toolbar);
+		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
+	}
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("window.siegetower.ux.SetHorizontalScrollable", HorizontalScrollElement);
-        }
-    }
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await JS.InvokeVoidAsync("window.siegetower.ux.SetHorizontalScrollable", HorizontalScrollElement);
+		}
+	}
 }

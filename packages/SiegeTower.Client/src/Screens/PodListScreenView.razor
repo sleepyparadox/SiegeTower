@@ -1,15 +1,15 @@
 <div class="pod-list-screen ux-box">
-    <TitleBarView TitleBar="PodListScreen.TitleBar" />
-    <ToolbarGridView ToolbarGrid="PodListScreen.ToolbarGrid" />
-    <DockGridView DockGrid="PodListScreen.DockGrid" />
+	<TitleBarView TitleBar="PodListScreen.TitleBar" />
+	<ToolbarGridView ToolbarGrid="PodListScreen.ToolbarGrid" />
+	<DockGridView DockGrid="PodListScreen.DockGrid" />
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public PodListScreen PodListScreen { get; set; } = null!;
+	[Parameter, EditorRequired]
+	public PodListScreen PodListScreen { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await PodListScreen.LoadAsync();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await PodListScreen.LoadAsync();
+	}
 }

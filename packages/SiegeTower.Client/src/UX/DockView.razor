@@ -2,63 +2,63 @@
 @inject AppService AppService
 
 <div class="dock-view ux-box ux-height-fill" @onmouseup="() => DragStop(Dock)">
-    <div @ref="HorizontalScrollElement"
-         class="dock-tabs ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
-         role="tablist">
-        @foreach (var content in Dock.Contents)
-        {
-            <button type="button"
-                    class="dock-tab ux-i-draggable ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
-                    @onmousedown="() => StartPreviewDrag(content)"
-                    @onmouseup="() => AppService.DragStop(content)"
-                    @onclick="() => ActivateContent(content)">
-                @content.Name
-            </button>
-        }
-    </div>
+	<div @ref="HorizontalScrollElement"
+		 class="dock-tabs ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
+		 role="tablist">
+		@foreach (var content in Dock.Contents)
+		{
+			<button type="button"
+					class="dock-tab ux-i-draggable ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
+					@onmousedown="() => StartPreviewDrag(content)"
+					@onmouseup="() => AppService.DragStop(content)"
+					@onclick="() => ActivateContent(content)">
+				@content.Name
+			</button>
+		}
+	</div>
 
-    <div class="dock-content ux-box ux-height-fill" @onmouseup="() => DragStop(Dock.ActiveContent)">
-        @if (Dock.ActiveContent is PodListDockContent podListContent)
-        {
-            <PodListDockView Content="podListContent" />
-        }
-        else if (Dock.ActiveContent is ColorDockContent colorContent)
-        {
-            <ColorDockContentView Content="colorContent" />
-        }
-    </div>
+	<div class="dock-content ux-box ux-height-fill" @onmouseup="() => DragStop(Dock.ActiveContent)">
+		@if (Dock.ActiveContent is PodListDockContent podListContent)
+		{
+			<PodListDockView Content="podListContent" />
+		}
+		else if (Dock.ActiveContent is ColorDockContent colorContent)
+		{
+			<ColorDockContentView Content="colorContent" />
+		}
+	</div>
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public Dock Dock { get; set; } = null!;
+	[Parameter, EditorRequired]
+	public Dock Dock { get; set; } = null!;
 
-    private ElementReference HorizontalScrollElement { get; set; }
+	private ElementReference HorizontalScrollElement { get; set; }
 
-    private void ActivateContent(IDockContent content)
-    {
-        Dock.ActiveContent = content;
-    }
+	private void ActivateContent(IDockContent content)
+	{
+		Dock.ActiveContent = content;
+	}
 
-    private void DragStop(object? content)
-    {
-        if (content is not null)
-        {
-            AppService.DragStop(content);
-        }
-    }
+	private void DragStop(object? content)
+	{
+		if (content is not null)
+		{
+			AppService.DragStop(content);
+		}
+	}
 
-    private async Task StartPreviewDrag(IDockContent content)
-    {
-        AppService.DragStart(content);
-        await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
-    }
+	private async Task StartPreviewDrag(IDockContent content)
+	{
+		AppService.DragStart(content);
+		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
+	}
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("window.siegetower.ux.SetHorizontalScrollable", HorizontalScrollElement);
-        }
-    }
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await JS.InvokeVoidAsync("window.siegetower.ux.SetHorizontalScrollable", HorizontalScrollElement);
+		}
+	}
 }

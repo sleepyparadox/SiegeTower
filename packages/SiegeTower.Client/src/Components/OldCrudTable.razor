@@ -1,27 +1,27 @@
 @code {
-    protected bool IsLoading { get; private set; }
+	protected bool IsLoading { get; private set; }
 
-    public void Clear()
-    {
-        IsLoading = false;
-        StateHasChanged();
-    }
+	public void Clear()
+	{
+		IsLoading = false;
+		StateHasChanged();
+	}
 
-    public void ShowLoading()
-    {
-        IsLoading = true;
-        StateHasChanged();
-    }
+	public void ShowLoading()
+	{
+		IsLoading = true;
+		StateHasChanged();
+	}
 
-    protected virtual Task RefreshPressedAsync()
-    {
-        return Task.CompletedTask;
-    }
+	protected virtual Task RefreshPressedAsync()
+	{
+		return Task.CompletedTask;
+	}
 
-    public async Task RefreshAsync()
-    {
-        ShowLoading();
-        await RefreshPressedAsync();
-        Clear();
-    }
+	public async Task RefreshAsync()
+	{
+		ShowLoading();
+		await RefreshPressedAsync();
+		Clear();
+	}
 }

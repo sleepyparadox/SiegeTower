@@ -2,62 +2,62 @@
 @inject IJSRuntime JS
 
 <div class="pod-list-screen-row ux-box ux-height-fill">
-    @if (!DockGrid.Left.IsHidden)
+	@if (!DockGrid.Left.IsHidden)
 	{
-        <div class="pod-list-screen-dock ux-box ux-width-sidedock-default ux-drag-dock-width-left">
-            <DockView Dock="DockGrid.Left" />
-        </div>
+		<div class="pod-list-screen-dock ux-box ux-width-sidedock-default ux-drag-dock-width-left">
+			<DockView Dock="DockGrid.Left" />
+		</div>
 	}
-    <div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true" 
-		@onmousedown="StartLeftWidthDrag" 
+	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
+		@onmousedown="StartLeftWidthDrag"
 		@onmouseup="() => AppService.DragStop(DockGrid.LeftDivider)"
 		@ondblclick="ToggleLeftDock">
 	</div>
-    <div class="pod-list-screen-dock ux-box">
-        <DockView Dock="DockGrid.Center" />
-    </div>
-    <div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true" 
+	<div class="pod-list-screen-dock ux-box">
+		<DockView Dock="DockGrid.Center" />
+	</div>
+	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
 		@onmousedown="StartRightWidthDrag"
 		@onmouseup="() => AppService.DragStop(DockGrid.RightDivider)"
 		@ondblclick="ToggleRightDock">
 	</div>
-    @if (!DockGrid.Right.IsHidden)
+	@if (!DockGrid.Right.IsHidden)
 	{
-        <div class="pod-list-screen-dock ux-box ux-width-sidedock-default ux-drag-dock-width-right">
-            <DockView Dock="DockGrid.Right"/>
-        </div>
+		<div class="pod-list-screen-dock ux-box ux-width-sidedock-default ux-drag-dock-width-right">
+			<DockView Dock="DockGrid.Right"/>
+		</div>
 	}
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public DockGrid DockGrid { get; set; } = null!;
+	[Parameter, EditorRequired]
+	public DockGrid DockGrid { get; set; } = null!;
 
-    private Task StartLeftWidthDrag()
-    {
-        return StartWidthDrag(DockGrid.LeftDivider, "DragDockWidthLeft");
-    }
+	private Task StartLeftWidthDrag()
+	{
+		return StartWidthDrag(DockGrid.LeftDivider, "DragDockWidthLeft");
+	}
 
-    private Task StartRightWidthDrag()
-    {
-        return StartWidthDrag(DockGrid.RightDivider, "DragDockWidthRight");
-    }
+	private Task StartRightWidthDrag()
+	{
+		return StartWidthDrag(DockGrid.RightDivider, "DragDockWidthRight");
+	}
 
-    private void ToggleLeftDock()
-    {
-        DockGrid.Left.IsHidden = !DockGrid.Left.IsHidden;
-        AppService.Redraw();
-    }
+	private void ToggleLeftDock()
+	{
+		DockGrid.Left.IsHidden = !DockGrid.Left.IsHidden;
+		AppService.Redraw();
+	}
 
-    private void ToggleRightDock()
-    {
-        DockGrid.Right.IsHidden = !DockGrid.Right.IsHidden;
-        AppService.Redraw();
-    }
+	private void ToggleRightDock()
+	{
+		DockGrid.Right.IsHidden = !DockGrid.Right.IsHidden;
+		AppService.Redraw();
+	}
 
-    private async Task StartWidthDrag(DockGrid.Divider divider, string dragType)
-    {
-        AppService.DragStart(divider);
-        await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", dragType);
-    }
+	private async Task StartWidthDrag(DockGrid.Divider divider, string dragType)
+	{
+		AppService.DragStart(divider);
+		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", dragType);
+	}
 }
