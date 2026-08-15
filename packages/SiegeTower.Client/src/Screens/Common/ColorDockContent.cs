@@ -1,6 +1,6 @@
 using SiegeTower.Client.UX;
 
-namespace SiegeTower.Client.Screens;
+namespace SiegeTower.Client.Screens.Common;
 
 public sealed class ColorDockContent : IDockContent
 {

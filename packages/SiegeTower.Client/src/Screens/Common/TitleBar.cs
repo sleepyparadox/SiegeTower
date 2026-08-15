@@ -1,4 +1,4 @@
-namespace SiegeTower.Client.Screens;
+namespace SiegeTower.Client.Screens.Common;
 
 public sealed class TitleBar
 {

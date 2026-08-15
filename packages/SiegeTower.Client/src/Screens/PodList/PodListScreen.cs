@@ -1,7 +1,8 @@
 using SiegeTower.Data;
+using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.UX;
 
-namespace SiegeTower.Client.Screens;
+namespace SiegeTower.Client.Screens.PodList;
 
 public sealed class PodListScreen : Screen
 {

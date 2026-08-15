@@ -1,7 +1,7 @@
 using SiegeTower.Data;
 using SiegeTower.Client.UX;
 
-namespace SiegeTower.Client.Screens;
+namespace SiegeTower.Client.Screens.PodList;
 
 public sealed class PodListDockContent : IDockContent
 {
