@@ -6,12 +6,12 @@ namespace SiegeTower.Client.Screens.PodList;
 
 public sealed class PodListScreen : Screen
 {
-	private readonly AppService appService;
+	private readonly Session session;
 
-	public PodListScreen(AppService appService)
+	public PodListScreen(Session session)
 		: base("Pods")
 	{
-		ArgumentNullException.ThrowIfNull(appService);
+		ArgumentNullException.ThrowIfNull(session);
 		TitleBar = new()
 		{
 			Title = Title,
@@ -23,7 +23,7 @@ public sealed class PodListScreen : Screen
 		{
 			Toolbars = [FileToolbar, HelpToolbar]
 		};
-		this.appService = appService;
+		this.session = session;
 		PodListDockContent = new();
 		DockGrid = new DockGrid(
 			[
@@ -39,7 +39,7 @@ public sealed class PodListScreen : Screen
 				new ColorDockContent { Name = "Purple", Color = "Purple" },
 				new ColorDockContent { Name = "Orange", Color = "Orange" }
 			]);
-		appService.SetActiveScreen(this);
+		session.SetActiveScreen(this);
 	}
 
 	public IReadOnlyList<Pod> Pods { get; private set; } = [];
@@ -66,7 +66,7 @@ public sealed class PodListScreen : Screen
 		};
 		Pods = fakeData;
 		PodListDockContent.Pods = fakeData;
-		appService.Redraw();
+		session.Redraw();
 		return Task.CompletedTask;
 	}
 }

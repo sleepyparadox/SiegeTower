@@ -1,6 +1,6 @@
 @namespace SiegeTower.Client.UX
 
-@inject AppService AppService
+@inject Session Session
 @inject IJSRuntime JS
 
 <div class="pod-list-screen-row ux-box ux-height-fill">
@@ -12,7 +12,7 @@
 	}
 	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
 		@onmousedown="StartLeftWidthDrag"
-		@onmouseup="() => AppService.DragStop(DockGrid.LeftDivider)"
+		@onmouseup="() => Session.DragStop(DockGrid.LeftDivider)"
 		@ondblclick="ToggleLeftDock">
 	</div>
 	<div class="pod-list-screen-dock ux-box">
@@ -20,7 +20,7 @@
 	</div>
 	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
 		@onmousedown="StartRightWidthDrag"
-		@onmouseup="() => AppService.DragStop(DockGrid.RightDivider)"
+		@onmouseup="() => Session.DragStop(DockGrid.RightDivider)"
 		@ondblclick="ToggleRightDock">
 	</div>
 	@if (!DockGrid.Right.IsHidden)
@@ -48,18 +48,18 @@
 	private void ToggleLeftDock()
 	{
 		DockGrid.Left.IsHidden = !DockGrid.Left.IsHidden;
-		AppService.Redraw();
+		Session.Redraw();
 	}
 
 	private void ToggleRightDock()
 	{
 		DockGrid.Right.IsHidden = !DockGrid.Right.IsHidden;
-		AppService.Redraw();
+		Session.Redraw();
 	}
 
 	private async Task StartWidthDrag(DockGrid.Divider divider, string dragType)
 	{
-		AppService.DragStart(divider);
+		Session.DragStart(divider);
 		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", dragType);
 	}
 }

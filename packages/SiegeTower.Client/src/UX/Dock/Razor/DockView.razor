@@ -1,7 +1,7 @@
 @namespace SiegeTower.Client.UX
 
 @inject IJSRuntime JS
-@inject AppService AppService
+@inject Session Session
 
 <div class="dock-view ux-box ux-height-fill" @onmouseup="() => DragStop(Dock)">
 	<div @ref="HorizontalScrollElement"
@@ -12,7 +12,7 @@
 			<button type="button"
 					class="dock-tab ux-i-draggable ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
 					@onmousedown="() => StartPreviewDrag(content)"
-					@onmouseup="() => AppService.DragStop(content)"
+					@onmouseup="() => Session.DragStop(content)"
 					@onclick="() => ActivateContent(content)">
 				@content.Name
 			</button>
@@ -46,13 +46,13 @@
 	{
 		if (content is not null)
 		{
-			AppService.DragStop(content);
+			Session.DragStop(content);
 		}
 	}
 
 	private async Task StartPreviewDrag(IDockContent content)
 	{
-		AppService.DragStart(content);
+		Session.DragStart(content);
 		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
 	}
 

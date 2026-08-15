@@ -5,9 +5,10 @@ using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client;
 
-public sealed class AppService
+// A session instance exists per browser tab
+public sealed class Session
 {
-	public AppService()
+	public Session()
 	{
 		ActiveScreen = new PodListScreen(this);
 	}

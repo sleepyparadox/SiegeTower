@@ -1,21 +1,21 @@
 @page "/"
-@inject AppService AppService
+@inject Session Session
 @implements IDisposable
 
-<PageTitle>@AppService.ActiveScreen.Title</PageTitle>
+<PageTitle>@Session.ActiveScreen.Title</PageTitle>
 
 <div class="app-background" @onmouseup="StopDrag">
-	@if (AppService.ActiveScreen is PodListScreen podListScreen)
+	@if (Session.ActiveScreen is PodListScreen podListScreen)
 	{
 		<PodListScreenView PodListScreen="podListScreen" />
 	}
 
 	<div id="DragPreview"
-	     class="drag-preview @(AppService.DragOperation.Target is not null ? "drag-preview-active" : "")"
+	     class="drag-preview @(Session.DragOperation.Target is not null ? "drag-preview-active" : "")"
 	     aria-hidden="true">
-		@if (AppService.DragOperation.Target is not null)
+		@if (Session.DragOperation.Target is not null)
 		{
-			@switch (AppService.DragOperation.Target)
+			@switch (Session.DragOperation.Target)
 			{
 				case Toolbar toolbar:
 					<ToolbarDragPreview Toolbar="toolbar" />
@@ -26,7 +26,7 @@
 				case DockGrid.Divider:
 					break;
 				default:
-					<div>@AppService.DragOperation.Target?.GetType().Name</div>
+					<div>@Session.DragOperation.Target?.GetType().Name</div>
 					break;
 			}
 		}
@@ -36,7 +36,7 @@
 @code {
 	protected override void OnInitialized()
 	{
-		AppService.RedrawRequested += HandleRedrawRequested;
+		Session.RedrawRequested += HandleRedrawRequested;
 	}
 
 	private void HandleRedrawRequested(object? sender, EventArgs args)
@@ -46,11 +46,11 @@
 
 	private void StopDrag(MouseEventArgs args)
 	{
-		AppService.DragStop(args);
+		Session.DragStop(args);
 	}
 
 	public void Dispose()
 	{
-		AppService.RedrawRequested -= HandleRedrawRequested;
+		Session.RedrawRequested -= HandleRedrawRequested;
 	}
 }
