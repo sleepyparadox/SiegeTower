@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Components.Routing;
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Screens.Home;
 using SiegeTower.Client.Screens.PodList;
+using SiegeTower.Client.Screens.Ollama;
 using SiegeTower.Client.Services.Uri;
 using SiegeTower.Client.UX;
+using SiegeTower.Client.Services.Ollama;
+using SiegeTower.Client.Debug;
 
 namespace SiegeTower.Client;
 
@@ -14,14 +17,19 @@ public sealed class Session : IDisposable
 {
 	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient)
 	{
-		SessionServices = new(this, injectedNavigationManager, injectedHttpClient);
+		var uri = injectedNavigationManager.Uri;
+		SessionServices = new(
+			injectedNavigationManager,
+			injectedHttpClient,
+			DebugUiService.IsDebugUrl(uri) ? new FakeOllamaService() : new OllamaService(this));
 		BurgerMenu =
 		[
 			new MenuItem("Home", () => NavigateTo(GetNavigationUrlHomeScreen())),
-			new MenuItem("Pods", () => NavigateTo(GetNavigationUrlPodListScreen()))
+			new MenuItem("Pods", () => NavigateTo(GetNavigationUrlPodListScreen())),
+			new MenuItem("Ollama", () => NavigateTo(GetNavigationUrlOllamaScreen()))
 		];
 		SessionServices.NavigationManager.LocationChanged += HandleLocationChanged;
-		ApplyNavigation(SessionServices.NavigationManager.Uri);
+		ApplyNavigation(uri);
 	}
 
 	public Screen ActiveScreen { get; private set; } = new HomeScreen();
@@ -75,6 +83,14 @@ public sealed class Session : IDisposable
 			var podsScreen = new PodListScreen(this);
 			ActiveScreen = podsScreen;
 		}
+		else if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "ollama"))
+		{
+			var ollamaBreadCrumb = new BreadCrumb("Ollama", GetNavigationUrlOllamaScreen());
+			BreadCrumbs = [homeBreadCrumb, ollamaBreadCrumb];
+
+			var ollamaScreen = new OllamaScreen(this);
+			ActiveScreen = ollamaScreen;
+		}
 		else
 		{
 			BreadCrumbs = [homeBreadCrumb];
@@ -93,6 +109,7 @@ public sealed class Session : IDisposable
 
 	public string GetNavigationUrlHomeScreen() => BuildNavigationUrl();
 	public string GetNavigationUrlPodListScreen() => BuildNavigationUrl("pods");
+	public string GetNavigationUrlOllamaScreen() => BuildNavigationUrl("ollama");
 
 	public string BuildNavigationUrl(params string[] parts)
 	{

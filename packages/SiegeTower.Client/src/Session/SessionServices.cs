@@ -6,19 +6,18 @@ namespace SiegeTower.Client;
 
 public sealed class SessionServices
 {
-	public SessionServices(Session session, NavigationManager navigationManager, HttpClient httpClient)
+	public SessionServices(NavigationManager navigationManager, HttpClient httpClient, IOllamaService ollamaService)
 	{
-		ArgumentNullException.ThrowIfNull(session);
 		ArgumentNullException.ThrowIfNull(navigationManager);
 		ArgumentNullException.ThrowIfNull(httpClient);
 		NavigationManager = navigationManager;
 		HttpClient = httpClient;
-		OllamaService = new(session);
+		OllamaService = ollamaService;
 	}
 
 	public NavigationManager NavigationManager { get; }
 
 	public HttpClient HttpClient { get; }
 
-	public OllamaService OllamaService { get; }
+	public IOllamaService OllamaService { get; }
 }

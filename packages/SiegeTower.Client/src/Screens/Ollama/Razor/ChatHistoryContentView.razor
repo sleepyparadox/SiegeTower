@@ -1,0 +1,27 @@
+<div class="ux-box ux-height-fill">
+	<div class="ux-line ux-padded">
+		<button type="button" @onclick="Content.OllamaScreen.NewChat">New Chat</button>
+	</div>
+	<table class="data-table ux-width-fill">
+		<thead>
+			<tr class="ux-line">
+				<th><div class="ux-padded">Chat</div></th>
+				<th><div class="ux-padded">Created</div></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var chat in Content.OllamaScreen.Chats)
+			{
+				<tr class="ux-line" @onclick="() => Content.OllamaScreen.OpenChat(chat)">
+					<td><div class="ux-padded">@chat.Summary</div></td>
+					<td><div class="ux-padded">@chat.CreatedAtUtc.ToLocalTime()</div></td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public ChatHistoryContent Content { get; set; } = null!;
+}

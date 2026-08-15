@@ -1,0 +1,50 @@
+<div class="ux-box ux-height-fill">
+	<div class="ux-box ux-height-fill ux-padded">
+		@foreach (var message in Content.OllamaScreen.CurrentChat.History)
+		{
+			<div class="chat-message @message.Role">
+				<strong>@message.Role</strong>
+				<div>@message.Content</div>
+			</div>
+		}
+	</div>
+	<div class="ux-line ux-padded">
+		<input @bind="Prompt" @bind:event="oninput" placeholder="Ask Ollama something..." />
+		<button type="button" @onclick="SendAsync" disabled="@IsBusy">Send</button>
+	</div>
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public ChatPrimaryContent Content { get; set; } = null!;
+
+	private string Prompt { get; set; } = string.Empty;
+	private bool IsBusy { get; set; }
+
+	private async Task SendAsync()
+	{
+		if (string.IsNullOrWhiteSpace(Prompt) || IsBusy)
+		{
+			return;
+		}
+
+		var prompt = Prompt.Trim();
+		Prompt = string.Empty;
+		var chat = Content.OllamaScreen.CurrentChat;
+		chat.History.Add(new OllamaChatMessage("user", prompt));
+		IsBusy = true;
+		try
+		{
+			var response = string.Empty;
+			await Content.OllamaScreen.SessionServices.OllamaService.ChatAsync(
+				Content.OllamaScreen.Models.FirstOrDefault()?.Name ?? "qwen3.5:2b",
+				chat.History,
+				token => response += token);
+			chat.History.Add(new OllamaChatMessage("assistant", response));
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+}

@@ -4,7 +4,19 @@ using System.Text.Json.Serialization;
 
 namespace SiegeTower.Client.Services.Ollama;
 
-public sealed class OllamaService
+public interface IOllamaService
+{
+	Task<IReadOnlyList<OllamaModel>> ListModelsAsync(CancellationToken cancellationToken = default);
+	Task PullModelAsync(string model, Action<string>? onStatus = null, CancellationToken cancellationToken = default);
+	Task DeleteModelAsync(string model, CancellationToken cancellationToken = default);
+	Task ChatAsync(
+		string model,
+		IReadOnlyList<OllamaChatMessage> messages,
+		Action<string> onToken,
+		CancellationToken cancellationToken = default);
+}
+
+public sealed class OllamaService : IOllamaService
 {
 	private const string OllamaBasePath = "/ollama/api";
 	private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);

@@ -102,7 +102,7 @@
 </section>
 
 @code {
-	private OllamaService OllamaApi => Session.SessionServices.OllamaService;
+	private IOllamaService OllamaApi => Session.SessionServices.OllamaService;
 
 	private static readonly string[] SupportedModels = ["qwen3.5:2b"];
 	private readonly List<OllamaModel> models = [];

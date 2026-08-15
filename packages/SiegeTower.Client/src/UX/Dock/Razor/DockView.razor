@@ -28,6 +28,18 @@
 		{
 			<ColorDockContentView Content="colorContent" />
 		}
+		else if (Dock.ActiveContent is ChatHistoryContent chatHistoryContent)
+		{
+			<ChatHistoryContentView Content="chatHistoryContent" />
+		}
+		else if (Dock.ActiveContent is ChatPrimaryContent chatPrimaryContent)
+		{
+			<ChatPrimaryContentView Content="chatPrimaryContent" />
+		}
+		else if (Dock.ActiveContent is ModelsContent modelsContent)
+		{
+			<ModelsContentView Content="modelsContent" />
+		}
 	</div>
 </div>
 

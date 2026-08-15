@@ -14,6 +14,10 @@
 	{
 		<HomeScreenView HomeScreen="homeScreen" />
 	}
+	else if (Session.ActiveScreen is OllamaScreen ollamaScreen)
+	{
+		<OllamaScreenView OllamaScreen="ollamaScreen" />
+	}
 
 	<div id="DragPreview"
 	     class="drag-preview @(Session.DragOperation.Target is not null ? "drag-preview-active" : "")"
