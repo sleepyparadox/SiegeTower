@@ -3,10 +3,22 @@
 		<i class="fa-solid fa-bars" aria-hidden="true"></i>
 	</button>
 	<i class="fa-solid fa-tower-observation" aria-hidden="true"></i>
-	<span class="title-bar-breadcrumbs">@string.Join(" / ", TitleBar.Breadcrumbs)</span>
+	<span class="title-bar-breadcrumbs">
+		@foreach (var (breadCrumb, index) in Session.BreadCrumbs.Select((value, index) => (value, index)))
+		{
+			@if (index > 0)
+			{
+				<span> / </span>
+			}
+			<BreadCrumbView BreadCrumb="breadCrumb" />
+		}
+	</span>
 </div>
 
 @code {
+	[Inject]
+	private Session Session { get; set; } = null!;
+
 	[Parameter, EditorRequired]
 	public TitleBar TitleBar { get; set; } = null!;
 }

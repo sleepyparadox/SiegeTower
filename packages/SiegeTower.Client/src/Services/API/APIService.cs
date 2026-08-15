@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using SiegeTower.Data;
 
-namespace SiegeTower.Client;
+namespace SiegeTower.Client.Services.API;
 
 public static class APIService
 {
@@ -18,7 +18,7 @@ public static class APIService
 		};
 
 		using var httpClient = new HttpClient();
-		var requestUri = BuildRequestUri(sessionContext.ApiBase, route);
+		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, route);
 		return await httpClient.GetFromJsonAsync<List<T>>(requestUri, cancellationToken)
 			?? [];
 	}
@@ -28,7 +28,7 @@ public static class APIService
 		ArgumentNullException.ThrowIfNull(sessionContext);
 
 		using var httpClient = new HttpClient();
-		var requestUri = BuildRequestUri(sessionContext.ApiBase, "pod");
+		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, "pod");
 		using var response = await httpClient.PostAsJsonAsync(requestUri, new { Name = name }, cancellationToken);
 		response.EnsureSuccessStatusCode();
 		return await response.Content.ReadFromJsonAsync<Pod>(cancellationToken: cancellationToken)
@@ -40,12 +40,12 @@ public static class APIService
 		ArgumentNullException.ThrowIfNull(sessionContext);
 
 		using var httpClient = new HttpClient();
-		var requestUri = BuildRequestUri(sessionContext.ApiBase, $"workspace/{Uri.EscapeDataString(name)}");
+		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, $"workspace/{System.Uri.EscapeDataString(name)}");
 		using var response = await httpClient.DeleteAsync(requestUri, cancellationToken);
 		response.EnsureSuccessStatusCode();
 	}
 
-	private static Uri BuildRequestUri(string apiBase, string route)
+	private static System.Uri BuildRequestUri(string apiBase, string route)
 	{
 		if (string.IsNullOrWhiteSpace(apiBase))
 		{
@@ -56,6 +56,6 @@ public static class APIService
 			? apiBase
 			: $"http://{apiBase}";
 
-		return new Uri($"{normalizedBase.TrimEnd('/')}/{route}", UriKind.Absolute);
+		return new System.Uri($"{normalizedBase.TrimEnd('/')}/{route}", System.UriKind.Absolute);
 	}
 }

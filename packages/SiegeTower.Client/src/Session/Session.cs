@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components;
 using SiegeTower.Client.Screens.Common;
+using SiegeTower.Client.Screens.Home;
 using SiegeTower.Client.Screens.PodList;
+using SiegeTower.Client.Services.Uri;
 using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client;
@@ -8,14 +11,21 @@ namespace SiegeTower.Client;
 // A session instance exists per browser tab
 public sealed class Session
 {
-	public Session()
+	public Session(NavigationManager navigationManager /*Dependency Injection*/)
 	{
-		ActiveScreen = new PodListScreen(this);
+		ArgumentNullException.ThrowIfNull(navigationManager);
+		NavigateTo(navigationManager.Uri);
 	}
 
-	public Screen ActiveScreen { get; private set; }
+	public Screen ActiveScreen { get; private set; } = new HomeScreen();
 
-	public SessionContext SessionContext { get; } = new() { ApiBase = "localhost:5006/api" };
+	public SessionContext SessionContext { get; } = new()
+	{
+		BaseUri = string.Empty,
+		ApiBaseUri = "localhost:5006/api"
+	};
+
+	public BreadCrumb[] BreadCrumbs { get; set; } = [];
 
 	public DragOperation DragOperation { get; } = new();
 
@@ -32,6 +42,50 @@ public sealed class Session
 		ActiveScreen = screen;
 		Redraw();
 	}
+
+	#region Navigate
+
+	public void NavigateTo(string uri)
+	{
+		var homeBreadCrumb = new BreadCrumb("SiegeTower", GetNavigationUrlHomeScreen());
+
+		var parsedUri = UriService.Parse(uri, SessionContext.BaseUri);
+		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "pods"))
+		{
+			var podsBreadCrumb = new BreadCrumb("Pods", GetNavigationUrlPodListScreen());
+			BreadCrumbs = [homeBreadCrumb, podsBreadCrumb];
+			
+			var podsScreen = new PodListScreen(this);
+			ActiveScreen = podsScreen;
+		}
+		else
+		{
+			BreadCrumbs = [homeBreadCrumb];
+
+			var homeScreen = new HomeScreen();
+			ActiveScreen = homeScreen;
+		}
+
+		Redraw();
+	}
+
+	public string GetNavigationUrlHomeScreen() => BuildNavigationUrl();
+	public string GetNavigationUrlPodListScreen() => BuildNavigationUrl("pods");
+
+	public string BuildNavigationUrl(params string[] parts)
+	{
+		ArgumentNullException.ThrowIfNull(parts);
+		if (parts.Length == 0)
+		{
+			return SessionContext.BaseUri;
+		}
+
+		return string.Join("/", new[] { SessionContext.BaseUri }.Concat(parts));
+	}
+
+	#endregion
+
+	#region Drag
 
 	public void DragStart(object target)
 	{
@@ -76,4 +130,6 @@ public sealed class Session
 		DragOperation.Target = null;
 		Redraw();
 	}
+
+	#endregion
 }
