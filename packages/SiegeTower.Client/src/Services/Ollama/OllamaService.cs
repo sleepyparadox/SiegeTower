@@ -2,16 +2,23 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SiegeTower.Client;
+namespace SiegeTower.Client.Services.Ollama;
 
-public sealed class OllamaService(HttpClient httpClient)
+public sealed class OllamaService
 {
 	private const string OllamaBasePath = "/ollama/api";
 	private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+	private readonly Session session;
+
+	public OllamaService(Session session)
+	{
+		ArgumentNullException.ThrowIfNull(session);
+		this.session = session;
+	}
 
 	public async Task<IReadOnlyList<OllamaModel>> ListModelsAsync(CancellationToken cancellationToken = default)
 	{
-		var response = await httpClient.GetFromJsonAsync<OllamaTagsResponse>($"{OllamaBasePath}/tags", JsonOptions, cancellationToken);
+		var response = await session.SessionServices.HttpClient.GetFromJsonAsync<OllamaTagsResponse>($"{OllamaBasePath}/tags", JsonOptions, cancellationToken);
 		return response?.Models ?? [];
 	}
 
@@ -24,7 +31,7 @@ public sealed class OllamaService(HttpClient httpClient)
 
 	public async Task DeleteModelAsync(string model, CancellationToken cancellationToken = default)
 	{
-		using var response = await httpClient.SendAsync(
+		using var response = await session.SessionServices.HttpClient.SendAsync(
 			new HttpRequestMessage(HttpMethod.Delete, $"{OllamaBasePath}/delete")
 			{
 				Content = JsonContent.Create(new { Name = model }, options: JsonOptions)
@@ -73,7 +80,7 @@ public sealed class OllamaService(HttpClient httpClient)
 		{
 			Content = JsonContent.Create(body, options: JsonOptions)
 		};
-		return await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+		return await session.SessionServices.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 	}
 }
 

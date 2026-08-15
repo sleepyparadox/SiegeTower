@@ -12,17 +12,21 @@ namespace SiegeTower.Client;
 // A session instance exists per browser tab
 public sealed class Session : IDisposable
 {
-	private readonly NavigationManager navigationManager;
-
-	public Session(NavigationManager navigationManager /*Dependency Injection*/)
+	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient)
 	{
-		ArgumentNullException.ThrowIfNull(navigationManager);
-		this.navigationManager = navigationManager;
-		navigationManager.LocationChanged += HandleLocationChanged;
-		ApplyNavigation(navigationManager.Uri);
+		SessionServices = new(this, injectedNavigationManager, injectedHttpClient);
+		BurgerMenu =
+		[
+			new MenuItem("Home", () => NavigateTo(GetNavigationUrlHomeScreen())),
+			new MenuItem("Pods", () => NavigateTo(GetNavigationUrlPodListScreen()))
+		];
+		SessionServices.NavigationManager.LocationChanged += HandleLocationChanged;
+		ApplyNavigation(SessionServices.NavigationManager.Uri);
 	}
 
 	public Screen ActiveScreen { get; private set; } = new HomeScreen();
+
+	public SessionServices SessionServices { get; }
 
 	public SessionContext SessionContext { get; } = new()
 	{
@@ -31,6 +35,8 @@ public sealed class Session : IDisposable
 	};
 
 	public BreadCrumb[] BreadCrumbs { get; set; } = [];
+
+	public MenuItem[] BurgerMenu { get; }
 
 	public DragOperation DragOperation { get; } = new();
 
@@ -53,7 +59,7 @@ public sealed class Session : IDisposable
 	public void NavigateTo(string uri)
 	{
 		ArgumentNullException.ThrowIfNull(uri);
-		navigationManager.NavigateTo(uri);
+		SessionServices.NavigationManager.NavigateTo(uri);
 	}
 
 	private void ApplyNavigation(string uri)
@@ -103,7 +109,7 @@ public sealed class Session : IDisposable
 
 	public void Dispose()
 	{
-		navigationManager.LocationChanged -= HandleLocationChanged;
+		SessionServices.NavigationManager.LocationChanged -= HandleLocationChanged;
 	}
 
 	#region Drag

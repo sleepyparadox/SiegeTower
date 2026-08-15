@@ -12,6 +12,10 @@ body {
     height: 2rem;
 }
 
+.ux-height-line {
+    height: 2rem;
+}
+
 .ux-line-x2 {
     display: flex;
     height: 4rem;
@@ -99,6 +103,7 @@ body {
 
 .title-bar {
     gap: 1rem;
+    position: relative;
 }
 
 .title-bar-menu {
@@ -108,6 +113,29 @@ body {
     cursor: pointer;
     font: inherit;
     padding: 0;
+}
+
+.title-bar-burger-menu {
+    background: #fff;
+    border: 1px solid #000;
+    box-shadow: 0 .25rem .5rem rgba(0, 0, 0, .2);
+    display: flex;
+    flex-direction: column;
+    left: 0;
+    min-width: 8rem;
+    position: absolute;
+    top: 100%;
+    z-index: 100;
+}
+
+.title-bar-burger-menu button {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    padding: 0 .75rem;
+    text-align: left;
+    width: 100%;
 }
 
 .title-bar-breadcrumbs {
