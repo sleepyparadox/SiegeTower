@@ -12,11 +12,6 @@ public sealed class PodListScreen : Screen
 		: base("Pods")
 	{
 		ArgumentNullException.ThrowIfNull(session);
-		TitleBar = new()
-		{
-			Title = Title,
-			Breadcrumbs = ["SiegeTower", "Pods"]
-		};
 		FileToolbar = new() { Name = "File", Items = ["File", "Open", "Save"] };
 		HelpToolbar = new() { Name = "Help", Items = ["Help"] };
 		ToolbarGrid = new()
@@ -43,8 +38,6 @@ public sealed class PodListScreen : Screen
 	}
 
 	public IReadOnlyList<Pod> Pods { get; private set; } = [];
-
-	public TitleBar TitleBar { get; }
 
 	public ToolbarGrid ToolbarGrid { get; }
 

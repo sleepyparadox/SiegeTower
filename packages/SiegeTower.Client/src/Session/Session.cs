@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Screens.Home;
 using SiegeTower.Client.Screens.PodList;
@@ -9,12 +10,16 @@ using SiegeTower.Client.UX;
 namespace SiegeTower.Client;
 
 // A session instance exists per browser tab
-public sealed class Session
+public sealed class Session : IDisposable
 {
+	private readonly NavigationManager navigationManager;
+
 	public Session(NavigationManager navigationManager /*Dependency Injection*/)
 	{
 		ArgumentNullException.ThrowIfNull(navigationManager);
-		NavigateTo(navigationManager.Uri);
+		this.navigationManager = navigationManager;
+		navigationManager.LocationChanged += HandleLocationChanged;
+		ApplyNavigation(navigationManager.Uri);
 	}
 
 	public Screen ActiveScreen { get; private set; } = new HomeScreen();
@@ -47,6 +52,12 @@ public sealed class Session
 
 	public void NavigateTo(string uri)
 	{
+		ArgumentNullException.ThrowIfNull(uri);
+		navigationManager.NavigateTo(uri);
+	}
+
+	private void ApplyNavigation(string uri)
+	{
 		var homeBreadCrumb = new BreadCrumb("SiegeTower", GetNavigationUrlHomeScreen());
 
 		var parsedUri = UriService.Parse(uri, SessionContext.BaseUri);
@@ -69,6 +80,11 @@ public sealed class Session
 		Redraw();
 	}
 
+	private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+	{
+		ApplyNavigation(args.Location);
+	}
+
 	public string GetNavigationUrlHomeScreen() => BuildNavigationUrl();
 	public string GetNavigationUrlPodListScreen() => BuildNavigationUrl("pods");
 
@@ -84,6 +100,11 @@ public sealed class Session
 	}
 
 	#endregion
+
+	public void Dispose()
+	{
+		navigationManager.LocationChanged -= HandleLocationChanged;
+	}
 
 	#region Drag
 

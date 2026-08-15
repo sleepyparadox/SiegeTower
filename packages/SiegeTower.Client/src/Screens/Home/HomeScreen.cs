@@ -7,12 +7,5 @@ public sealed class HomeScreen : Screen
 	public HomeScreen()
 		: base("Home")
 	{
-		TitleBar = new()
-		{
-			Title = Title,
-			Breadcrumbs = ["SiegeTower", "Home"]
-		};
 	}
-
-	public TitleBar TitleBar { get; }
 }
