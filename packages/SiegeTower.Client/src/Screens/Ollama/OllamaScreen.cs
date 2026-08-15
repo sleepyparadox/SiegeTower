@@ -36,6 +36,11 @@ public sealed class OllamaScreen : Screen
 
 	public IReadOnlyList<OllamaModel> Models { get; private set; } = [];
 
+	public void Redraw()
+	{
+		session.Redraw();
+	}
+
 	public void NewChat()
 	{
 		var chat = new Chat { Summary = "New chat" };

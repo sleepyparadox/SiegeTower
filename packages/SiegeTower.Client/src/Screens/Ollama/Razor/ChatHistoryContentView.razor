@@ -1,24 +1,20 @@
-<div class="ux-box ux-height-fill">
-	<div class="ux-line ux-padded">
-		<button type="button" @onclick="Content.OllamaScreen.NewChat">New Chat</button>
+
+<div class="chat-history-content ux-box ux-height-fill">
+	<div class="chat-history-new-chat ux-line ux-padded"
+		 @onclick="Content.OllamaScreen.NewChat">
+		<span role="button" tabindex="0">New chat</span>
 	</div>
-	<table class="data-table ux-width-fill">
-		<thead>
-			<tr class="ux-line">
-				<th><div class="ux-padded">Chat</div></th>
-				<th><div class="ux-padded">Created</div></th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var chat in Content.OllamaScreen.Chats)
-			{
-				<tr class="ux-line" @onclick="() => Content.OllamaScreen.OpenChat(chat)">
-					<td><div class="ux-padded">@chat.Summary</div></td>
-					<td><div class="ux-padded">@chat.CreatedAtUtc.ToLocalTime()</div></td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<div class="chat-history-splitter ux-line" aria-hidden="true"></div>
+	<div class="chat-history-list ux-box ux-height-fill">
+		@for (var index = 0; index < Content.OllamaScreen.Chats.Count; index++)
+		{
+			var chat = Content.OllamaScreen.Chats[index];
+			<div class="chat-history-row ux-line ux-padded"
+				 @onclick="() => Content.OllamaScreen.OpenChat(chat)">
+				<span role="button" tabindex="0">Chat @(index + 1)</span>
+			</div>
+		}
+	</div>
 </div>
 
 @code {

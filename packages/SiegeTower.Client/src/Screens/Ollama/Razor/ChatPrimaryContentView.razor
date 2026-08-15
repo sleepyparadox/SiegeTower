@@ -1,5 +1,5 @@
-<div class="ux-box ux-height-fill">
-	<div class="ux-box ux-height-fill ux-padded">
+<div class="ollama-content ux-box ux-height-fill">
+	<div class="ollama-content-body ux-box ux-height-fill ux-padded">
 		@foreach (var message in Content.OllamaScreen.CurrentChat.History)
 		{
 			<div class="chat-message @message.Role">
@@ -7,8 +7,15 @@
 				<div>@message.Content</div>
 			</div>
 		}
+		@if (IsBusy)
+		{
+			<div class="ollama-chat-busy" role="status" aria-live="polite">
+				<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+				<span>Busy</span>
+			</div>
+		}
 	</div>
-	<div class="ux-line ux-padded">
+	<div class="ollama-content-footer ux-line ux-padded">
 		<input @bind="Prompt" @bind:event="oninput" placeholder="Ask Ollama something..." />
 		<button type="button" @onclick="SendAsync" disabled="@IsBusy">Send</button>
 	</div>
@@ -32,15 +39,21 @@
 		Prompt = string.Empty;
 		var chat = Content.OllamaScreen.CurrentChat;
 		chat.History.Add(new OllamaChatMessage("user", prompt));
+		var requestHistory = chat.History.ToArray();
+		var assistantMessageIndex = chat.History.Count;
+		chat.History.Add(new OllamaChatMessage("assistant", string.Empty));
 		IsBusy = true;
 		try
 		{
-			var response = string.Empty;
 			await Content.OllamaScreen.SessionServices.OllamaService.ChatAsync(
 				Content.OllamaScreen.Models.FirstOrDefault()?.Name ?? "qwen3.5:2b",
-				chat.History,
-				token => response += token);
-			chat.History.Add(new OllamaChatMessage("assistant", response));
+				requestHistory,
+				token =>
+				{
+					var response = chat.History[assistantMessageIndex].Content + token;
+					chat.History[assistantMessageIndex] = new OllamaChatMessage("assistant", response);
+					Content.OllamaScreen.Redraw();
+				});
 		}
 		finally
 		{
