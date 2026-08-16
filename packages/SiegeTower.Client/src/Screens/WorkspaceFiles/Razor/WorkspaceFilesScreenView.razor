@@ -1,14 +1,31 @@
 <div class="workspace-files-screen ux-box">
 	<TitleBarView />
-	<DockGridView DockGrid="WorkspaceFilesScreen.DockGrid" />
+	<WorkspaceFilesToolbarView ToolbarGrid="WorkspaceFilesScreen.ToolbarGrid" />
+	@if (LoadError is not null)
+	{
+		<div class="ux-padded">Unable to load workspace files: @LoadError.Message</div>
+	}
+	else
+	{
+		<DockGridView DockGrid="WorkspaceFilesScreen.DockGrid" />
+	}
 </div>
 
 @code {
 	[Parameter, EditorRequired]
 	public WorkspaceFilesScreen WorkspaceFilesScreen { get; set; } = null!;
 
+	private Exception? LoadError { get; set; }
+
 	protected override async Task OnInitializedAsync()
 	{
-		await WorkspaceFilesScreen.LoadAsync();
+		try
+		{
+			await WorkspaceFilesScreen.LoadAsync();
+		}
+		catch (Exception exception)
+		{
+			LoadError = exception;
+		}
 	}
 }

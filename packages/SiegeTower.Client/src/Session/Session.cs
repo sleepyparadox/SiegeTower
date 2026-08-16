@@ -20,6 +20,12 @@ public sealed class Session : IDisposable
 	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient)
 	{
 		var uri = injectedNavigationManager.Uri;
+		var apiBaseUri = new System.Uri(new System.Uri(uri), "/api").ToString();
+		SessionContext = new()
+		{
+			BaseUri = string.Empty,
+			ApiBaseUri = apiBaseUri
+		};
 		SessionServices = new(
 			injectedNavigationManager,
 			injectedHttpClient,
@@ -39,11 +45,7 @@ public sealed class Session : IDisposable
 
 	public SessionServices SessionServices { get; }
 
-	public SessionContext SessionContext { get; } = new()
-	{
-		BaseUri = string.Empty,
-		ApiBaseUri = "localhost:5006/api"
-	};
+	public SessionContext SessionContext { get; }
 
 	public BreadCrumb[] BreadCrumbs { get; set; } = [];
 
@@ -78,7 +80,7 @@ public sealed class Session : IDisposable
 		var homeBreadCrumb = new BreadCrumb("SiegeTower", GetNavigationUrlHomeScreen());
 
 		var parsedUri = UriService.Parse(uri, SessionContext.BaseUri);
-		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "workspaces"))
+		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "workspace"))
 		{
 			var workspacesBreadCrumb = new BreadCrumb("Workspaces", GetNavigationUrlWorkspaceListScreen());
 			if (parsedUri.PathParts.Length > 1)
@@ -118,8 +120,8 @@ public sealed class Session : IDisposable
 	}
 
 	public string GetNavigationUrlHomeScreen() => BuildNavigationUrl();
-	public string GetNavigationUrlWorkspaceListScreen() => BuildNavigationUrl("workspaces");
-	public string GetNavigationUrlToWorkspaceScreen(string id) => BuildNavigationUrl("workspaces", System.Uri.EscapeDataString(id));
+	public string GetNavigationUrlWorkspaceListScreen() => BuildNavigationUrl("workspace");
+	public string GetNavigationUrlToWorkspaceScreen(string id) => BuildNavigationUrl("workspace", System.Uri.EscapeDataString(id));
 	public string GetNavigationUrlToWorkspaceSCreen(string id) => GetNavigationUrlToWorkspaceScreen(id);
 	public string GetNavigationUrlOllamaScreen() => BuildNavigationUrl("ollama");
 

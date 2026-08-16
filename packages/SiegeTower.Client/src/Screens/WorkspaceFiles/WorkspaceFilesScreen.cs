@@ -14,12 +14,21 @@ public sealed class WorkspaceFilesScreen : Screen
 	{
 		ArgumentNullException.ThrowIfNull(session);
 		this.session = session;
+		WorkspaceFilesToolbar = new() { Name = "File", Items = ["File", "Open", "Save"] };
+		ToolbarGrid = new()
+		{
+			Toolbars = [WorkspaceFilesToolbar]
+		};
 		FileTreeDockContent = new(this);
 		FileEditDockContent = new();
 		DockGrid = new DockGrid([FileTreeDockContent], [FileEditDockContent], []);
 	}
 
 	public DockGrid DockGrid { get; }
+
+	public Toolbar WorkspaceFilesToolbar { get; }
+
+	public ToolbarGrid ToolbarGrid { get; }
 
 	public FileTreeDockContent FileTreeDockContent { get; }
 

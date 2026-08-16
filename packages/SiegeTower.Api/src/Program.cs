@@ -57,7 +57,11 @@ app.MapPost("api/tasks", async (CreateTaskRequest request, IConfiguration config
 app.MapGet("api/workspace", async (IKubernetes client, CancellationToken cancellationToken) =>
 {
 	var pods = await client.CoreV1.ListNamespacedPodAsync(workspaceNamespace, cancellationToken: cancellationToken);
-	return pods.Items.Select(pod => new WorkspaceRow(pod.Metadata.Name, pod.Metadata.NamespaceProperty));
+	return pods.Items.Select(pod => new WorkspaceRow(
+		pod.Metadata.Name.StartsWith("st-workspace-", StringComparison.Ordinal)
+			? pod.Metadata.Name["st-workspace-".Length..]
+			: pod.Metadata.Name,
+		pod.Metadata.NamespaceProperty));
 });
 
 app.MapPost("api/workspace", async (CreateWorkspaceRequest request, IKubernetes client, CancellationToken cancellationToken) =>
