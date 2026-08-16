@@ -1,0 +1,15 @@
+<div class="workspace-list-screen ux-box">
+	<TitleBarView />
+	<ToolbarGridView ToolbarGrid="WorkspaceListScreen.ToolbarGrid" />
+	<DockGridView DockGrid="WorkspaceListScreen.DockGrid" />
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public WorkspaceListScreen WorkspaceListScreen { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await WorkspaceListScreen.LoadAsync();
+	}
+}

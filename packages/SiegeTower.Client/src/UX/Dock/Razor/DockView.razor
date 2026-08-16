@@ -20,9 +20,13 @@
 	</div>
 
 	<div class="dock-content ux-box ux-height-fill" @onmouseup="() => DragStop(Dock.ActiveContent)">
-		@if (Dock.ActiveContent is PodListDockContent podListContent)
+		@if (Dock.ActiveContent is WorkspaceListDockContent workspaceListContent)
 		{
-			<PodListDockView Content="podListContent" />
+			<WorkspaceListDockContentView Content="workspaceListContent" />
+		}
+		else if (Dock.ActiveContent is WorkspaceListCreateContent workspaceListCreateContent)
+		{
+			<WorkspaceListCreateView Content="workspaceListCreateContent" />
 		}
 		else if (Dock.ActiveContent is ColorDockContent colorContent)
 		{

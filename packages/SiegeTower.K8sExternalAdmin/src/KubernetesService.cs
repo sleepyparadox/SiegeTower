@@ -19,6 +19,7 @@ public static class KubernetesService
 		await EnsureApiServiceAccountAsync(client, @namespace);
 		await RemoveLegacyApplicationsAsync(client, @namespace);
 
+		await EnsurePostgresAsync(client, @namespace);
 		await ApplyApplicationAsync(client, "st-load-balancer", loadBalancerImage, @namespace, nodePort: 30006);
 		await ApplyApplicationAsync(client, "st-api", apiImage, @namespace);
 		await ApplyApplicationAsync(client, "st-ollama", ollamaImage, @namespace, port: 11434, persistOllamaModels: true);
@@ -86,6 +87,7 @@ public static class KubernetesService
 								Image = image,
 								ImagePullPolicy = "Never",
 								Ports = [new V1ContainerPort { ContainerPort = port }],
+								Env = name == "st-api" ? DatabaseEnvironment() : null,
 								VolumeMounts = persistOllamaModels
 									? [new V1VolumeMount { Name = "ollama-models", MountPath = "/root/.ollama" }]
 									: null
@@ -133,6 +135,135 @@ public static class KubernetesService
 
 		LogService.Info($"Applied Deployment and Service '{name}'.");
 	}
+
+	static async Task EnsurePostgresAsync(IKubernetes client, string @namespace)
+	{
+		const string name = "st-api-db";
+		const string secretName = "st-api-db-credentials";
+		const string username = "siegetower";
+
+		var secret = new V1Secret
+		{
+			Metadata = new V1ObjectMeta { Name = secretName, NamespaceProperty = @namespace },
+			Type = "Opaque",
+			StringData = new Dictionary<string, string>
+			{
+				["username"] = username,
+				["password"] = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))
+			}
+		};
+
+		try
+		{
+			var existing = await client.CoreV1.ReadNamespacedSecretAsync(secretName, @namespace);
+			secret.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			secret.StringData = null;
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.CoreV1.CreateNamespacedSecretAsync(secret, @namespace);
+		}
+
+		var labels = new Dictionary<string, string> { ["app"] = name };
+		var deployment = new V1Deployment
+		{
+			Metadata = new V1ObjectMeta { Name = name, NamespaceProperty = @namespace },
+			Spec = new V1DeploymentSpec
+			{
+				Replicas = 1,
+				Selector = new V1LabelSelector { MatchLabels = labels },
+				Template = new V1PodTemplateSpec
+				{
+					Metadata = new V1ObjectMeta { Labels = labels },
+					Spec = new V1PodSpec
+					{
+						Volumes =
+						[
+							new V1Volume
+							{
+								Name = "postgres-data",
+								HostPath = new V1HostPathVolumeSource
+								{
+									Path = "/var/lib/siegetower/postgres-data",
+									Type = "DirectoryOrCreate"
+								}
+							}
+						],
+						Containers =
+						[
+							new V1Container
+							{
+								Name = name,
+								Image = "postgres:17-alpine",
+								Ports = [new V1ContainerPort { ContainerPort = 5432 }],
+								Env =
+								[
+									SecretEnvironmentVariable("POSTGRES_USER", secretName, "username"),
+									SecretEnvironmentVariable("POSTGRES_PASSWORD", secretName, "password")
+									],
+									VolumeMounts =
+									[
+										new V1VolumeMount { Name = "postgres-data", MountPath = "/var/lib/postgresql/data" }
+									]
+							}
+						]
+					}
+				}
+			}
+		};
+
+		try
+		{
+			var existing = await client.AppsV1.ReadNamespacedDeploymentAsync(name, @namespace);
+			deployment.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			await client.AppsV1.ReplaceNamespacedDeploymentAsync(deployment, name, @namespace);
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.AppsV1.CreateNamespacedDeploymentAsync(deployment, @namespace);
+		}
+
+		var service = new V1Service
+		{
+			Metadata = new V1ObjectMeta { Name = name, NamespaceProperty = @namespace },
+			Spec = new V1ServiceSpec
+			{
+				Selector = labels,
+				Ports = [new V1ServicePort { Name = "postgres", Port = 5432, TargetPort = 5432 }]
+			}
+		};
+
+		try
+		{
+			var existing = await client.CoreV1.ReadNamespacedServiceAsync(name, @namespace);
+			service.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+			await client.CoreV1.ReplaceNamespacedServiceAsync(service, name, @namespace);
+		}
+		catch (HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+		{
+			await client.CoreV1.CreateNamespacedServiceAsync(service, @namespace);
+		}
+
+		await WaitForDeploymentAsync(client, name, @namespace);
+		LogService.Info($"Applied Postgres Deployment, Service, and Secret '{name}'.");
+	}
+
+	static List<V1EnvVar> DatabaseEnvironment() =>
+	[
+		new V1EnvVar { Name = "Database__Host", Value = "st-api-db" },
+		new V1EnvVar { Name = "Database__Port", Value = "5432" },
+		SecretEnvironmentVariable("Database__Username", "st-api-db-credentials", "username"),
+		SecretEnvironmentVariable("Database__Password", "st-api-db-credentials", "password")
+	];
+
+	static V1EnvVar SecretEnvironmentVariable(string name, string secretName, string key) => new()
+	{
+		Name = name,
+		ValueFrom = new V1EnvVarSource
+		{
+			SecretKeyRef = new V1SecretKeySelector { Name = secretName, Key = key }
+		}
+	};
 
 	static async Task EnsureApiServiceAccountAsync(IKubernetes client, string @namespace)
 	{

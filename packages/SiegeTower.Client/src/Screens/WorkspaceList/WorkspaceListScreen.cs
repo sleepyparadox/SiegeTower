@@ -1,15 +1,16 @@
 using SiegeTower.Data;
 using SiegeTower.Client.Screens.Common;
+using SiegeTower.Client.Services.API;
 using SiegeTower.Client.UX;
 
-namespace SiegeTower.Client.Screens.PodList;
+namespace SiegeTower.Client.Screens.WorkspaceList;
 
-public sealed class PodListScreen : Screen
+public sealed class WorkspaceListScreen : Screen
 {
 	private readonly Session session;
 
-	public PodListScreen(Session session)
-		: base("Pods")
+	public WorkspaceListScreen(Session session)
+		: base("Workspaces")
 	{
 		ArgumentNullException.ThrowIfNull(session);
 		FileToolbar = new() { Name = "File", Items = ["File", "Open", "Save"] };
@@ -19,10 +20,11 @@ public sealed class PodListScreen : Screen
 			Toolbars = [FileToolbar, HelpToolbar]
 		};
 		this.session = session;
-		PodListDockContent = new();
+		WorkspaceListDockContent = new();
+		WorkspaceListCreateContent = new(session.SessionContext);
 		DockGrid = new DockGrid(
 			[
-				PodListDockContent,
+				WorkspaceListDockContent,
 				new ColorDockContent { Name = "Red", Color = "Red" },
 				new ColorDockContent { Name = "Blue", Color = "Blue" }
 			],
@@ -31,13 +33,14 @@ public sealed class PodListScreen : Screen
 				new ColorDockContent { Name = "Green", Color = "Green" }
 			],
 			[
+				WorkspaceListCreateContent,
 				new ColorDockContent { Name = "Purple", Color = "Purple" },
 				new ColorDockContent { Name = "Orange", Color = "Orange" }
 			]);
 		session.SetActiveScreen(this);
 	}
 
-	public IReadOnlyList<Pod> Pods { get; private set; } = [];
+	public IReadOnlyList<WorkspaceRow> Workspaces { get; private set; } = [];
 
 	public ToolbarGrid ToolbarGrid { get; }
 
@@ -45,21 +48,17 @@ public sealed class PodListScreen : Screen
 
 	public Toolbar HelpToolbar { get; }
 
-	public PodListDockContent PodListDockContent { get; }
+	public WorkspaceListDockContent WorkspaceListDockContent { get; }
+
+	public WorkspaceListCreateContent WorkspaceListCreateContent { get; }
 
 	public DockGrid DockGrid { get; }
 
-	public Task LoadAsync(CancellationToken cancellationToken = default)
+	public async Task LoadAsync(CancellationToken cancellationToken = default)
 	{
-		var fakeData = new[]
-		{
-			new Pod("api", "default"),
-			new Pod("frontend", "default"),
-			new Pod("worker", "jobs")
-		};
-		Pods = fakeData;
-		PodListDockContent.Pods = fakeData;
+		var workspaces = await APIService.Get<WorkspaceRow>(session.SessionContext, cancellationToken);
+		Workspaces = workspaces;
+		WorkspaceListDockContent.Workspaces = workspaces;
 		session.Redraw();
-		return Task.CompletedTask;
 	}
 }

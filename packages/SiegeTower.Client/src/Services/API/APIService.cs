@@ -12,8 +12,7 @@ public static class APIService
 
 		var route = typeof(T) switch
 		{
-			var resourceType when resourceType == typeof(Pod) => "pod",
-			var resourceType when resourceType == typeof(Workspace) => "workspace",
+			var resourceType when resourceType == typeof(WorkspaceRow) => "workspace",
 			_ => throw new ArgumentException($"Unsupported API resource type '{typeof(T).Name}'.", nameof(T))
 		};
 
@@ -23,16 +22,16 @@ public static class APIService
 			?? [];
 	}
 
-	public static async Task<Pod> CreatePod(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
+	public static async Task<WorkspaceRow> CreateWorkspace(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(sessionContext);
 
 		using var httpClient = new HttpClient();
-		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, "pod");
+		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, "workspace");
 		using var response = await httpClient.PostAsJsonAsync(requestUri, new { Name = name }, cancellationToken);
 		response.EnsureSuccessStatusCode();
-		return await response.Content.ReadFromJsonAsync<Pod>(cancellationToken: cancellationToken)
-			?? throw new InvalidOperationException("The API returned an empty Pod response.");
+		return await response.Content.ReadFromJsonAsync<WorkspaceRow>(cancellationToken: cancellationToken)
+			?? throw new InvalidOperationException("The API returned an empty workspace response.");
 	}
 
 	public static async Task DeleteWorkspace(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)

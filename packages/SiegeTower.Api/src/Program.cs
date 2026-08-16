@@ -1,6 +1,8 @@
 using SiegeTower.Data;
+using SiegeTower.Api;
 using k8s;
 using k8s.Models;
+using Npgsql;
 
 const string workspaceNamespace = "siegetower-workspace";
 
@@ -11,25 +13,58 @@ builder.Services.AddSingleton<IKubernetes>(_ =>
 	return new Kubernetes(config);
 });
 
+await DatabaseInitializer.InitializeAsync(builder.Configuration);
+
 var app = builder.Build();
 
-app.MapGet("api/workspace", () => new[]
+app.MapGet("api/tasks", async (IConfiguration configuration, CancellationToken cancellationToken) =>
 {
-	new Workspace("1"),
-	new Workspace("2")
+	await using var connection = DatabaseInitializer.CreateApplicationConnection(configuration);
+	await connection.OpenAsync(cancellationToken);
+	await using var command = new NpgsqlCommand("SELECT id, name, description FROM task ORDER BY id", connection);
+	await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+	var tasks = new List<TaskRow>();
+	while (await reader.ReadAsync(cancellationToken))
+	{
+		tasks.Add(new TaskRow(reader.GetGuid(0), reader.GetString(1), reader.GetString(2)));
+	}
+
+	return tasks;
 });
 
-app.MapGet("api/pod", async (IKubernetes client, CancellationToken cancellationToken) =>
+app.MapPost("api/tasks", async (CreateTaskRequest request, IConfiguration configuration, CancellationToken cancellationToken) =>
+{
+	if (string.IsNullOrWhiteSpace(request.Name))
+	{
+		return Results.BadRequest("Task name is required.");
+	}
+
+	var task = new TaskRow(Guid.NewGuid(), request.Name.Trim(), request.Description ?? string.Empty);
+	await using var connection = DatabaseInitializer.CreateApplicationConnection(configuration);
+	await connection.OpenAsync(cancellationToken);
+	await using var command = new NpgsqlCommand(
+		"INSERT INTO task (id, name, description) VALUES (@id, @name, @description)",
+		connection);
+	command.Parameters.AddWithValue("id", task.Id);
+	command.Parameters.AddWithValue("name", task.Name);
+	command.Parameters.AddWithValue("description", task.Description);
+	await command.ExecuteNonQueryAsync(cancellationToken);
+
+	return Results.Created($"api/tasks/{task.Id}", task);
+});
+
+app.MapGet("api/workspace", async (IKubernetes client, CancellationToken cancellationToken) =>
 {
 	var pods = await client.CoreV1.ListNamespacedPodAsync(workspaceNamespace, cancellationToken: cancellationToken);
-	return pods.Items.Select(pod => new Pod(pod.Metadata.Name, pod.Metadata.NamespaceProperty));
+	return pods.Items.Select(pod => new WorkspaceRow(pod.Metadata.Name, pod.Metadata.NamespaceProperty));
 });
 
-app.MapPost("api/pod", async (CreatePodRequest request, IKubernetes client, CancellationToken cancellationToken) =>
+app.MapPost("api/workspace", async (CreateWorkspaceRequest request, IKubernetes client, CancellationToken cancellationToken) =>
 {
 	if (string.IsNullOrWhiteSpace(request.Name) || !request.Name.StartsWith("st-workspace-", StringComparison.Ordinal))
 	{
-		return Results.BadRequest("Pod name must start with 'st-workspace-'.");
+		return Results.BadRequest("Workspace name must start with 'st-workspace-'.");
 	}
 
 	var labels = new Dictionary<string, string> { ["app"] = request.Name };
@@ -84,7 +119,7 @@ app.MapPost("api/pod", async (CreatePodRequest request, IKubernetes client, Canc
 		throw;
 	}
 
-	return Results.Created($"api/pod/{request.Name}", new Pod(request.Name, workspaceNamespace));
+	return Results.Created($"api/workspace/{request.Name}", new WorkspaceRow(request.Name, workspaceNamespace));
 });
 
 app.MapDelete("api/workspace/{name}", async (string name, IKubernetes client, CancellationToken cancellationToken) =>
@@ -118,4 +153,5 @@ app.MapDelete("api/workspace/{name}", async (string name, IKubernetes client, Ca
 
 app.Run();
 
-public sealed record CreatePodRequest(string Name);
+public sealed record CreateWorkspaceRequest(string Name);
+public sealed record CreateTaskRequest(string Name, string? Description);

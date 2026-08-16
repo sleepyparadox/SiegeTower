@@ -9,11 +9,11 @@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (var pod in Content.Pods)
+			@foreach (var workspace in Content.Workspaces)
 			{
 				<tr class="ux-line">
-					<td><div class="ux-padded">@pod.Name</div></td>
-					<td><div class="ux-padded">@pod.Namespace</div></td>
+					<td><div class="ux-padded">@workspace.Name</div></td>
+					<td><div class="ux-padded">@workspace.Namespace</div></td>
 				</tr>
 			}
 		</tbody>
@@ -22,5 +22,5 @@
 
 @code {
 	[Parameter, EditorRequired]
-	public PodListDockContent Content { get; set; } = null!;
+	public WorkspaceListDockContent Content { get; set; } = null!;
 }

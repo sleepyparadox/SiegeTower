@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Screens.Home;
-using SiegeTower.Client.Screens.PodList;
+using SiegeTower.Client.Screens.WorkspaceList;
 using SiegeTower.Client.Screens.Ollama;
 using SiegeTower.Client.Services.Uri;
 using SiegeTower.Client.UX;
@@ -25,7 +25,7 @@ public sealed class Session : IDisposable
 		BurgerMenu =
 		[
 			new MenuItem("Home", () => NavigateTo(GetNavigationUrlHomeScreen())),
-			new MenuItem("Pods", () => NavigateTo(GetNavigationUrlPodListScreen())),
+			new MenuItem("Workspaces", () => NavigateTo(GetNavigationUrlWorkspaceListScreen())),
 			new MenuItem("Ollama", () => NavigateTo(GetNavigationUrlOllamaScreen()))
 		];
 		SessionServices.NavigationManager.LocationChanged += HandleLocationChanged;
@@ -75,13 +75,13 @@ public sealed class Session : IDisposable
 		var homeBreadCrumb = new BreadCrumb("SiegeTower", GetNavigationUrlHomeScreen());
 
 		var parsedUri = UriService.Parse(uri, SessionContext.BaseUri);
-		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "pods"))
+		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "workspaces"))
 		{
-			var podsBreadCrumb = new BreadCrumb("Pods", GetNavigationUrlPodListScreen());
-			BreadCrumbs = [homeBreadCrumb, podsBreadCrumb];
+			var workspacesBreadCrumb = new BreadCrumb("Workspaces", GetNavigationUrlWorkspaceListScreen());
+			BreadCrumbs = [homeBreadCrumb, workspacesBreadCrumb];
 			
-			var podsScreen = new PodListScreen(this);
-			ActiveScreen = podsScreen;
+			var workspacesScreen = new WorkspaceListScreen(this);
+			ActiveScreen = workspacesScreen;
 		}
 		else if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "ollama"))
 		{
@@ -108,7 +108,7 @@ public sealed class Session : IDisposable
 	}
 
 	public string GetNavigationUrlHomeScreen() => BuildNavigationUrl();
-	public string GetNavigationUrlPodListScreen() => BuildNavigationUrl("pods");
+	public string GetNavigationUrlWorkspaceListScreen() => BuildNavigationUrl("workspaces");
 	public string GetNavigationUrlOllamaScreen() => BuildNavigationUrl("ollama");
 
 	public string BuildNavigationUrl(params string[] parts)

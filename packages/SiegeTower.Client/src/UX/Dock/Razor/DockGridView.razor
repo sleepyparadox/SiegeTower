@@ -3,10 +3,10 @@
 @inject Session Session
 @inject IJSRuntime JS
 
-<div class="pod-list-screen-row ux-box ux-height-fill">
+<div class="ux-dock-row ux-box ux-height-fill">
 	@if (!DockGrid.Left.IsHidden)
 	{
-		<div class="pod-list-screen-dock ux-box ux-width-sidedock-default ux-drag-dock-width-left">
+		<div class="ux-dock ux-box ux-width-sidedock-default ux-drag-dock-width-left">
 			<DockView Dock="DockGrid.Left" />
 		</div>
 	}
@@ -15,7 +15,7 @@
 		@onmouseup="() => Session.DragStop(DockGrid.LeftDivider)"
 		@ondblclick="ToggleLeftDock">
 	</div>
-	<div class="pod-list-screen-dock ux-box">
+	<div class="ux-dock ux-box">
 		<DockView Dock="DockGrid.Center" />
 	</div>
 	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
@@ -25,7 +25,7 @@
 	</div>
 	@if (!DockGrid.Right.IsHidden)
 	{
-		<div class="pod-list-screen-dock ux-box ux-width-sidedock-default ux-drag-dock-width-right">
+		<div class="ux-dock ux-box ux-width-sidedock-default ux-drag-dock-width-right">
 			<DockView Dock="DockGrid.Right"/>
 		</div>
 	}

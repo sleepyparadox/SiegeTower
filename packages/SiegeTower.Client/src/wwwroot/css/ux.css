@@ -142,7 +142,7 @@ body {
     white-space: nowrap;
 }
 
-.pod-list-screen {
+.workspace-list-screen {
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -156,7 +156,7 @@ body {
     width: 100%;
 }
 
-.pod-list-screen-row {
+.ux-dock-row {
     display: flex;
     gap: 0;
     flex: 1 1 auto;
@@ -164,11 +164,11 @@ body {
     width: 100%;
 }
 
-.pod-list-screen-dock {
+.ux-dock {
     flex: 1 1 0;
 }
 
-.pod-list-screen-dock.ux-width-sidedock-default {
+.ux-dock.ux-width-sidedock-default {
     flex: 0 0 20rem;
 }
 

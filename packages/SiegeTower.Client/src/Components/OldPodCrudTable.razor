@@ -17,14 +17,14 @@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (var pod in pods)
+			@foreach (var workspace in workspaces)
 			{
 				<tr>
-					<td>@pod.Name</td>
-					<td>@pod.Namespace</td>
+					<td>@workspace.Name</td>
+					<td>@workspace.Namespace</td>
 					<td class="row-actions">
-						<a class="table-action" href="@GetWorkspaceUrl(pod)" target="_blank" rel="noopener">View</a>
-						<button class="table-action danger" type="button" @onclick="() => DeletePodAsync(pod.Name)" disabled="@(deletingPodName is not null)">Delete</button>
+						<a class="table-action" href="@GetWorkspaceUrl(workspace)" target="_blank" rel="noopener">View</a>
+						<button class="table-action danger" type="button" @onclick="() => DeleteWorkspaceAsync(workspace.Name)" disabled="@(deletingWorkspaceName is not null)">Delete</button>
 					</td>
 				</tr>
 			}
@@ -32,10 +32,10 @@
 	</table>
 	</div>
 
-	<div class="pod-create-panel">
-		<label for="pod-name">Create pod</label>
-		<input id="pod-name" @bind="podName" placeholder="st-workspace-x" />
-		<button class="refresh-button" type="button" @onclick="CreatePodAsync" disabled="@IsCreating">
+	<div class="workspace-create-panel">
+		<label for="workspace-name">Create workspace</label>
+		<input id="workspace-name" @bind="workspaceName" placeholder="st-workspace-x" />
+		<button class="refresh-button" type="button" @onclick="CreateWorkspaceAsync" disabled="@IsCreating">
 			@(IsCreating ? "Creating..." : "Create")
 		</button>
 	</div>
@@ -45,10 +45,10 @@
 	[Parameter, EditorRequired]
 	public SessionContext SessionContext { get; set; } = null!;
 
-	private IReadOnlyList<Pod> pods = [];
-	private string podName = "st-workspace-x";
+	private IReadOnlyList<WorkspaceRow> workspaces = [];
+	private string workspaceName = "st-workspace-x";
 	private bool IsCreating;
-	private string? deletingPodName;
+	private string? deletingWorkspaceName;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -57,12 +57,12 @@
 
 	protected override async Task RefreshPressedAsync()
 	{
-		pods = await APIService.Get<Pod>(SessionContext);
+		workspaces = await APIService.Get<WorkspaceRow>(SessionContext);
 	}
 
-	private async Task CreatePodAsync()
+	private async Task CreateWorkspaceAsync()
 	{
-		if (string.IsNullOrWhiteSpace(podName))
+		if (string.IsNullOrWhiteSpace(workspaceName))
 		{
 			return;
 		}
@@ -70,7 +70,7 @@
 		IsCreating = true;
 		try
 		{
-			await APIService.CreatePod(SessionContext, podName.Trim());
+			await APIService.CreateWorkspace(SessionContext, workspaceName.Trim());
 			await RefreshAsync();
 		}
 		finally
@@ -79,9 +79,9 @@
 		}
 	}
 
-	private async Task DeletePodAsync(string name)
+	private async Task DeleteWorkspaceAsync(string name)
 	{
-		deletingPodName = name;
+		deletingWorkspaceName = name;
 		try
 		{
 			await APIService.DeleteWorkspace(SessionContext, name);
@@ -89,16 +89,16 @@
 		}
 		finally
 		{
-			deletingPodName = null;
+			deletingWorkspaceName = null;
 		}
 	}
 
-	private static string GetWorkspaceUrl(Pod pod)
+	private static string GetWorkspaceUrl(WorkspaceRow workspace)
 	{
 		const string prefix = "st-workspace-";
-		var id = pod.Name.StartsWith(prefix, StringComparison.Ordinal)
-			? pod.Name[prefix.Length..]
-			: pod.Name;
+		var id = workspace.Name.StartsWith(prefix, StringComparison.Ordinal)
+			? workspace.Name[prefix.Length..]
+			: workspace.Name;
 		return $"/workspace/{Uri.EscapeDataString(id)}/api";
 	}
 }

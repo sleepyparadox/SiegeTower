@@ -30,7 +30,7 @@
 	[Parameter, EditorRequired]
 	public SessionContext SessionContext { get; set; } = null!;
 
-	private IReadOnlyList<Workspace> workspaces = [];
+	private IReadOnlyList<WorkspaceRow> workspaces = [];
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -39,6 +39,6 @@
 
 	protected override async Task RefreshPressedAsync()
 	{
-		workspaces = await APIService.Get<Workspace>(SessionContext);
+		workspaces = await APIService.Get<WorkspaceRow>(SessionContext);
 	}
 }

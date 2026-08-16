@@ -6,9 +6,9 @@
 <PageTitle>@Session.ActiveScreen.Title</PageTitle>
 
 <div class="app-background" @onmouseup="StopDrag">
-	@if (Session.ActiveScreen is PodListScreen podListScreen)
+	@if (Session.ActiveScreen is WorkspaceListScreen workspaceListScreen)
 	{
-		<PodListScreenView PodListScreen="podListScreen" />
+		<WorkspaceListScreenView WorkspaceListScreen="workspaceListScreen" />
 	}
 	else if (Session.ActiveScreen is HomeScreen homeScreen)
 	{
