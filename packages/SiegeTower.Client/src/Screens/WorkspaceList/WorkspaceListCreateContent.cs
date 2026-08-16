@@ -1,4 +1,3 @@
-using SiegeTower.Client.Services.API;
 using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client.Screens.WorkspaceList;
@@ -13,33 +12,15 @@ public sealed class WorkspaceListCreateContent : IDockContent
 
 	#endregion
 
-	public WorkspaceListCreateContent(SessionContext sessionContext)
+	public WorkspaceListCreateContent(WorkspaceListScreen screen)
 	{
-		SessionContext = sessionContext ?? throw new ArgumentNullException(nameof(sessionContext));
+		Screen = screen ?? throw new ArgumentNullException(nameof(screen));
 	}
 
-	public SessionContext SessionContext { get; }
+	public WorkspaceListScreen Screen { get; }
 
 	public string WorkspaceName { get; set; } = "";
 
-	public bool IsCreating { get; private set; }
+	public bool IsCreating { get; set; }
 
-	public async Task CreateAsync(CancellationToken cancellationToken = default)
-	{
-		if (string.IsNullOrWhiteSpace(WorkspaceName) || IsCreating)
-		{
-			return;
-		}
-
-		IsCreating = true;
-		try
-		{
-			await APIService.CreateWorkspace(SessionContext, WorkspaceName.Trim(), cancellationToken);
-			WorkspaceName = string.Empty;
-		}
-		finally
-		{
-			IsCreating = false;
-		}
-	}
 }

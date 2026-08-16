@@ -21,7 +21,7 @@ public sealed class WorkspaceListScreen : Screen
 		};
 		this.session = session;
 		WorkspaceListDockContent = new(this);
-		WorkspaceListCreateContent = new(session.SessionContext);
+		WorkspaceListCreateContent = new(this);
 		DockGrid = new DockGrid(
 			[
 				WorkspaceListDockContent,
@@ -69,20 +69,36 @@ public sealed class WorkspaceListScreen : Screen
 		session.NavigateTo(session.GetNavigationUrlToWorkspaceScreen(id));
 	}
 
+	public async Task CreateAsync(CancellationToken cancellationToken = default)
+	{
+		if (string.IsNullOrWhiteSpace(WorkspaceListCreateContent.WorkspaceName) || WorkspaceListCreateContent.IsCreating)
+		{
+			return;
+		}
+
+		WorkspaceListCreateContent.IsCreating = true;
+		try
+		{
+			await APIService.CreateWorkspace(session.SessionContext, WorkspaceListCreateContent.WorkspaceName.Trim(), cancellationToken);
+			WorkspaceListCreateContent.WorkspaceName = string.Empty;
+			await LoadAsync(cancellationToken);
+		}
+		finally
+		{
+			WorkspaceListCreateContent.IsCreating = false;
+		}
+	}
+
 	public async Task DeleteWorkspaceAsync(string id, CancellationToken cancellationToken = default)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(id);
 		await APIService.DeleteWorkspace(session.SessionContext, id, cancellationToken);
-		Workspaces = Workspaces.Where(workspace => !string.Equals(workspace.Name, id, StringComparison.Ordinal)).ToArray();
-		WorkspaceListDockContent.Workspaces = Workspaces;
-		session.Redraw();
+		await LoadAsync(cancellationToken);
 	}
 
 	public async Task DeleteAllWorkspacesAsync(CancellationToken cancellationToken = default)
 	{
 		await APIService.DeleteAllWorkspaces(session.SessionContext, cancellationToken);
-		Workspaces = [];
-		WorkspaceListDockContent.Workspaces = Workspaces;
-		session.Redraw();
+		await LoadAsync(cancellationToken);
 	}
 }
