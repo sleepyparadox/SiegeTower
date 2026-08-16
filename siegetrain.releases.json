@@ -1,5 +1,17 @@
 [
 	{
+		"Version": "0.2.0",
+		"Description": "Ollama workspaces",
+		"Date": "2026-08-09T06:21:29.5605138Z",
+		"Author": "sleepyparadox@gmail.com",
+		"RepairReleases": [],
+		"DuplicatedReleases": [],
+		"MajorVersion": 0,
+		"MinorVersion": 2,
+		"PatchVersion": 0,
+		"IsReleaseCandidate": false
+	},
+	{
 		"Version": "0.1.0",
 		"Description": "K8s External Admin",
 		"Date": "2026-08-08T02:24:06.9182526Z",

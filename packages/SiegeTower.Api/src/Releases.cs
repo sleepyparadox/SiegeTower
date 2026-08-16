@@ -16,8 +16,8 @@ using System.Collections.Frozen;
 
 public static class Releases
 {
-	public static Release Current => V0_ReleaseCandidate;
-	public static readonly Release V0_ReleaseCandidate = new("0.RELEASE_CANDIDATE", 0, 4294967295, 4294967295);
+	public static Release Current => V0_2_0;
+	public static readonly Release V0_2_0 = new("0.2.0", 0, 2, 0);
 }
 public class Release
 {
