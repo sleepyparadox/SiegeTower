@@ -14,28 +14,25 @@ public sealed class OllamaService
 		this.httpClient = httpClient;
 	}
 
-	public async Task ChatAsync(
+	public async Task<OllamaChatResponse> ChatAsync(
 		IReadOnlyList<OllamaChatMessage> messages,
-		Action<string> onToken,
+		IReadOnlyList<OllamaToolDefinition> tools,
+		TimeSpan timeout,
 		CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(messages);
-		ArgumentNullException.ThrowIfNull(onToken);
-		using var response = await httpClient.PostAsJsonAsync("api/chat", new { Model = "qwen3.5:2b", Messages = messages, Stream = true }, JsonOptions, cancellationToken);
-		response.EnsureSuccessStatusCode();
-		await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-		using var reader = new StreamReader(stream);
-		while (await reader.ReadLineAsync(cancellationToken) is { } line)
+		ArgumentNullException.ThrowIfNull(tools);
+		if (timeout <= TimeSpan.Zero)
 		{
-			if (!string.IsNullOrWhiteSpace(line))
-			{
-				var item = JsonSerializer.Deserialize<OllamaStreamResponse>(line, JsonOptions)
-					?? throw new InvalidOperationException("Ollama returned an invalid response.");
-				if (!string.IsNullOrEmpty(item.Message?.Content))
-				{
-					onToken(item.Message.Content);
-				}
-			}
+			throw new ArgumentOutOfRangeException(nameof(timeout));
 		}
+
+		using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeoutSource.CancelAfter(timeout);
+		using var response = await httpClient.PostAsJsonAsync("api/chat", new { Model = "qwen3.5:2b", Messages = messages, Tools = tools, Stream = false }, JsonOptions, timeoutSource.Token);
+		response.EnsureSuccessStatusCode();
+		var result = await response.Content.ReadFromJsonAsync<OllamaChatResponse>(JsonOptions, timeoutSource.Token)
+			?? throw new InvalidOperationException("Ollama returned an invalid response.");
+		return result;
 	}
 }
