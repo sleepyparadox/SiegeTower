@@ -38,5 +38,15 @@
 		"SrcPath": "packages/SiegeTower.Data/src",
 		"ReleasesFiles": [],
 		"DependsOn": []
+	},
+	"SiegeTower.GraphQuery": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.GraphQuery/dist",
+		"SlnPath": "packages/SiegeTower.GraphQuery/src/SiegeTower.GraphQuery.sln",
+		"SrcPath": "packages/SiegeTower.GraphQuery/src",
+		"ReleasesFiles": [],
+		"DependsOn": []
 	}
 }
