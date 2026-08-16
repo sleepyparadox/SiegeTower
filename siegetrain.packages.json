@@ -1,13 +1,18 @@
 {
-	"SiegeTower.K8sExternalAdmin": {
+	"SiegeTower.Api": {
 		"GitLocal": ".",
 		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
 		"GitBranch": "main",
-		"DistPath": "packages/SiegeTower.K8sExternalAdmin/dist",
-		"SlnPath": "packages/SiegeTower.K8sExternalAdmin/src/SiegeTower.K8sExternalAdmin.sln",
-		"SrcPath": "packages/SiegeTower.K8sExternalAdmin/src",
-		"ReleasesFiles": [],
-		"DependsOn": ["SiegeTower.Client"]
+		"DistPath": "packages/SiegeTower.Api/dist",
+		"SlnPath": "packages/SiegeTower.Api/src/SiegeTower.Api.sln",
+		"SrcPath": "packages/SiegeTower.Api/src",
+		"ReleasesFiles": [
+			"packages/SiegeTower.Api/src/Releases.cs"
+		],
+		"DependsOn": [
+			"SiegeTower.Data",
+			"SiegeTower.GraphQuery"
+		]
 	},
 	"SiegeTower.Client": {
 		"GitLocal": ".",
@@ -17,17 +22,9 @@
 		"SlnPath": "packages/SiegeTower.Client/src/SiegeTower.Client.sln",
 		"SrcPath": "packages/SiegeTower.Client/src",
 		"ReleasesFiles": [],
-		"DependsOn": ["SiegeTower.Data"]
-	},
-	"SiegeTower.Api": {
-		"GitLocal": ".",
-		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
-		"GitBranch": "main",
-		"DistPath": "packages/SiegeTower.Api/dist",
-		"SlnPath": "packages/SiegeTower.Api/src/SiegeTower.Api.sln",
-		"SrcPath": "packages/SiegeTower.Api/src",
-		"ReleasesFiles": [],
-		"DependsOn": ["SiegeTower.Data"]
+		"DependsOn": [
+			"SiegeTower.Data"
+		]
 	},
 	"SiegeTower.Data": {
 		"GitLocal": ".",
@@ -37,6 +34,43 @@
 		"SlnPath": "packages/SiegeTower.Data/src/SiegeTower.Data.sln",
 		"SrcPath": "packages/SiegeTower.Data/src",
 		"ReleasesFiles": [],
+		"DependsOn": [
+			"SiegeTower.GraphQuery"
+		]
+	},
+	"SiegeTower.GraphQuery": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.GraphQuery/dist",
+		"SlnPath": "packages/SiegeTower.GraphQuery/src/SiegeTower.GraphQuery.sln",
+		"SrcPath": "packages/SiegeTower.GraphQuery/src",
+		"ReleasesFiles": [],
 		"DependsOn": []
+	},
+	"SiegeTower.K8sExternalAdmin": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.K8sExternalAdmin/dist",
+		"SlnPath": "packages/SiegeTower.K8sExternalAdmin/src/SiegeTower.K8sExternalAdmin.sln",
+		"SrcPath": "packages/SiegeTower.K8sExternalAdmin/src",
+		"ReleasesFiles": [],
+		"DependsOn": [
+			"SiegeTower.Client",
+			"SiegeTower.WorkspaceHarness"
+		]
+	},
+	"SiegeTower.WorkspaceHarness": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.WorkspaceHarness/dist",
+		"SlnPath": "packages/SiegeTower.WorkspaceHarness/src/SiegeTower.WorkspaceHarness.sln",
+		"SrcPath": "packages/SiegeTower.WorkspaceHarness/src",
+		"ReleasesFiles": [],
+		"DependsOn": [
+			"SiegeTower.Data"
+		]
 	}
 }

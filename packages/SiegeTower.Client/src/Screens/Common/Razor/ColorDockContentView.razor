@@ -1,0 +1,8 @@
+<div class="color-dock-content ux-box ux-height-fill" style="background-color: @Content.Color">
+	<div class="ux-padded"></div>
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public ColorDockContent Content { get; set; } = null!;
+}

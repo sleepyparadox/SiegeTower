@@ -7,6 +7,36 @@
     <PublishDir>../dist/</PublishDir>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../SiegeTower.GraphQuery/src/SiegeTower.GraphQuery.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyGraphQueryDist"
+          BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <GraphQueryProject>$(MSBuildThisFileDirectory)..\..\SiegeTower.GraphQuery\src\SiegeTower.GraphQuery.csproj</GraphQueryProject>
+      <GraphQueryDist>$(MSBuildThisFileDirectory)..\..\SiegeTower.GraphQuery\dist\</GraphQueryDist>
+    </PropertyGroup>
+
+    <MSBuild
+      Projects="$(GraphQueryProject)"
+      Targets="Publish"
+      Properties="PublishAfterBuild=true" />
+
+    <ItemGroup>
+      <GraphQueryDistFiles Include="$(GraphQueryDist)**\*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(GraphQueryDistFiles)"
+      DestinationFiles="@(GraphQueryDistFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="@(GraphQueryDistFiles)"
+      DestinationFiles="@(GraphQueryDistFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
   <Target Name="PublishAfterBuild"
           AfterTargets="Build"
           Condition="'$(PublishAfterBuild)' != 'true'">

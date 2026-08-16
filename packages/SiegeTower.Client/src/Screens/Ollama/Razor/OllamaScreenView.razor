@@ -1,0 +1,14 @@
+<div class="ollama-screen ux-box">
+	<TitleBarView />
+	<DockGridView DockGrid="OllamaScreen.DockGrid" />
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public OllamaScreen OllamaScreen { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await OllamaScreen.LoadModelsAsync();
+	}
+}

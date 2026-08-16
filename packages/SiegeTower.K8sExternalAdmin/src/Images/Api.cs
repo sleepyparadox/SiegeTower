@@ -7,11 +7,11 @@ public static class Api
 {
 	public const string ImageName = "st-api";
 
-	public static void Build(DockerService docker)
+	public static void Build()
 	{
 		var apiDist = Path.Combine(FindRepositoryRoot(), "packages", "SiegeTower.Api", "dist");
 
-		docker.Build(
+		DockerService.Build(
 		[
 			new From("ubuntu:24.04"),
 			new Run("apt-get update && apt-get install -y ca-certificates wget && wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb && dpkg -i /tmp/packages-microsoft-prod.deb && rm /tmp/packages-microsoft-prod.deb && apt-get update && apt-get install -y aspnetcore-runtime-10.0 && rm -rf /var/lib/apt/lists/*"),
@@ -28,7 +28,7 @@ public static class Api
 		});
 	}
 
-	private static string FindRepositoryRoot()
+	static string FindRepositoryRoot()
 	{
 		var directory = new DirectoryInfo(AppContext.BaseDirectory);
 		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "siegetrain.packages.json")))

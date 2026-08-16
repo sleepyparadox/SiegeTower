@@ -2,9 +2,19 @@ using System.Diagnostics;
 
 namespace SiegeTower.K8sExternalAdmin.Docker;
 
-internal static class CommandRunner
+public static class CommandRunner
 {
 	public static void Run(string command, IEnumerable<string> arguments)
+	{
+		Run(command, arguments, captureOutput: false);
+	}
+
+	public static string RunAndCapture(string command, IEnumerable<string> arguments)
+	{
+		return Run(command, arguments, captureOutput: true);
+	}
+
+	static string Run(string command, IEnumerable<string> arguments, bool captureOutput)
 	{
 		var argumentList = arguments.ToArray();
 		LogService.Info($"Running '{command} {string.Join(' ', argumentList)}'.");
@@ -39,11 +49,12 @@ internal static class CommandRunner
 			throw new InvalidOperationException($"'{command}' failed with exit code {process.ExitCode}: {error.Trim()}");
 		}
 
-		if (!string.IsNullOrWhiteSpace(output))
+		if (!captureOutput && !string.IsNullOrWhiteSpace(output))
 		{
 			Console.Write(output);
 		}
 
 		LogService.Info($"'{command}' completed successfully.");
+		return output;
 	}
 }

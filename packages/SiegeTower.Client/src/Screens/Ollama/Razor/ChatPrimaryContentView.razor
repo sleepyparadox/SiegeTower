@@ -1,0 +1,97 @@
+<div class="ollama-content ux-box ux-height-fill">
+	<div class="ollama-content-body ux-box ux-height-fill ux-padded">
+		@foreach (var message in History)
+		{
+			<div class="chat-message @message.Role">
+				<strong>@message.Role</strong>
+				<div>@message.Content</div>
+			</div>
+		}
+		@if (IsBusy)
+		{
+			<div class="ollama-chat-busy" role="status" aria-live="polite">
+				<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+				<span>Busy</span>
+			</div>
+		}
+	</div>
+	<div class="ollama-content-footer ux-line ux-padded">
+		<input @bind="Prompt" @bind:event="oninput" placeholder="Ask Ollama something..." />
+		<button type="button" @onclick="SendAsync" disabled="@IsBusy">Send</button>
+	</div>
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public ChatPrimaryContent Content { get; set; } = null!;
+
+	private string Prompt { get; set; } = string.Empty;
+	private bool IsBusy { get; set; }
+
+	private async Task SendAsync()
+	{
+		if (string.IsNullOrWhiteSpace(Prompt) || IsBusy)
+		{
+			return;
+		}
+
+		var prompt = Prompt.Trim();
+		Prompt = string.Empty;
+		if (Content.IsWorkspace)
+		{
+			await SendWorkspaceAsync(prompt);
+			return;
+		}
+
+		var chat = Content.OllamaScreen.CurrentChat;
+		chat.History.Add(new OllamaChatMessage("user", prompt));
+		var requestHistory = chat.History.ToArray();
+		var assistantMessageIndex = chat.History.Count;
+		chat.History.Add(new OllamaChatMessage("assistant", string.Empty));
+		IsBusy = true;
+		try
+		{
+			await Content.OllamaScreen.SessionServices.OllamaService.ChatAsync(
+				Content.OllamaScreen.Models.FirstOrDefault()?.Name ?? "qwen3.5:2b",
+				requestHistory,
+				token =>
+				{
+					var response = chat.History[assistantMessageIndex].Content + token;
+					chat.History[assistantMessageIndex] = new OllamaChatMessage("assistant", response);
+					Content.OllamaScreen.Redraw();
+				});
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	private async Task SendWorkspaceAsync(string prompt)
+	{
+		var workspaceID = Content.WorkspaceFilesScreen!.SessionContext.WorkspaceID;
+		if (string.IsNullOrWhiteSpace(workspaceID))
+		{
+			return;
+		}
+
+		IsBusy = true;
+		try
+		{
+			var history = await Content.WorkspaceFilesScreen.SessionServices.OllamaService.ChatWorkspace(
+				workspaceID,
+				new OllamaChatMessage("user", prompt));
+			Content.WorkspaceHistory.Clear();
+			Content.WorkspaceHistory.AddRange(history);
+			Content.WorkspaceFilesScreen.Redraw();
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	private IReadOnlyList<OllamaChatMessage> History => Content.IsWorkspace
+		? Content.WorkspaceHistory
+		: Content.OllamaScreen.CurrentChat.History;
+}

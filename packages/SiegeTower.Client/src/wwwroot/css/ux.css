@@ -1,0 +1,249 @@
+/* Shared UX layout styles for docks, tabs, and flexible screen regions. */
+
+html,
+body {
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1rem;
+}
+
+.ux-line {
+    display: flex;
+    height: 2rem;
+}
+
+.ux-height-line {
+    height: 2rem;
+}
+
+.ux-line-x2 {
+    display: flex;
+    height: 4rem;
+}
+
+.ux-center-vertically {
+    align-items: center;
+}
+
+.ux-box {
+    box-sizing: border-box;
+    margin: 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.ux-padded {
+    padding: .5rem;
+}
+
+.ux-height-fill {
+    height: 100%;
+    min-height: 0;
+}
+
+.ux-width-sidedock-default {
+    flex: 0 0 20rem;
+    width: 20rem;
+}
+
+.ux-width-sidedock-divider {
+    background: #000;
+    flex: 0 0 .5rem;
+    width: .5rem;
+}
+
+.ux-width-fill {
+    width: 100%;
+}
+
+.ux-scroll-horizontal {
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.ux-scroll-horizontal::-webkit-scrollbar {
+    display: none;
+}
+
+.ux-horizontal-gap {
+    gap: .5rem;
+    padding-left: .5rem;
+    padding-right: .5rem;
+}
+
+.ux-i-dragable {
+    cursor: grab;
+}
+
+.ux-i-draggable {
+    cursor: grab;
+}
+
+.ux-i-droppable {
+}
+
+.ux-i-droppable-left-right {
+}
+
+.drag-preview {
+    pointer-events: none;
+    position: fixed;
+    z-index: 1000;
+}
+
+.drag-preview-active {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .35);
+}
+
+.app-background {
+    min-height: 100vh;
+    width: 100%;
+}
+
+.title-bar {
+    gap: 1rem;
+    position: relative;
+}
+
+.title-bar-menu {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
+.title-bar-burger-menu {
+    background: #fff;
+    border: 1px solid #000;
+    box-shadow: 0 .25rem .5rem rgba(0, 0, 0, .2);
+    display: flex;
+    flex-direction: column;
+    left: 0;
+    min-width: 8rem;
+    position: absolute;
+    top: 100%;
+    z-index: 100;
+}
+
+.title-bar-burger-menu button {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    padding: 0 .75rem;
+    text-align: left;
+    width: 100%;
+}
+
+.title-bar-breadcrumbs {
+    white-space: nowrap;
+}
+
+.workspace-list-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+}
+
+.ollama-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+}
+
+.ux-dock-row {
+    display: flex;
+    gap: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+}
+
+.ux-dock {
+    flex: 1 1 0;
+}
+
+.ux-dock.ux-width-sidedock-default {
+    flex: 0 0 20rem;
+}
+
+.dock-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.dock-tabs {
+    margin-bottom: .75rem;
+}
+
+.dock-tab {
+    background: #e8efe2;
+    border: 0;
+    color: #294336;
+    font-family: inherit;
+    line-height: 1rem;
+}
+
+.dock-tab.active {
+    background: #18231e;
+    color: #f2f5ee;
+}
+
+.dock-content {
+    flex: 1 1 auto;
+}
+
+.ollama-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.ollama-content-body {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.ollama-content-footer {
+    flex: 0 0 auto;
+}
+
+.ollama-chat-busy {
+    align-items: center;
+    display: flex;
+    gap: .5rem;
+    padding: .5rem;
+}
+
+.chat-history-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-history-new-chat,
+.chat-history-row {
+    cursor: pointer;
+}
+
+.chat-history-splitter {
+    border-top: 1px solid #000;
+    flex: 0 0 2rem;
+}
+
+.chat-history-list {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.color-dock-content {
+    width: 100%;
+}
+
+.data-table tr.ux-line {
+    display: table-row;
+    height: 2rem;
+}

@@ -9,10 +9,32 @@
 
   <ItemGroup>
     <ProjectReference Include="../../SiegeTower.Data/src/SiegeTower.Data.csproj" />
+    <ProjectReference Include="../../SiegeTower.GraphQuery/src/SiegeTower.GraphQuery.csproj" />
   </ItemGroup>
+
+  <Target Name="CopyGraphQueryDist"
+          BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <GraphQueryDist>$(MSBuildThisFileDirectory)..\..\SiegeTower.GraphQuery\dist\</GraphQueryDist>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <GraphQueryDistFiles Include="$(GraphQueryDist)**\*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(GraphQueryDistFiles)"
+      DestinationFiles="@(GraphQueryDistFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="@(GraphQueryDistFiles)"
+      DestinationFiles="@(GraphQueryDistFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="KubernetesClient" Version="19.0.2" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
 
   <Target Name="PublishAfterBuild" AfterTargets="Build" Condition="'$(PublishAfterBuild)' != 'true'">
