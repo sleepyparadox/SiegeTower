@@ -57,7 +57,20 @@
 		"SrcPath": "packages/SiegeTower.K8sExternalAdmin/src",
 		"ReleasesFiles": [],
 		"DependsOn": [
-			"SiegeTower.Client"
+			"SiegeTower.Client",
+			"SiegeTower.WorkspaceHarness"
+		]
+	},
+	"SiegeTower.WorkspaceHarness": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.WorkspaceHarness/dist",
+		"SlnPath": "packages/SiegeTower.WorkspaceHarness/src/SiegeTower.WorkspaceHarness.sln",
+		"SrcPath": "packages/SiegeTower.WorkspaceHarness/src",
+		"ReleasesFiles": [],
+		"DependsOn": [
+			"SiegeTower.Data"
 		]
 	}
 }

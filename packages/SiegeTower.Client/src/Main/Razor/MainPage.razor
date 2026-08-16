@@ -18,6 +18,10 @@
 	{
 		<OllamaScreenView OllamaScreen="ollamaScreen" />
 	}
+	else if (Session.ActiveScreen is WorkspaceFilesScreen workspaceFilesScreen)
+	{
+		<WorkspaceFilesScreenView WorkspaceFilesScreen="workspaceFilesScreen" />
+	}
 
 	<div id="DragPreview"
 	     class="drag-preview @(Session.DragOperation.Target is not null ? "drag-preview-active" : "")"

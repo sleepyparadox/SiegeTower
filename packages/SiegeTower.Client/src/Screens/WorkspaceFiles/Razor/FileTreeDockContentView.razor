@@ -1,0 +1,13 @@
+<div class="ux-box ux-height-fill">
+	@foreach (var file in Content.Files)
+	{
+		<button type="button" class="ux-line ux-width-fill ux-padded" @onclick="() => Content.OpenFileAsync(file)">
+			@file.Path
+		</button>
+	}
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public FileTreeDockContent Content { get; set; } = null!;
+}

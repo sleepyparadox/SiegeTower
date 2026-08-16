@@ -12,6 +12,7 @@ public sealed class DockGrid
 		Right = CreateDock(rightContents);
 		Left.IsHiddenOnLastDetach = true;
 		Right.IsHiddenOnLastDetach = true;
+		Right.IsHidden = rightContents.Count == 0;
 		LeftDivider = new Divider(Left);
 		RightDivider = new Divider(Right);
 	}
@@ -30,12 +31,12 @@ public sealed class DockGrid
 	private static Dock CreateDock(IReadOnlyList<IDockContent> contents)
 	{
 		ArgumentNullException.ThrowIfNull(contents);
+		var dock = new Dock();
 		if (contents.Count == 0)
 		{
-			throw new ArgumentException("A dock must contain at least one content item.", nameof(contents));
+			return dock;
 		}
 
-		var dock = new Dock();
 		foreach (var content in contents)
 		{
 			DockService.Attach(dock, content);

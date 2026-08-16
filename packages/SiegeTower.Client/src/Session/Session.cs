@@ -5,9 +5,11 @@ using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Screens.Home;
 using SiegeTower.Client.Screens.WorkspaceList;
 using SiegeTower.Client.Screens.Ollama;
+using SiegeTower.Client.Screens.WorkspaceFiles;
 using SiegeTower.Client.Services.Uri;
 using SiegeTower.Client.UX;
 using SiegeTower.Client.Services.Ollama;
+using SiegeTower.Client.Services.Workspace;
 using SiegeTower.Client.Debug;
 
 namespace SiegeTower.Client;
@@ -21,7 +23,8 @@ public sealed class Session : IDisposable
 		SessionServices = new(
 			injectedNavigationManager,
 			injectedHttpClient,
-			DebugUiService.IsDebugUrl(uri) ? new FakeOllamaService() : new OllamaService(this));
+			DebugUiService.IsDebugUrl(uri) ? new FakeOllamaService() : new OllamaService(this),
+			new WorkspaceFileService(this));
 		BurgerMenu =
 		[
 			new MenuItem("Home", () => NavigateTo(GetNavigationUrlHomeScreen())),
@@ -78,10 +81,17 @@ public sealed class Session : IDisposable
 		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "workspaces"))
 		{
 			var workspacesBreadCrumb = new BreadCrumb("Workspaces", GetNavigationUrlWorkspaceListScreen());
-			BreadCrumbs = [homeBreadCrumb, workspacesBreadCrumb];
-			
-			var workspacesScreen = new WorkspaceListScreen(this);
-			ActiveScreen = workspacesScreen;
+			if (parsedUri.PathParts.Length > 1)
+			{
+				SessionContext.WorkspaceID = parsedUri.PathParts[1];
+				BreadCrumbs = [homeBreadCrumb, workspacesBreadCrumb, new BreadCrumb(SessionContext.WorkspaceID, GetNavigationUrlToWorkspaceScreen(SessionContext.WorkspaceID))];
+				ActiveScreen = new WorkspaceFilesScreen(this);
+			}
+			else
+			{
+				BreadCrumbs = [homeBreadCrumb, workspacesBreadCrumb];
+				ActiveScreen = new WorkspaceListScreen(this);
+			}
 		}
 		else if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "ollama"))
 		{
@@ -109,6 +119,8 @@ public sealed class Session : IDisposable
 
 	public string GetNavigationUrlHomeScreen() => BuildNavigationUrl();
 	public string GetNavigationUrlWorkspaceListScreen() => BuildNavigationUrl("workspaces");
+	public string GetNavigationUrlToWorkspaceScreen(string id) => BuildNavigationUrl("workspaces", System.Uri.EscapeDataString(id));
+	public string GetNavigationUrlToWorkspaceSCreen(string id) => GetNavigationUrlToWorkspaceScreen(id);
 	public string GetNavigationUrlOllamaScreen() => BuildNavigationUrl("ollama");
 
 	public string BuildNavigationUrl(params string[] parts)

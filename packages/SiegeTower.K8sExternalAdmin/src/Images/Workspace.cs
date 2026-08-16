@@ -1,4 +1,3 @@
-using System.Text;
 using SiegeTower.K8sExternalAdmin.Docker;
 using SiegeTower.K8sExternalAdmin.Docker.DockerFileOperation;
 
@@ -10,27 +9,34 @@ public static class Workspace
 
 	public static void Build()
 	{
+		var workspaceDist = Path.Combine(FindRepositoryRoot(), "packages", "SiegeTower.WorkspaceHarness", "dist");
+
 		DockerService.Build(
 		[
-			new From("nginx"),
-			new Run(WriteFile("/etc/nginx/conf.d/default.conf", Configuration))
+			new From("ubuntu:24.04"),
+			new Run("apt-get update && apt-get install -y ca-certificates wget && wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb && dpkg -i /tmp/packages-microsoft-prod.deb && rm /tmp/packages-microsoft-prod.deb && apt-get update && apt-get install -y aspnetcore-runtime-10.0 && rm -rf /var/lib/apt/lists/*"),
+			new Run("mkdir -p /var/siegetower/workspace"),
+			new Run("mkdir -p /var/workspace && printf '%s' 'hello world' > /var/workspace/temp.txt && chmod -R 777 /var/workspace"),
+			new Copy("workspace", "/var/siegetower/workspace"),
+			new Workdir("/var/siegetower/workspace"),
+			new Expose(80),
+			new Cmd("Workspace__Root=/var/workspace ASPNETCORE_URLS=http://+:80 dotnet /var/siegetower/workspace/SiegeTower.WorkspaceHarness.dll")
 		],
-		[ImageName]);
+		[ImageName],
+		new Dictionary<string, string>
+		{
+			[workspaceDist] = "workspace"
+		});
 	}
 
-	static string WriteFile(string path, string contents)
+	static string FindRepositoryRoot()
 	{
-		var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(contents));
-		return $"printf '%s' '{encoded}' | base64 -d > {path}";
-	}
+		var directory = new DirectoryInfo(AppContext.BaseDirectory);
+		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "siegetrain.packages.json")))
+		{
+			directory = directory.Parent;
+		}
 
-	private const string Configuration = """
-	server {
-	    listen 80;
-	    location /api {
-	        default_type text/html;
-	        return 200 "<!doctype html><html><body><h1>workspace connected</h1><p>method: $request_method</p><p>local route: $uri</p><p>request URI: $request_uri</p><p>args: $args</p></body></html>";
-	    }
+		return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the SiegeTower repository root.");
 	}
-	""";
 }

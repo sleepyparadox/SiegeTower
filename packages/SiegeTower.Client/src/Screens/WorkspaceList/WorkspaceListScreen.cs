@@ -20,7 +20,7 @@ public sealed class WorkspaceListScreen : Screen
 			Toolbars = [FileToolbar, HelpToolbar]
 		};
 		this.session = session;
-		WorkspaceListDockContent = new();
+		WorkspaceListDockContent = new(this);
 		WorkspaceListCreateContent = new(session.SessionContext);
 		DockGrid = new DockGrid(
 			[
@@ -59,6 +59,22 @@ public sealed class WorkspaceListScreen : Screen
 		var workspaces = await APIService.Get<WorkspaceRow>(session.SessionContext, cancellationToken);
 		Workspaces = workspaces;
 		WorkspaceListDockContent.Workspaces = workspaces;
+		session.Redraw();
+	}
+
+	public void OpenWorkspace(string id)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(id);
+		session.SessionContext.WorkspaceID = id;
+		session.NavigateTo(session.GetNavigationUrlToWorkspaceScreen(id));
+	}
+
+	public async Task DeleteWorkspaceAsync(string id, CancellationToken cancellationToken = default)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(id);
+		await APIService.DeleteWorkspace(session.SessionContext, id, cancellationToken);
+		Workspaces = Workspaces.Where(workspace => !string.Equals(workspace.Name, id, StringComparison.Ordinal)).ToArray();
+		WorkspaceListDockContent.Workspaces = Workspaces;
 		session.Redraw();
 	}
 }

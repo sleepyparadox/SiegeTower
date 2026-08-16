@@ -1,0 +1,14 @@
+<div class="workspace-files-screen ux-box">
+	<TitleBarView />
+	<DockGridView DockGrid="WorkspaceFilesScreen.DockGrid" />
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public WorkspaceFilesScreen WorkspaceFilesScreen { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await WorkspaceFilesScreen.LoadAsync();
+	}
+}

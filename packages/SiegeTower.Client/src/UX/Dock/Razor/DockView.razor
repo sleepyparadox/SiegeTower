@@ -1,4 +1,5 @@
 @namespace SiegeTower.Client.UX
+@using SiegeTower.Client.Screens.WorkspaceFiles.Razor
 
 @inject IJSRuntime JS
 @inject Session Session
@@ -43,6 +44,14 @@
 		else if (Dock.ActiveContent is ModelsContent modelsContent)
 		{
 			<ModelsContentView Content="modelsContent" />
+		}
+		else if (Dock.ActiveContent is FileTreeDockContent fileTreeDockContent)
+		{
+			<FileTreeDockContentView Content="fileTreeDockContent" />
+		}
+		else if (Dock.ActiveContent is FileEditDockContent fileEditDockContent)
+		{
+			<FileEditDockContentView Content="fileEditDockContent" />
 		}
 	</div>
 </div>

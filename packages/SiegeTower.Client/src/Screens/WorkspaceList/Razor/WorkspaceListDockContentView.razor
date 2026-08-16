@@ -6,6 +6,7 @@
 			<tr class="ux-line">
 				<th><div class="ux-padded">Name</div></th>
 				<th><div class="ux-padded">Namespace</div></th>
+				<th><div class="ux-padded">Actions</div></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -14,6 +15,12 @@
 				<tr class="ux-line">
 					<td><div class="ux-padded">@workspace.Name</div></td>
 					<td><div class="ux-padded">@workspace.Namespace</div></td>
+					<td>
+						<div class="ux-line ux-padded">
+							<button type="button" @onclick="() => Content.OpenWorkspace(workspace.Name)">Open</button>
+							<button type="button" @onclick="() => Content.DeleteWorkspaceAsync(workspace.Name)">Delete</button>
+						</div>
+					</td>
 				</tr>
 			}
 		</tbody>
