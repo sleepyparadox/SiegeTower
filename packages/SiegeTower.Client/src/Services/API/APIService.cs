@@ -44,6 +44,16 @@ public static class APIService
 		response.EnsureSuccessStatusCode();
 	}
 
+	public static async Task DeleteAllWorkspaces(SessionContext sessionContext, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(sessionContext);
+
+		using var httpClient = new HttpClient();
+		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, "workspace-all");
+		using var response = await httpClient.DeleteAsync(requestUri, cancellationToken);
+		response.EnsureSuccessStatusCode();
+	}
+
 	private static System.Uri BuildRequestUri(string apiBase, string route)
 	{
 		if (string.IsNullOrWhiteSpace(apiBase))

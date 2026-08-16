@@ -1,6 +1,6 @@
 <div class="ollama-content ux-box ux-height-fill">
 	<div class="ollama-content-body ux-box ux-height-fill ux-padded">
-		@foreach (var message in Content.OllamaScreen.CurrentChat.History)
+		@foreach (var message in History)
 		{
 			<div class="chat-message @message.Role">
 				<strong>@message.Role</strong>
@@ -37,6 +37,12 @@
 
 		var prompt = Prompt.Trim();
 		Prompt = string.Empty;
+		if (Content.IsWorkspace)
+		{
+			await SendWorkspaceAsync(prompt);
+			return;
+		}
+
 		var chat = Content.OllamaScreen.CurrentChat;
 		chat.History.Add(new OllamaChatMessage("user", prompt));
 		var requestHistory = chat.History.ToArray();
@@ -60,4 +66,32 @@
 			IsBusy = false;
 		}
 	}
+
+	private async Task SendWorkspaceAsync(string prompt)
+	{
+		var workspaceID = Content.WorkspaceFilesScreen!.SessionContext.WorkspaceID;
+		if (string.IsNullOrWhiteSpace(workspaceID))
+		{
+			return;
+		}
+
+		IsBusy = true;
+		try
+		{
+			var history = await Content.WorkspaceFilesScreen.SessionServices.OllamaService.ChatWorkspace(
+				workspaceID,
+				new OllamaChatMessage("user", prompt));
+			Content.WorkspaceHistory.Clear();
+			Content.WorkspaceHistory.AddRange(history);
+			Content.WorkspaceFilesScreen.Redraw();
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+
+	private IReadOnlyList<OllamaChatMessage> History => Content.IsWorkspace
+		? Content.WorkspaceHistory
+		: Content.OllamaScreen.CurrentChat.History;
 }

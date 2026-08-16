@@ -1,6 +1,7 @@
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Services.Ollama;
 using SiegeTower.Client.UX;
+using SiegeTower.Data.Ollama;
 
 namespace SiegeTower.Client.Screens.Ollama;
 

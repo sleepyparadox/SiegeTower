@@ -1,4 +1,5 @@
 using SiegeTower.Client.Services.Ollama;
+using SiegeTower.Data.Ollama;
 
 namespace SiegeTower.Client.Debug;
 
@@ -40,5 +41,18 @@ public sealed class FakeOllamaService : IOllamaService
 		ArgumentNullException.ThrowIfNull(onToken);
 		onToken("This is a debug response from the fake Ollama service.");
 		return Task.CompletedTask;
+	}
+
+	public Task<IReadOnlyList<OllamaChatMessage>> ChatWorkspace(string workspaceID, CancellationToken cancellationToken = default)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(workspaceID);
+		return Task.FromResult<IReadOnlyList<OllamaChatMessage>>([]);
+	}
+
+	public Task<IReadOnlyList<OllamaChatMessage>> ChatWorkspace(string workspaceID, OllamaChatMessage message, CancellationToken cancellationToken = default)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(workspaceID);
+		ArgumentNullException.ThrowIfNull(message);
+		return Task.FromResult<IReadOnlyList<OllamaChatMessage>>([message, new OllamaChatMessage("assistant", "This is a debug workspace response.")]);
 	}
 }

@@ -66,17 +66,14 @@ app.MapGet("api/workspace", async (IKubernetes client, CancellationToken cancell
 
 app.MapPost("api/workspace", async (CreateWorkspaceRequest request, IKubernetes client, CancellationToken cancellationToken) =>
 {
-	if (string.IsNullOrWhiteSpace(request.Name) || !request.Name.StartsWith("st-workspace-", StringComparison.Ordinal))
-	{
-		return Results.BadRequest("Workspace name must start with 'st-workspace-'.");
-	}
+	var podName = $"st-workspace-{request.Name}";
 
 	var labels = new Dictionary<string, string> { ["app"] = request.Name };
 	var podResource = new V1Pod
 	{
 		Metadata = new V1ObjectMeta
 		{
-			Name = request.Name,
+			Name = podName,
 			NamespaceProperty = workspaceNamespace,
 			Labels = labels
 		},
@@ -97,7 +94,7 @@ app.MapPost("api/workspace", async (CreateWorkspaceRequest request, IKubernetes 
 
 	var service = new V1Service
 	{
-		Metadata = new V1ObjectMeta { Name = request.Name, NamespaceProperty = workspaceNamespace },
+		Metadata = new V1ObjectMeta { Name = podName, NamespaceProperty = workspaceNamespace },
 		Spec = new V1ServiceSpec
 		{
 			Selector = labels,
@@ -114,7 +111,7 @@ app.MapPost("api/workspace", async (CreateWorkspaceRequest request, IKubernetes 
 	{
 		try
 		{
-			await client.CoreV1.DeleteNamespacedPodAsync(request.Name, workspaceNamespace, cancellationToken: cancellationToken);
+			await client.CoreV1.DeleteNamespacedPodAsync(podName, workspaceNamespace, cancellationToken: cancellationToken);
 		}
 		catch
 		{
@@ -128,15 +125,12 @@ app.MapPost("api/workspace", async (CreateWorkspaceRequest request, IKubernetes 
 
 app.MapDelete("api/workspace/{name}", async (string name, IKubernetes client, CancellationToken cancellationToken) =>
 {
-	if (!name.StartsWith("st-workspace-", StringComparison.Ordinal))
-	{
-		return Results.BadRequest("Workspace name must start with 'st-workspace-'.");
-	}
+	var podName = $"st-workspace-{name}";
 
 	var found = false;
 	try
 	{
-		await client.CoreV1.DeleteNamespacedServiceAsync(name, workspaceNamespace, cancellationToken: cancellationToken);
+		await client.CoreV1.DeleteNamespacedServiceAsync(podName, workspaceNamespace, cancellationToken: cancellationToken);
 		found = true;
 	}
 	catch (k8s.Autorest.HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -145,7 +139,7 @@ app.MapDelete("api/workspace/{name}", async (string name, IKubernetes client, Ca
 
 	try
 	{
-		await client.CoreV1.DeleteNamespacedPodAsync(name, workspaceNamespace, cancellationToken: cancellationToken);
+		await client.CoreV1.DeleteNamespacedPodAsync(podName, workspaceNamespace, cancellationToken: cancellationToken);
 		found = true;
 	}
 	catch (k8s.Autorest.HttpOperationException exception) when (exception.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -153,6 +147,23 @@ app.MapDelete("api/workspace/{name}", async (string name, IKubernetes client, Ca
 	}
 
 	return found ? Results.NoContent() : Results.NotFound();
+});
+
+app.MapDelete("api/workspace-all", async (IKubernetes client, CancellationToken cancellationToken) =>
+{
+	var services = await client.CoreV1.ListNamespacedServiceAsync(workspaceNamespace, cancellationToken: cancellationToken);
+	foreach (var service in services.Items)
+	{
+		await client.CoreV1.DeleteNamespacedServiceAsync(service.Metadata.Name, workspaceNamespace, cancellationToken: cancellationToken);
+	}
+
+	var pods = await client.CoreV1.ListNamespacedPodAsync(workspaceNamespace, cancellationToken: cancellationToken);
+	foreach (var pod in pods.Items)
+	{
+		await client.CoreV1.DeleteNamespacedPodAsync(pod.Metadata.Name, workspaceNamespace, cancellationToken: cancellationToken);
+	}
+
+	return Results.NoContent();
 });
 
 app.Run();

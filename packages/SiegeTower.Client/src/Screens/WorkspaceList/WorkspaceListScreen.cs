@@ -77,4 +77,12 @@ public sealed class WorkspaceListScreen : Screen
 		WorkspaceListDockContent.Workspaces = Workspaces;
 		session.Redraw();
 	}
+
+	public async Task DeleteAllWorkspacesAsync(CancellationToken cancellationToken = default)
+	{
+		await APIService.DeleteAllWorkspaces(session.SessionContext, cancellationToken);
+		Workspaces = [];
+		WorkspaceListDockContent.Workspaces = Workspaces;
+		session.Redraw();
+	}
 }

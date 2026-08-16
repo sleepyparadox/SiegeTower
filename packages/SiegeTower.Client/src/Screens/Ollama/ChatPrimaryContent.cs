@@ -1,4 +1,6 @@
 using SiegeTower.Client.UX;
+using SiegeTower.Client.Screens.WorkspaceFiles;
+using SiegeTower.Data.Ollama;
 
 namespace SiegeTower.Client.Screens.Ollama;
 
@@ -13,4 +15,10 @@ public sealed class ChatPrimaryContent : IDockContent
 	#endregion
 
 	public OllamaScreen OllamaScreen { get; set; } = null!;
+
+	public WorkspaceFilesScreen? WorkspaceFilesScreen { get; set; }
+
+	public List<OllamaChatMessage> WorkspaceHistory { get; } = [];
+
+	public bool IsWorkspace => WorkspaceFilesScreen is not null;
 }

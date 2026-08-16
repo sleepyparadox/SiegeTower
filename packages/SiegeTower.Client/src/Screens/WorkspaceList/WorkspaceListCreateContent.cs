@@ -20,7 +20,7 @@ public sealed class WorkspaceListCreateContent : IDockContent
 
 	public SessionContext SessionContext { get; }
 
-	public string WorkspaceName { get; set; } = "st-workspace-x";
+	public string WorkspaceName { get; set; } = "";
 
 	public bool IsCreating { get; private set; }
 

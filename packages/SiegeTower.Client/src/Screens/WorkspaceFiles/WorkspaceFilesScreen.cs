@@ -1,4 +1,5 @@
 using SiegeTower.Client.Screens.Common;
+using SiegeTower.Client.Screens.Ollama;
 using SiegeTower.Client.Services.Workspace;
 using SiegeTower.Client.UX;
 using SiegeTower.Data.Graph.File;
@@ -21,7 +22,8 @@ public sealed class WorkspaceFilesScreen : Screen
 		};
 		FileTreeDockContent = new(this);
 		FileEditDockContent = new();
-		DockGrid = new DockGrid([FileTreeDockContent], [FileEditDockContent], []);
+		ChatPrimaryContent = new() { WorkspaceFilesScreen = this };
+		DockGrid = new DockGrid([FileTreeDockContent], [FileEditDockContent], [ChatPrimaryContent]);
 	}
 
 	public DockGrid DockGrid { get; }
@@ -34,11 +36,25 @@ public sealed class WorkspaceFilesScreen : Screen
 
 	public FileEditDockContent FileEditDockContent { get; }
 
+	public ChatPrimaryContent ChatPrimaryContent { get; }
+
+	public SessionServices SessionServices => session.SessionServices;
+
+	public SessionContext SessionContext => session.SessionContext;
+
 	public IDictionary<string, FileEditDockContent> OpenFiles { get; } = new Dictionary<string, FileEditDockContent>(StringComparer.Ordinal);
+
+	public void Redraw() => session.Redraw();
 
 	public async Task LoadAsync(CancellationToken cancellationToken = default)
 	{
 		FileTreeDockContent.Files = await session.SessionServices.WorkspaceFileService.GetFiles(false, cancellationToken);
+		var workspaceID = session.SessionContext.WorkspaceID;
+		if (!string.IsNullOrWhiteSpace(workspaceID))
+		{
+			ChatPrimaryContent.WorkspaceHistory.Clear();
+			ChatPrimaryContent.WorkspaceHistory.AddRange(await session.SessionServices.OllamaService.ChatWorkspace(workspaceID, cancellationToken));
+		}
 		session.Redraw();
 	}
 

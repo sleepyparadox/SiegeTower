@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using SiegeTower.Data.Ollama;
 
 namespace SiegeTower.Client.Services.Ollama;
 
@@ -14,6 +14,8 @@ public interface IOllamaService
 		IReadOnlyList<OllamaChatMessage> messages,
 		Action<string> onToken,
 		CancellationToken cancellationToken = default);
+	Task<IReadOnlyList<OllamaChatMessage>> ChatWorkspace(string workspaceID, CancellationToken cancellationToken = default);
+	Task<IReadOnlyList<OllamaChatMessage>> ChatWorkspace(string workspaceID, OllamaChatMessage message, CancellationToken cancellationToken = default);
 }
 
 public sealed class OllamaService : IOllamaService
@@ -72,6 +74,23 @@ public sealed class OllamaService : IOllamaService
 		}, cancellationToken);
 	}
 
+	public async Task<IReadOnlyList<OllamaChatMessage>> ChatWorkspace(string workspaceID, CancellationToken cancellationToken = default)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(workspaceID);
+		var route = $"/workspace/{System.Uri.EscapeDataString(workspaceID)}/api/chat";
+		return await session.SessionServices.HttpClient.GetFromJsonAsync<List<OllamaChatMessage>>(route, JsonOptions, cancellationToken) ?? [];
+	}
+
+	public async Task<IReadOnlyList<OllamaChatMessage>> ChatWorkspace(string workspaceID, OllamaChatMessage message, CancellationToken cancellationToken = default)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(workspaceID);
+		ArgumentNullException.ThrowIfNull(message);
+		var route = $"/workspace/{System.Uri.EscapeDataString(workspaceID)}/api/chat";
+		using var response = await session.SessionServices.HttpClient.PostAsJsonAsync(route, message, JsonOptions, cancellationToken);
+		response.EnsureSuccessStatusCode();
+		return await response.Content.ReadFromJsonAsync<List<OllamaChatMessage>>(JsonOptions, cancellationToken) ?? [];
+	}
+
 	private static async Task ReadNdjsonAsync(HttpResponseMessage response, Action<OllamaStreamResponse> onItem, CancellationToken cancellationToken)
 	{
 		await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -94,26 +113,4 @@ public sealed class OllamaService : IOllamaService
 		};
 		return await session.SessionServices.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 	}
-}
-
-public sealed class OllamaTagsResponse
-{
-	public List<OllamaModel> Models { get; set; } = [];
-}
-
-public sealed class OllamaModel
-{
-	public string Name { get; set; } = string.Empty;
-	public long Size { get; set; }
-	public string Digest { get; set; } = string.Empty;
-}
-
-public sealed record OllamaChatMessage(string Role, string Content);
-
-internal sealed class OllamaStreamResponse
-{
-	public string? Status { get; set; }
-	public OllamaChatMessage? Message { get; set; }
-	[JsonPropertyName("done")]
-	public bool Done { get; set; }
 }

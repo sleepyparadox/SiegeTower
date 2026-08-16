@@ -1,4 +1,5 @@
 using SiegeTower.Client.Services.Ollama;
+using SiegeTower.Data.Ollama;
 
 namespace SiegeTower.Client.Screens.Ollama;
 

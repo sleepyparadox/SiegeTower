@@ -25,4 +25,6 @@ public sealed class WorkspaceListDockContent : IDockContent
 	public void OpenWorkspace(string id) => screen.OpenWorkspace(id);
 
 	public Task DeleteWorkspaceAsync(string id) => screen.DeleteWorkspaceAsync(id);
+
+	public Task DeleteAllWorkspacesAsync() => screen.DeleteAllWorkspacesAsync();
 }
