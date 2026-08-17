@@ -4,5 +4,7 @@ public sealed class Toolbar
 {
 	public string Name { get; init; } = string.Empty;
 
-	public List<string> Items { get; init; } = [];
+	public List<ToolbarItem> Items { get; init; } = [];
 }
+
+public sealed record ToolbarItem(string Label, Action OnClick);

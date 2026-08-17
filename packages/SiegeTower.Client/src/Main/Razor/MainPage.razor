@@ -22,6 +22,14 @@
 	{
 		<WorkspaceFilesScreenView WorkspaceFilesScreen="workspaceFilesScreen" />
 	}
+	else if (Session.ActiveScreen is WorkspaceGitScreen workspaceGitScreen)
+	{
+		<WorkspaceGitScreenView WorkspaceGitScreen="workspaceGitScreen" />
+	}
+	else if (Session.ActiveScreen is WorkspaceHomeScreen workspaceHomeScreen)
+	{
+		<WorkspaceHomeScreenView WorkspaceHomeScreen="workspaceHomeScreen" />
+	}
 
 	<div id="DragPreview"
 	     class="drag-preview @(Session.DragOperation.Target is not null ? "drag-preview-active" : "")"

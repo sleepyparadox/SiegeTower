@@ -7,7 +7,7 @@ namespace SiegeTower.Client;
 
 public sealed class SessionServices
 {
-	public SessionServices(NavigationManager navigationManager, HttpClient httpClient, IOllamaService ollamaService, WorkspaceFileService workspaceFileService)
+	public SessionServices(NavigationManager navigationManager, HttpClient httpClient, IOllamaService ollamaService, WorkspaceFileService workspaceFileService, WorkspaceGitService workspaceGitService)
 	{
 		ArgumentNullException.ThrowIfNull(navigationManager);
 		ArgumentNullException.ThrowIfNull(httpClient);
@@ -15,6 +15,7 @@ public sealed class SessionServices
 		HttpClient = httpClient;
 		OllamaService = ollamaService;
 		WorkspaceFileService = workspaceFileService;
+		WorkspaceGitService = workspaceGitService;
 	}
 
 	public NavigationManager NavigationManager { get; }
@@ -24,4 +25,6 @@ public sealed class SessionServices
 	public IOllamaService OllamaService { get; }
 
 	public WorkspaceFileService WorkspaceFileService { get; }
+
+	public WorkspaceGitService WorkspaceGitService { get; }
 }

@@ -13,8 +13,8 @@ public sealed class WorkspaceListScreen : Screen
 		: base("Workspaces")
 	{
 		ArgumentNullException.ThrowIfNull(session);
-		FileToolbar = new() { Name = "File", Items = ["File", "Open", "Save"] };
-		HelpToolbar = new() { Name = "Help", Items = ["Help"] };
+		FileToolbar = new() { Name = "File", Items = [new("File", () => { }), new("Open", () => { }), new("Save", () => { })] };
+		HelpToolbar = new() { Name = "Help", Items = [new("Help", () => { })] };
 		ToolbarGrid = new()
 		{
 			Toolbars = [FileToolbar, HelpToolbar]

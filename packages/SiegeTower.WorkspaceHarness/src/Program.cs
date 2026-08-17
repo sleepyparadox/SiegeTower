@@ -1,4 +1,5 @@
 using System.Text.Json;
+using SiegeTower.Data;
 using SiegeTower.WorkspaceHarness;
 using SiegeTower.Data.Ollama;
 using SiegeTower.WorkspaceHarness.Services;
@@ -8,6 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<FileService>();
 builder.Services.AddSingleton<FileTool>();
 builder.Services.AddSingleton<WorkspaceContext>();
+builder.Services.AddHttpClient<GitHubService>(client =>
+{
+	client.BaseAddress = new Uri("https://api.github.com/");
+	client.Timeout = TimeSpan.FromMinutes(2);
+});
 builder.Services.AddHttpClient<OllamaService>(client =>
 {
 	client.BaseAddress = new Uri(builder.Configuration["Ollama:Url"] ?? "http://st-ollama.siegetower.svc.cluster.local:11434/");
@@ -18,6 +24,29 @@ var app = builder.Build();
 app.MapGet("api/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("api/file", (FileService fileService, bool contents = false) => fileService.GetFiles(contents));
 app.MapGet("api/chat", (WorkspaceContext context) => Results.Ok(context.GetChatHistory()));
+app.MapGet("api/git", (WorkspaceContext context) => Results.Ok(context.GetGitStatus()));
+app.MapPost("api/git/github-access-token", async (GithubAccessTokenRequest request, WorkspaceContext context, GitHubService gitHubService, CancellationToken cancellationToken) =>
+{
+	if (string.IsNullOrWhiteSpace(request.AppId) || string.IsNullOrWhiteSpace(request.InstallationId) || string.IsNullOrWhiteSpace(request.PrivateKey))
+	{
+		return Results.BadRequest("GitHub App ID, installation ID, and private key are required.");
+	}
+
+	try
+	{
+		var accessToken = await gitHubService.CreateAccessTokenAsync(request, cancellationToken);
+		context.SetGithubAccessToken(accessToken.Token, accessToken.ExpiresAt);
+		return Results.Ok(context.GetGitStatus());
+	}
+	catch (HttpRequestException exception)
+	{
+		return Results.Problem(exception.Message, statusCode: StatusCodes.Status502BadGateway);
+	}
+	catch (InvalidOperationException exception)
+	{
+		return Results.Problem(exception.Message, statusCode: StatusCodes.Status500InternalServerError);
+	}
+});
 app.MapPost("api/chat", (OllamaChatMessage message, WorkspaceContext context, FileTool fileTool, OllamaService ollamaService) =>
 {
 	if (!string.Equals(message.Role, "user", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(message.Content))

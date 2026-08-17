@@ -1,0 +1,32 @@
+<div class="workspace-git-screen ux-box">
+	<TitleBarView />
+	<div class="ux-box ux-padded">
+		<div class="ux-line">Has token: @WorkspaceGitScreen.Status.GithubAccessTokenExists.ToString().ToLowerInvariant()</div>
+		<div class="ux-line">Expires in: @WorkspaceGitScreen.GetTimeRemainingText()</div>
+		<input class="ux-width-fill" placeholder="GitHub App ID" @bind="WorkspaceGitScreen.WorkspaceGitAuthContent.AppId" />
+		<input class="ux-width-fill" placeholder="GitHub App installation ID" @bind="WorkspaceGitScreen.WorkspaceGitAuthContent.InstallationId" />
+		<textarea class="ux-width-fill" rows="10" placeholder="Paste GitHub App private key" @bind="WorkspaceGitScreen.WorkspaceGitAuthContent.PrivateKey"></textarea>
+		<button type="button" disabled="@WorkspaceGitScreen.WorkspaceGitAuthContent.IsGenerating" @onclick="GenerateAccessTokenAsync">
+			@(WorkspaceGitScreen.WorkspaceGitAuthContent.IsGenerating ? "Generating..." : "Generate New Access Token")
+		</button>
+		@if (WorkspaceGitScreen.WorkspaceGitAuthContent.Error is not null)
+		{
+			<div class="ux-line">@WorkspaceGitScreen.WorkspaceGitAuthContent.Error.Message</div>
+		}
+	</div>
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public WorkspaceGitScreen WorkspaceGitScreen { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await WorkspaceGitScreen.LoadAsync();
+	}
+
+	private Task GenerateAccessTokenAsync()
+	{
+		return WorkspaceGitScreen.GenerateAccessTokenAsync();
+	}
+}

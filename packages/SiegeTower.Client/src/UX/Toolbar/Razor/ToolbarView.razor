@@ -12,7 +12,7 @@
 	   @onmouseup="() => Session.DragStop(Toolbar)"></i>
 	@foreach (var item in Toolbar.Items)
 	{
-		<div>@item</div>
+		<button type="button" @onclick="item.OnClick">@item.Label</button>
 	}
 </div>
 

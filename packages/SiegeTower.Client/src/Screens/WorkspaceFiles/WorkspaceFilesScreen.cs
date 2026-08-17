@@ -15,7 +15,7 @@ public sealed class WorkspaceFilesScreen : Screen
 	{
 		ArgumentNullException.ThrowIfNull(session);
 		this.session = session;
-		WorkspaceFilesToolbar = new() { Name = "File", Items = ["File", "Open", "Save"] };
+		WorkspaceFilesToolbar = new() { Name = "File", Items = [new("File", () => { }), new("Open", () => { }), new("Save", () => { })] };
 		ToolbarGrid = new()
 		{
 			Toolbars = [WorkspaceFilesToolbar]

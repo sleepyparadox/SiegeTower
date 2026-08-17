@@ -1,4 +1,5 @@
 using SiegeTower.Data.Ollama;
+using SiegeTower.Data;
 
 namespace SiegeTower.WorkspaceHarness;
 
@@ -8,6 +9,32 @@ public sealed class WorkspaceContext
 	private readonly List<OllamaChatMessage> chatHistory = [];
 
 	public TimeSpan PromptTimeout { get; } = TimeSpan.FromMinutes(5);
+
+	public string? GithubAccessToken { get; private set; }
+
+	public DateTime? GithubAccessTokenExpiresAtUtc { get; private set; }
+
+	public GitStatus GetGitStatus()
+	{
+		lock (sync)
+		{
+			return new GitStatus
+			{
+				GithubAccessTokenExists = !string.IsNullOrWhiteSpace(GithubAccessToken),
+				GithubAccessTokenExpiresAtUtc = GithubAccessTokenExpiresAtUtc
+			};
+		}
+	}
+
+	public void SetGithubAccessToken(string token, DateTime expiresAtUtc)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(token);
+		lock (sync)
+		{
+			GithubAccessToken = token;
+			GithubAccessTokenExpiresAtUtc = expiresAtUtc.ToUniversalTime();
+		}
+	}
 
 	public TaskLoop? CurrentLoop { get; private set; }
 
