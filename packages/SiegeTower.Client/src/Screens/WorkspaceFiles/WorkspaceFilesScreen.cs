@@ -15,10 +15,19 @@ public sealed class WorkspaceFilesScreen : Screen
 	{
 		ArgumentNullException.ThrowIfNull(session);
 		this.session = session;
-		WorkspaceFilesToolbar = new() { Name = "File", Items = [new("File", () => { }), new("Open", () => { }), new("Save", () => { })] };
+		WorkspaceToolbar = new()
+		{
+			Name = "Workspace",
+			Items =
+			[
+				new("Workspace", () => session.NavigateTo(session.GetNavigationUrlToWorkspaceScreen(session.SessionContext.WorkspaceID))),
+				new("Git", () => session.NavigateTo(session.GetNavigationUrlToWorkspaceGitScreen(session.SessionContext.WorkspaceID))),
+				new("Files", () => session.NavigateTo(session.GetNavigationUrlToWorkspaceFilesScreen(session.SessionContext.WorkspaceID)))
+			]
+		};
 		ToolbarGrid = new()
 		{
-			Toolbars = [WorkspaceFilesToolbar]
+			Toolbars = [WorkspaceToolbar]
 		};
 		FileTreeDockContent = new(this);
 		FileEditDockContent = new();
@@ -28,7 +37,7 @@ public sealed class WorkspaceFilesScreen : Screen
 
 	public DockGrid DockGrid { get; }
 
-	public Toolbar WorkspaceFilesToolbar { get; }
+	public Toolbar WorkspaceToolbar { get; }
 
 	public ToolbarGrid ToolbarGrid { get; }
 

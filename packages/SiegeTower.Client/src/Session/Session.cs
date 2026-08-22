@@ -33,7 +33,8 @@ public sealed class Session : IDisposable
 			injectedHttpClient,
 			DebugUiService.IsDebugUrl(uri) ? new FakeOllamaService() : new OllamaService(this),
 			new WorkspaceFileService(this),
-			new WorkspaceGitService(this));
+			new WorkspaceGitService(this),
+			new WorkspaceProjectService(this));
 		BurgerMenu =
 		[
 			new MenuItem("Home", () => NavigateTo(GetNavigationUrlHomeScreen())),

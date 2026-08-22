@@ -1,0 +1,24 @@
+<div class="ux-box ux-padded">
+	<div class="ux-line">Has token: @Screen.Status.GithubAccessTokenExists.ToString().ToLowerInvariant()</div>
+	<div class="ux-line">Expires in: @Screen.GetTimeRemainingText()</div>
+	<input class="ux-width-fill" placeholder="GitHub App ID" @bind="Content.AppId" />
+	<input class="ux-width-fill" placeholder="GitHub App installation ID" @bind="Content.InstallationId" />
+	<textarea class="ux-width-fill" rows="10" placeholder="Paste GitHub App private key" @bind="Content.PrivateKey"></textarea>
+	<button type="button" disabled="@Content.IsGenerating" @onclick="GenerateAccessTokenAsync">
+		@(Content.IsGenerating ? "Generating..." : "Generate New Access Token")
+	</button>
+	@if (Content.Error is not null)
+	{
+		<div class="ux-line">@Content.Error.Message</div>
+	}
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public WorkspaceGitAuthContent Content { get; set; } = null!;
+
+	[Parameter, EditorRequired]
+	public WorkspaceGitScreen Screen { get; set; } = null!;
+
+	private Task GenerateAccessTokenAsync() => Screen.GenerateAccessTokenAsync();
+}

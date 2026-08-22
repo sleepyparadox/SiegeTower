@@ -1,5 +1,7 @@
 @namespace SiegeTower.Client.UX
 @using SiegeTower.Client.Screens.WorkspaceFiles.Razor
+@using SiegeTower.Client.Screens.WorkspaceGit
+@using SiegeTower.Client.Screens.WorkspaceGit.Razor
 
 @inject IJSRuntime JS
 @inject Session Session
@@ -53,6 +55,18 @@
 		{
 			<FileEditDockContentView Content="fileEditDockContent" />
 		}
+		else if (Dock.ActiveContent is WorkspaceProjectListContent workspaceProjectListContent)
+		{
+			<WorkspaceProjectListContentView Content="workspaceProjectListContent" />
+		}
+		else if (Dock.ActiveContent is WorkspaceProjectAddContent workspaceProjectAddContent)
+		{
+			<WorkspaceProjectAddContentView Content="workspaceProjectAddContent" />
+		}
+		else if (Dock.ActiveContent is WorkspaceGitAuthContent workspaceGitAuthContent)
+		{
+			<WorkspaceGitAuthContentView Content="workspaceGitAuthContent" Screen="@GetWorkspaceGitScreen(workspaceGitAuthContent)" />
+		}
 	</div>
 </div>
 
@@ -65,6 +79,12 @@
 	private void ActivateContent(IDockContent content)
 	{
 		Dock.ActiveContent = content;
+	}
+
+	private WorkspaceGitScreen GetWorkspaceGitScreen(WorkspaceGitAuthContent content)
+	{
+		return Session.ActiveScreen as WorkspaceGitScreen
+			?? throw new InvalidOperationException("Git auth content is not hosted by a Git screen.");
 	}
 
 	private void DragStop(object? content)

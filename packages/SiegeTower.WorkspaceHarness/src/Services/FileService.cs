@@ -1,10 +1,12 @@
 using SiegeTower.Data.Graph.File;
 
-namespace SiegeTower.WorkspaceHarness;
+namespace SiegeTower.WorkspaceHarness.Services;
 
 public sealed class FileService
 {
 	private readonly string rootPath;
+
+	public string RootPath => rootPath;
 
 	public FileService(IConfiguration configuration)
 		: this(configuration["Workspace:Root"] ?? Directory.GetCurrentDirectory())

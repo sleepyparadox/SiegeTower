@@ -1,9 +1,14 @@
 using SiegeTower.Data;
+using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client.Screens.WorkspaceGit;
 
-public sealed class WorkspaceGitAuthContent
+public sealed class WorkspaceGitAuthContent : IDockContent
 {
+	public string Name => "GitHub Access";
+
+	public Dock? Parent { get; set; }
+
 	public string AppId { get; set; } = string.Empty;
 
 	public string InstallationId { get; set; } = string.Empty;
