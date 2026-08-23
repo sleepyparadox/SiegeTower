@@ -1,8 +1,15 @@
-<div class="workspace-list-screen ux-box">
-	<TitleBarView />
-	<ToolbarGridView ToolbarGrid="WorkspaceListScreen.ToolbarGrid" />
-	<DockGridView DockGrid="WorkspaceListScreen.DockGrid" />
-</div>
+@if (WorkspaceListScreen.LoadingQueue.IsLoading)
+{
+	<LoadingQueueView />
+}
+else
+{
+	<div class="workspace-list-screen ux-box">
+		<TitleBarView />
+		<ToolbarGridView ToolbarGrid="WorkspaceListScreen.ToolbarGrid" />
+		<DockGridView DockGrid="WorkspaceListScreen.DockGrid" />
+	</div>
+}
 
 @code {
 	[Parameter, EditorRequired]

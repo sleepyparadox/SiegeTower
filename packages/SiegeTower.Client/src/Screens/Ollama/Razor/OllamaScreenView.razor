@@ -1,7 +1,14 @@
-<div class="ollama-screen ux-box">
-	<TitleBarView />
-	<DockGridView DockGrid="OllamaScreen.DockGrid" />
-</div>
+@if (OllamaScreen.LoadingQueue.IsLoading)
+{
+	<LoadingQueueView />
+}
+else
+{
+	<div class="ollama-screen ux-box">
+		<TitleBarView />
+		<DockGridView DockGrid="OllamaScreen.DockGrid" />
+	</div>
+}
 
 @code {
 	[Parameter, EditorRequired]
@@ -9,6 +16,6 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		await OllamaScreen.LoadModelsAsync();
+		await OllamaScreen.Load();
 	}
 }

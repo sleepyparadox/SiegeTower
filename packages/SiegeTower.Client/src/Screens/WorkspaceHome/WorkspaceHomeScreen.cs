@@ -1,10 +1,12 @@
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.UX;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceHome;
 
 public sealed class WorkspaceHomeScreen : Screen
 {
+	private readonly GraphCache _unitOfWork = new();
 	readonly Session session;
 
 	public WorkspaceHomeScreen(Session session)
@@ -28,4 +30,11 @@ public sealed class WorkspaceHomeScreen : Screen
 	public Toolbar WorkspaceToolbar { get; }
 
 	public ToolbarGrid ToolbarGrid { get; }
+
+	public override Task Load()
+	{
+		var task = Task.CompletedTask;
+		LoadingQueue.Append(task);
+		return task;
+	}
 }

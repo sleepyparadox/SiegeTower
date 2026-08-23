@@ -1,7 +1,14 @@
-<div class="workspace-home-screen ux-box">
-	<TitleBarView />
-	<ToolbarGridView ToolbarGrid="WorkspaceHomeScreen.ToolbarGrid" />
-</div>
+@if (WorkspaceHomeScreen.LoadingQueue.IsLoading)
+{
+	<LoadingQueueView />
+}
+else
+{
+	<div class="workspace-home-screen ux-box">
+		<TitleBarView />
+		<ToolbarGridView ToolbarGrid="WorkspaceHomeScreen.ToolbarGrid" />
+	</div>
+}
 
 @code {
 	[Parameter, EditorRequired]

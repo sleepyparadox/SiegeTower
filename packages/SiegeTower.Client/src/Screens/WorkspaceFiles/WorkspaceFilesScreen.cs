@@ -1,13 +1,16 @@
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Screens.Ollama;
+using SiegeTower.Client.Services.Ollama;
 using SiegeTower.Client.Services.Workspace;
 using SiegeTower.Client.UX;
 using SiegeTower.Data.Graph.File;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceFiles;
 
 public sealed class WorkspaceFilesScreen : Screen
 {
+	private readonly GraphCache _unitOfWork = new();
 	private readonly Session session;
 
 	public WorkspaceFilesScreen(Session session)
@@ -15,6 +18,7 @@ public sealed class WorkspaceFilesScreen : Screen
 	{
 		ArgumentNullException.ThrowIfNull(session);
 		this.session = session;
+		LoadingQueue.Changed += HandleLoadingQueueChanged;
 		WorkspaceToolbar = new()
 		{
 			Name = "Workspace",
@@ -51,28 +55,36 @@ public sealed class WorkspaceFilesScreen : Screen
 
 	public SessionContext SessionContext => session.SessionContext;
 
+	internal GraphCache UnitOfWork => _unitOfWork;
+
 	public IDictionary<string, FileEditDockContent> OpenFiles { get; } = new Dictionary<string, FileEditDockContent>(StringComparer.Ordinal);
 
 	public void Redraw() => session.Redraw();
 
-	public async Task LoadAsync(CancellationToken cancellationToken = default)
+	public override Task Load() => LoadAsync();
+
+	public Task LoadAsync(CancellationToken cancellationToken = default) => TrackAsync(LoadCoreAsync(cancellationToken));
+
+	private async Task LoadCoreAsync(CancellationToken cancellationToken)
 	{
-		FileTreeDockContent.Files = await session.SessionServices.WorkspaceFileService.GetFiles(false, cancellationToken);
+		FileTreeDockContent.Files = await WorkspaceFileService.GetFiles(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, false, cancellationToken);
 		var workspaceID = session.SessionContext.WorkspaceID;
 		if (!string.IsNullOrWhiteSpace(workspaceID))
 		{
 			ChatPrimaryContent.WorkspaceHistory.Clear();
-			ChatPrimaryContent.WorkspaceHistory.AddRange(await session.SessionServices.OllamaService.ChatWorkspace(workspaceID, cancellationToken));
+			ChatPrimaryContent.WorkspaceHistory.AddRange(await OllamaService.ChatWorkspace(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, workspaceID, cancellationToken));
 		}
 		session.Redraw();
 	}
 
-	public async Task OpenFileAsync(FileRow file)
+	public Task OpenFileAsync(FileRow file) => TrackAsync(OpenFileCoreAsync(file));
+
+	private async Task OpenFileCoreAsync(FileRow file)
 	{
 		ArgumentNullException.ThrowIfNull(file);
 		if (!OpenFiles.TryGetValue(file.Path, out var content))
 		{
-			var files = await session.SessionServices.WorkspaceFileService.GetFiles(true);
+			var files = await WorkspaceFileService.GetFiles(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, true);
 			var fileWithContents = files.FirstOrDefault(item => string.Equals(item.Path, file.Path, StringComparison.Ordinal));
 			content = new FileEditDockContent(fileWithContents ?? file);
 			OpenFiles.Add(file.Path, content);
@@ -82,4 +94,12 @@ public sealed class WorkspaceFilesScreen : Screen
 		DockGrid.Center.ActiveContent = content;
 		session.Redraw();
 	}
+
+	private async Task TrackAsync(Task task)
+	{
+		LoadingQueue.Append(task);
+		await task;
+	}
+
+	private void HandleLoadingQueueChanged(object? sender, EventArgs args) => session.Redraw();
 }

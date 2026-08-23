@@ -1,45 +1,38 @@
 using System.Net.Http.Json;
 using SiegeTower.Data;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Services.Workspace;
 
-public sealed class WorkspaceProjectService
+public static class WorkspaceProjectService
 {
-	readonly Session session;
-
-	public WorkspaceProjectService(Session session)
+	public static async Task<IReadOnlyList<WorkspaceProjectRow>> GetProjectsAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(session);
-		this.session = session;
+		return await httpClient.GetFromJsonAsync<List<WorkspaceProjectRow>>(GetRoute(sessionContext), cancellationToken) ?? [];
 	}
 
-	public async Task<IReadOnlyList<WorkspaceProjectRow>> GetProjectsAsync(CancellationToken cancellationToken = default)
-	{
-		return await session.SessionServices.HttpClient.GetFromJsonAsync<List<WorkspaceProjectRow>>(GetRoute(), cancellationToken) ?? [];
-	}
-
-	public async Task<WorkspaceProjectRow> AddProjectAsync(WorkspaceProjectRow project, CancellationToken cancellationToken = default)
+	public static async Task<WorkspaceProjectRow> AddProjectAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, WorkspaceProjectRow project, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(project);
-		using var response = await session.SessionServices.HttpClient.PostAsJsonAsync(GetRoute(), project, cancellationToken);
+		using var response = await httpClient.PostAsJsonAsync(GetRoute(sessionContext), project, cancellationToken);
 		response.EnsureSuccessStatusCode();
 		return await response.Content.ReadFromJsonAsync<WorkspaceProjectRow>(cancellationToken: cancellationToken)
 			?? throw new InvalidOperationException("The workspace returned an empty project response.");
 	}
 
-	public async Task PullProjectAsync(string @namespace, CancellationToken cancellationToken = default)
+	public static async Task PullProjectAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, string @namespace, CancellationToken cancellationToken = default)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
-		using var response = await session.SessionServices.HttpClient.PostAsync(
-			$"{GetRoute()}/{System.Uri.EscapeDataString(@namespace)}/git-pull",
+		using var response = await httpClient.PostAsync(
+			$"{GetRoute(sessionContext)}/{System.Uri.EscapeDataString(@namespace)}/git-pull",
 			null,
 			cancellationToken);
 		response.EnsureSuccessStatusCode();
 	}
 
-	private string GetRoute()
+	private static string GetRoute(SessionContext sessionContext)
 	{
-		var workspaceId = session.SessionContext.WorkspaceID;
+		var workspaceId = sessionContext.WorkspaceID;
 		if (string.IsNullOrWhiteSpace(workspaceId))
 		{
 			throw new InvalidOperationException("A workspace ID is required to request projects.");

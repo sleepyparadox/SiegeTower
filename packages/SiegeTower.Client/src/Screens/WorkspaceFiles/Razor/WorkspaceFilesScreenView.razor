@@ -1,15 +1,23 @@
-<div class="workspace-files-screen ux-box">
-	<TitleBarView />
-	<WorkspaceFilesToolbarView ToolbarGrid="WorkspaceFilesScreen.ToolbarGrid" />
-	@if (LoadError is not null)
+@if (WorkspaceFilesScreen.LoadingQueue.IsLoading)
 	{
-		<div class="ux-padded">Unable to load workspace files: @LoadError.Message</div>
-	}
-	else
-	{
-		<DockGridView DockGrid="WorkspaceFilesScreen.DockGrid" />
+	<LoadingQueueView />
+}
+else
+{
+	<div class="workspace-files-screen ux-box">
+		<TitleBarView />
+		<WorkspaceFilesToolbarView ToolbarGrid="WorkspaceFilesScreen.ToolbarGrid" />
+		@if (LoadError is not null)
+		{
+			<div class="ux-padded">Unable to load workspace files: @LoadError.Message</div>
+		}
+		else
+		{
+			<DockGridView DockGrid="WorkspaceFilesScreen.DockGrid" />
+		}
 	}
 </div>
+}
 
 @code {
 	[Parameter, EditorRequired]

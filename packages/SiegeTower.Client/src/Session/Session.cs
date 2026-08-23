@@ -28,13 +28,7 @@ public sealed class Session : IDisposable
 			BaseUri = string.Empty,
 			ApiBaseUri = apiBaseUri
 		};
-		SessionServices = new(
-			injectedNavigationManager,
-			injectedHttpClient,
-			DebugUiService.IsDebugUrl(uri) ? new FakeOllamaService() : new OllamaService(this),
-			new WorkspaceFileService(this),
-			new WorkspaceGitService(this),
-			new WorkspaceProjectService(this));
+		SessionServices = new(injectedNavigationManager, injectedHttpClient);
 		BurgerMenu =
 		[
 			new MenuItem("Home", () => NavigateTo(GetNavigationUrlHomeScreen())),

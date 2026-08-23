@@ -51,7 +51,7 @@
 		IsBusy = true;
 		try
 		{
-			await Content.OllamaScreen.SessionServices.OllamaService.ChatAsync(
+			var task = OllamaService.ChatAsync(Content.OllamaScreen.UnitOfWork, Content.OllamaScreen.SessionContext, Content.OllamaScreen.SessionServices.HttpClient,
 				Content.OllamaScreen.Models.FirstOrDefault()?.Name ?? "qwen3.5:2b",
 				requestHistory,
 				token =>
@@ -60,6 +60,8 @@
 					chat.History[assistantMessageIndex] = new OllamaChatMessage("assistant", response);
 					Content.OllamaScreen.Redraw();
 				});
+			Content.OllamaScreen.LoadingQueue.Append(task);
+			await task;
 		}
 		finally
 		{
@@ -78,9 +80,11 @@
 		IsBusy = true;
 		try
 		{
-			var history = await Content.WorkspaceFilesScreen.SessionServices.OllamaService.ChatWorkspace(
+			var task = OllamaService.ChatWorkspace(Content.WorkspaceFilesScreen.UnitOfWork, Content.WorkspaceFilesScreen.SessionContext, Content.WorkspaceFilesScreen.SessionServices.HttpClient,
 				workspaceID,
 				new OllamaChatMessage("user", prompt));
+			Content.WorkspaceFilesScreen.LoadingQueue.Append(task);
+			var history = await task;
 			Content.WorkspaceHistory.Clear();
 			Content.WorkspaceHistory.AddRange(history);
 			Content.WorkspaceFilesScreen.Redraw();

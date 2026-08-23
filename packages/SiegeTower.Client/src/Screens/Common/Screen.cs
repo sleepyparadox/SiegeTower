@@ -1,11 +1,18 @@
+using SiegeTower.GraphQuery;
+using SiegeTower.Client.UX;
+
 namespace SiegeTower.Client.Screens.Common;
 
-public class Screen
+public abstract class Screen
 {
-	public Screen(string title = "SiegeTower")
+	protected Screen(string title = "SiegeTower")
 	{
 		Title = title;
 	}
 
 	public string Title { get; }
+
+	public LoadingQueue LoadingQueue { get; } = new();
+
+	public abstract Task Load();
 }

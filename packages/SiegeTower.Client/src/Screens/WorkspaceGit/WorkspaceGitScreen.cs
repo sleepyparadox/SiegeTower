@@ -2,11 +2,13 @@ using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Services.Workspace;
 using SiegeTower.Client.UX;
 using SiegeTower.Data;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceGit;
 
 public sealed class WorkspaceGitScreen : Screen
 {
+	private readonly GraphCache _unitOfWork = new();
 	readonly Session session;
 
 	public WorkspaceGitScreen(Session session)
@@ -14,6 +16,7 @@ public sealed class WorkspaceGitScreen : Screen
 	{
 		ArgumentNullException.ThrowIfNull(session);
 		this.session = session;
+		LoadingQueue.Changed += HandleLoadingQueueChanged;
 		WorkspaceToolbar = new()
 		{
 			Name = "Workspace",
@@ -45,14 +48,20 @@ public sealed class WorkspaceGitScreen : Screen
 
 	public GitStatus Status { get; private set; } = new();
 
-	public async Task LoadAsync(CancellationToken cancellationToken = default)
+	public override Task Load() => LoadAsync();
+
+	public Task LoadAsync(CancellationToken cancellationToken = default) => TrackAsync(LoadCoreAsync(cancellationToken));
+
+	private async Task LoadCoreAsync(CancellationToken cancellationToken)
 	{
-		Status = await session.SessionServices.WorkspaceGitService.GetGitStatusAsync(cancellationToken);
-		WorkspaceProjectListContent.Projects = await session.SessionServices.WorkspaceProjectService.GetProjectsAsync(cancellationToken);
+		Status = await WorkspaceGitService.GetGitStatusAsync(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, cancellationToken);
+		WorkspaceProjectListContent.Projects = await WorkspaceProjectService.GetProjectsAsync(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, cancellationToken);
 		session.Redraw();
 	}
 
-	public async Task AddProjectAsync(CancellationToken cancellationToken = default)
+	public Task AddProjectAsync(CancellationToken cancellationToken = default) => TrackAsync(AddProjectCoreAsync(cancellationToken));
+
+	private async Task AddProjectCoreAsync(CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrWhiteSpace(WorkspaceProjectAddContent.Namespace)
 			|| string.IsNullOrWhiteSpace(WorkspaceProjectAddContent.GitRepo)
@@ -65,7 +74,7 @@ public sealed class WorkspaceGitScreen : Screen
 		WorkspaceProjectAddContent.Error = null;
 		try
 		{
-			await session.SessionServices.WorkspaceProjectService.AddProjectAsync(
+			await WorkspaceProjectService.AddProjectAsync(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient,
 				new(WorkspaceProjectAddContent.Namespace.Trim(), WorkspaceProjectAddContent.GitRepo.Trim()), cancellationToken);
 			WorkspaceProjectAddContent.Namespace = string.Empty;
 			WorkspaceProjectAddContent.GitRepo = string.Empty;
@@ -82,13 +91,17 @@ public sealed class WorkspaceGitScreen : Screen
 		}
 	}
 
-	public async Task PullProjectAsync(string @namespace, CancellationToken cancellationToken = default)
+	public Task PullProjectAsync(string @namespace, CancellationToken cancellationToken = default) => TrackAsync(PullProjectCoreAsync(@namespace, cancellationToken));
+
+	private async Task PullProjectCoreAsync(string @namespace, CancellationToken cancellationToken)
 	{
-		await session.SessionServices.WorkspaceProjectService.PullProjectAsync(@namespace, cancellationToken);
+		await WorkspaceProjectService.PullProjectAsync(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, @namespace, cancellationToken);
 		await LoadAsync(cancellationToken);
 	}
 
-	public async Task GenerateAccessTokenAsync(CancellationToken cancellationToken = default)
+	public Task GenerateAccessTokenAsync(CancellationToken cancellationToken = default) => TrackAsync(GenerateAccessTokenCoreAsync(cancellationToken));
+
+	private async Task GenerateAccessTokenCoreAsync(CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrWhiteSpace(WorkspaceGitAuthContent.PrivateKey) || WorkspaceGitAuthContent.IsGenerating)
 		{
@@ -100,7 +113,7 @@ public sealed class WorkspaceGitScreen : Screen
 		session.Redraw();
 		try
 		{
-			Status = await session.SessionServices.WorkspaceGitService.GenerateGithubAccessTokenAsync(new GithubAccessTokenRequest
+			Status = await WorkspaceGitService.GenerateGithubAccessTokenAsync(_unitOfWork, session.SessionContext, session.SessionServices.HttpClient, new GithubAccessTokenRequest
 			{
 				AppId = WorkspaceGitAuthContent.AppId,
 				InstallationId = WorkspaceGitAuthContent.InstallationId,
@@ -118,6 +131,14 @@ public sealed class WorkspaceGitScreen : Screen
 			session.Redraw();
 		}
 	}
+
+	private async Task TrackAsync(Task task)
+	{
+		LoadingQueue.Append(task);
+		await task;
+	}
+
+	private void HandleLoadingQueueChanged(object? sender, EventArgs args) => session.Redraw();
 
 	public string GetTimeRemainingText()
 	{

@@ -2,17 +2,20 @@ using SiegeTower.Data;
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Services.API;
 using SiegeTower.Client.UX;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceList;
 
 public sealed class WorkspaceListScreen : Screen
 {
+	private readonly GraphCache _unitOfWork = new();
 	private readonly Session session;
 
 	public WorkspaceListScreen(Session session)
 		: base("Workspaces")
 	{
 		ArgumentNullException.ThrowIfNull(session);
+		LoadingQueue.Changed += HandleLoadingQueueChanged;
 		FileToolbar = new() { Name = "File", Items = [new("File", () => { }), new("Open", () => { }), new("Save", () => { })] };
 		HelpToolbar = new() { Name = "Help", Items = [new("Help", () => { })] };
 		ToolbarGrid = new()
@@ -54,9 +57,13 @@ public sealed class WorkspaceListScreen : Screen
 
 	public DockGrid DockGrid { get; }
 
-	public async Task LoadAsync(CancellationToken cancellationToken = default)
+	public override Task Load() => LoadAsync();
+
+	public Task LoadAsync(CancellationToken cancellationToken = default) => TrackAsync(LoadCoreAsync(cancellationToken));
+
+	private async Task LoadCoreAsync(CancellationToken cancellationToken)
 	{
-		var workspaces = await APIService.Get<WorkspaceRow>(session.SessionContext, cancellationToken);
+		var workspaces = await APIService.Get<WorkspaceRow>(_unitOfWork, session.SessionContext, cancellationToken);
 		Workspaces = workspaces;
 		WorkspaceListDockContent.Workspaces = workspaces;
 		session.Redraw();
@@ -69,7 +76,9 @@ public sealed class WorkspaceListScreen : Screen
 		session.NavigateTo(session.GetNavigationUrlToWorkspaceScreen(id));
 	}
 
-	public async Task CreateAsync(CancellationToken cancellationToken = default)
+	public Task CreateAsync(CancellationToken cancellationToken = default) => TrackAsync(CreateCoreAsync(cancellationToken));
+
+	private async Task CreateCoreAsync(CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrWhiteSpace(WorkspaceListCreateContent.WorkspaceName) || WorkspaceListCreateContent.IsCreating)
 		{
@@ -79,7 +88,7 @@ public sealed class WorkspaceListScreen : Screen
 		WorkspaceListCreateContent.IsCreating = true;
 		try
 		{
-			await APIService.CreateWorkspace(session.SessionContext, WorkspaceListCreateContent.WorkspaceName.Trim(), cancellationToken);
+			await APIService.CreateWorkspace(_unitOfWork, session.SessionContext, WorkspaceListCreateContent.WorkspaceName.Trim(), cancellationToken);
 			WorkspaceListCreateContent.WorkspaceName = string.Empty;
 			await LoadAsync(cancellationToken);
 		}
@@ -89,16 +98,28 @@ public sealed class WorkspaceListScreen : Screen
 		}
 	}
 
-	public async Task DeleteWorkspaceAsync(string id, CancellationToken cancellationToken = default)
+	public Task DeleteWorkspaceAsync(string id, CancellationToken cancellationToken = default) => TrackAsync(DeleteWorkspaceCoreAsync(id, cancellationToken));
+
+	private async Task DeleteWorkspaceCoreAsync(string id, CancellationToken cancellationToken)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(id);
-		await APIService.DeleteWorkspace(session.SessionContext, id, cancellationToken);
+		await APIService.DeleteWorkspace(_unitOfWork, session.SessionContext, id, cancellationToken);
 		await LoadAsync(cancellationToken);
 	}
 
-	public async Task DeleteAllWorkspacesAsync(CancellationToken cancellationToken = default)
+	public Task DeleteAllWorkspacesAsync(CancellationToken cancellationToken = default) => TrackAsync(DeleteAllWorkspacesCoreAsync(cancellationToken));
+
+	private async Task DeleteAllWorkspacesCoreAsync(CancellationToken cancellationToken)
 	{
-		await APIService.DeleteAllWorkspaces(session.SessionContext, cancellationToken);
+		await APIService.DeleteAllWorkspaces(_unitOfWork, session.SessionContext, cancellationToken);
 		await LoadAsync(cancellationToken);
 	}
+
+	private async Task TrackAsync(Task task)
+	{
+		LoadingQueue.Append(task);
+		await task;
+	}
+
+	private void HandleLoadingQueueChanged(object? sender, EventArgs args) => session.Redraw();
 }

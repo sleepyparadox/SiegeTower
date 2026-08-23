@@ -1,8 +1,15 @@
-<div class="workspace-git-screen ux-box">
-	<TitleBarView />
-	<WorkspaceGitToolbarView ToolbarGrid="WorkspaceGitScreen.ToolbarGrid" />
-	<DockGridView DockGrid="WorkspaceGitScreen.DockGrid" />
-</div>
+@if (WorkspaceGitScreen.LoadingQueue.IsLoading)
+{
+	<LoadingQueueView />
+}
+else
+{
+	<div class="workspace-git-screen ux-box">
+		<TitleBarView />
+		<WorkspaceGitToolbarView ToolbarGrid="WorkspaceGitScreen.ToolbarGrid" />
+		<DockGridView DockGrid="WorkspaceGitScreen.DockGrid" />
+	</div>
+}
 
 @code {
 	[Parameter, EditorRequired]

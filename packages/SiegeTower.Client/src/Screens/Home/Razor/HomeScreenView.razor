@@ -1,8 +1,15 @@
 @namespace SiegeTower.Client.Screens.Home
 
-<div class="home-screen ux-box">
-	<TitleBarView />
-</div>
+@if (HomeScreen.LoadingQueue.IsLoading)
+{
+	<LoadingQueueView />
+}
+else
+{
+	<div class="home-screen ux-box">
+		<TitleBarView />
+	</div>
+}
 
 @code {
 	[Parameter, EditorRequired]

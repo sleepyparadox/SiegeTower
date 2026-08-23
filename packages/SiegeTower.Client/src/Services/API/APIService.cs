@@ -1,11 +1,12 @@
 using System.Net.Http.Json;
 using SiegeTower.Data;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Services.API;
 
 public static class APIService
 {
-	public static async Task<IReadOnlyList<T>> Get<T>(SessionContext sessionContext, CancellationToken cancellationToken = default)
+	public static async Task<IReadOnlyList<T>> Get<T>(GraphCache cache, SessionContext sessionContext, CancellationToken cancellationToken = default)
 		where T : class
 	{
 		ArgumentNullException.ThrowIfNull(sessionContext);
@@ -22,7 +23,7 @@ public static class APIService
 			?? [];
 	}
 
-	public static async Task<WorkspaceRow> CreateWorkspace(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
+	public static async Task<WorkspaceRow> CreateWorkspace(GraphCache cache, SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(sessionContext);
 
@@ -34,7 +35,7 @@ public static class APIService
 			?? throw new InvalidOperationException("The API returned an empty workspace response.");
 	}
 
-	public static async Task DeleteWorkspace(SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
+	public static async Task DeleteWorkspace(GraphCache cache, SessionContext sessionContext, string name, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(sessionContext);
 
@@ -44,7 +45,7 @@ public static class APIService
 		response.EnsureSuccessStatusCode();
 	}
 
-	public static async Task DeleteAllWorkspaces(SessionContext sessionContext, CancellationToken cancellationToken = default)
+	public static async Task DeleteAllWorkspaces(GraphCache cache, SessionContext sessionContext, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(sessionContext);
 

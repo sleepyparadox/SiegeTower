@@ -3,6 +3,20 @@ namespace SiegeTower.GraphQuery;
 public class GraphIndexUniqueString<TNode> : GraphIndex<string, TNode> where TNode : IGraphNode
 {
 	Dictionary<string, TNode> _index = new();
+	Func<TNode, string> _keySelector;
+
+	public GraphIndexUniqueString(Func<TNode, string> keySelector)
+	{
+		_keySelector = keySelector;
+	}
+
+	public void Store(IEnumerable<TNode> nodes)
+	{
+		foreach (var node in nodes)
+		{
+			_index.Upsert(_keySelector(node), node);
+		}
+	}
 
 	public override IEnumerable<TNode> Scan()
 		=> _index.Select(pair => pair.Value);

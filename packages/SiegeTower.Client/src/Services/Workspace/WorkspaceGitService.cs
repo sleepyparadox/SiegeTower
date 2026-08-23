@@ -1,30 +1,23 @@
 using System.Net.Http.Json;
 using SiegeTower.Data;
+using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Services.Workspace;
 
-public sealed class WorkspaceGitService
+public static class WorkspaceGitService
 {
-	readonly Session session;
-
-	public WorkspaceGitService(Session session)
+	public static async Task<GitStatus> GetGitStatusAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(session);
-		this.session = session;
-	}
-
-	public async Task<GitStatus> GetGitStatusAsync(CancellationToken cancellationToken = default)
-	{
-		var route = GetRoute();
-		return await session.SessionServices.HttpClient.GetFromJsonAsync<GitStatus>(route, cancellationToken)
+		var route = GetRoute(sessionContext);
+		return await httpClient.GetFromJsonAsync<GitStatus>(route, cancellationToken)
 			?? new GitStatus();
 	}
 
-	public async Task<GitStatus> GenerateGithubAccessTokenAsync(GithubAccessTokenRequest request, CancellationToken cancellationToken = default)
+	public static async Task<GitStatus> GenerateGithubAccessTokenAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, GithubAccessTokenRequest request, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(request);
-		using var response = await session.SessionServices.HttpClient.PostAsJsonAsync(
-			$"{GetRoute()}/github-access-token",
+		using var response = await httpClient.PostAsJsonAsync(
+			$"{GetRoute(sessionContext)}/github-access-token",
 			request,
 			cancellationToken);
 		response.EnsureSuccessStatusCode();
@@ -32,9 +25,9 @@ public sealed class WorkspaceGitService
 			?? new GitStatus();
 	}
 
-	string GetRoute()
+	static string GetRoute(SessionContext sessionContext)
 	{
-		var workspaceId = session.SessionContext.WorkspaceID;
+		var workspaceId = sessionContext.WorkspaceID;
 		if (string.IsNullOrWhiteSpace(workspaceId))
 		{
 			throw new InvalidOperationException("A workspace ID is required to request Git status.");
