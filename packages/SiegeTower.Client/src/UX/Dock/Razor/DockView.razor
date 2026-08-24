@@ -1,7 +1,6 @@
 @namespace SiegeTower.Client.UX
 @using SiegeTower.Client.Screens.WorkspaceFiles.Razor
-@using SiegeTower.Client.Screens.WorkspaceGit
-@using SiegeTower.Client.Screens.WorkspaceGit.Razor
+@using SiegeTower.Client.Screens.WorkspaceList
 @using SiegeTower.Client.Screens.WorkspaceHome
 @using SiegeTower.Client.Screens.WorkspaceHome.Razor
 
@@ -57,17 +56,9 @@
 		{
 			<FileEditDockContentView Content="fileEditDockContent" />
 		}
-		else if (Dock.ActiveContent is WorkspaceProjectListContent workspaceProjectListContent)
-		{
-			<WorkspaceProjectListContentView Content="workspaceProjectListContent" />
-		}
-		else if (Dock.ActiveContent is WorkspaceProjectAddContent workspaceProjectAddContent)
-		{
-			<WorkspaceProjectAddContentView Content="workspaceProjectAddContent" />
-		}
 		else if (Dock.ActiveContent is WorkspaceGitAuthContent workspaceGitAuthContent)
 		{
-			<WorkspaceGitAuthContentView Content="workspaceGitAuthContent" Screen="@GetWorkspaceGitScreen(workspaceGitAuthContent)" />
+			<WorkspaceGitAuthContentView Content="workspaceGitAuthContent" Screen="@GetWorkspaceListScreen(workspaceGitAuthContent)" />
 		}
 		else if (Dock.ActiveContent is OperationHistoryContent operationHistoryContent)
 		{
@@ -103,10 +94,10 @@
 		Dock.ActiveContent = content;
 	}
 
-	private WorkspaceGitScreen GetWorkspaceGitScreen(WorkspaceGitAuthContent content)
+	private WorkspaceListScreen GetWorkspaceListScreen(WorkspaceGitAuthContent content)
 	{
-		return Session.ActiveScreen as WorkspaceGitScreen
-			?? throw new InvalidOperationException("Git auth content is not hosted by a Git screen.");
+		return Session.ActiveScreen as WorkspaceListScreen
+			?? throw new InvalidOperationException("Git auth content is not hosted by the workspace list screen.");
 	}
 
 	private void DragStop(object? content)

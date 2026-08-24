@@ -25,9 +25,11 @@ public sealed class WorkspaceListScreen : Screen
 		this.session = session;
 		WorkspaceListDockContent = new(this);
 		WorkspaceListCreateContent = new(this);
+		WorkspaceGitAuthContent = new();
 		DockGrid = new DockGrid(
 			[
 				WorkspaceListDockContent,
+				WorkspaceGitAuthContent,
 				new ColorDockContent { Name = "Red", Color = "Red" },
 				new ColorDockContent { Name = "Blue", Color = "Blue" }
 			],
@@ -54,6 +56,8 @@ public sealed class WorkspaceListScreen : Screen
 	public WorkspaceListDockContent WorkspaceListDockContent { get; }
 
 	public WorkspaceListCreateContent WorkspaceListCreateContent { get; }
+
+	public WorkspaceGitAuthContent WorkspaceGitAuthContent { get; }
 
 	public DockGrid DockGrid { get; }
 
@@ -108,6 +112,42 @@ public sealed class WorkspaceListScreen : Screen
 	}
 
 	public Task DeleteAllWorkspacesAsync(CancellationToken cancellationToken = default) => TrackAsync(DeleteAllWorkspacesCoreAsync(cancellationToken));
+
+	public Task GenerateAccessTokenAsync(CancellationToken cancellationToken = default) => TrackAsync(GenerateAccessTokenCoreAsync(cancellationToken));
+
+	private async Task GenerateAccessTokenCoreAsync(CancellationToken cancellationToken)
+	{
+		if (string.IsNullOrWhiteSpace(WorkspaceGitAuthContent.AppId)
+			|| string.IsNullOrWhiteSpace(WorkspaceGitAuthContent.InstallationId)
+			|| string.IsNullOrWhiteSpace(WorkspaceGitAuthContent.PrivateKey)
+			|| WorkspaceGitAuthContent.IsGenerating)
+		{
+			return;
+		}
+
+		WorkspaceGitAuthContent.IsGenerating = true;
+		WorkspaceGitAuthContent.Error = null;
+		session.Redraw();
+		try
+		{
+			WorkspaceGitAuthContent.AccessToken = await APIService.GenerateGithubAccessToken(_unitOfWork, session.SessionContext, new GithubAccessTokenRequest
+			{
+				AppId = WorkspaceGitAuthContent.AppId.Trim(),
+				InstallationId = WorkspaceGitAuthContent.InstallationId.Trim(),
+				PrivateKey = WorkspaceGitAuthContent.PrivateKey.Trim()
+			}, cancellationToken);
+			WorkspaceGitAuthContent.PrivateKey = string.Empty;
+		}
+		catch (Exception exception)
+		{
+			WorkspaceGitAuthContent.Error = exception;
+		}
+		finally
+		{
+			WorkspaceGitAuthContent.IsGenerating = false;
+			session.Redraw();
+		}
+	}
 
 	private async Task DeleteAllWorkspacesCoreAsync(CancellationToken cancellationToken)
 	{

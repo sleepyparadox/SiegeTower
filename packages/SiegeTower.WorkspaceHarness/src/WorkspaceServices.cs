@@ -10,7 +10,6 @@ public sealed class WorkspaceServices
 		FileService = new FileService(configuration);
 		FileTool = new FileTool(FileService);
 		GitService = new GitService(FileService);
-		GitHubService = new GitHubService(httpClientFactory.CreateClient("GitHub"));
 		OllamaService = new OllamaService(httpClientFactory.CreateClient("Ollama"));
 	}
 
@@ -19,8 +18,6 @@ public sealed class WorkspaceServices
 	public FileTool FileTool { get; }
 
 	public GitService GitService { get; }
-
-	public GitHubService GitHubService { get; }
 
 	public OllamaService OllamaService { get; }
 }

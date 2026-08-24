@@ -55,6 +55,19 @@ public static class APIService
 		response.EnsureSuccessStatusCode();
 	}
 
+	public static async Task<GithubAccessToken> GenerateGithubAccessToken(GraphCache cache, SessionContext sessionContext, GithubAccessTokenRequest request, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(sessionContext);
+		ArgumentNullException.ThrowIfNull(request);
+
+		using var httpClient = new HttpClient();
+		var requestUri = BuildRequestUri(sessionContext.ApiBaseUri, "github-access-token");
+		using var response = await httpClient.PostAsJsonAsync(requestUri, request, cancellationToken);
+		response.EnsureSuccessStatusCode();
+		return await response.Content.ReadFromJsonAsync<GithubAccessToken>(cancellationToken: cancellationToken)
+			?? throw new InvalidOperationException("The API returned an empty GitHub access token response.");
+	}
+
 	private static System.Uri BuildRequestUri(string apiBase, string route)
 	{
 		if (string.IsNullOrWhiteSpace(apiBase))

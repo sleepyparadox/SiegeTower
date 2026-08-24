@@ -2,11 +2,6 @@ using SiegeTower.Data;
 using SiegeTower.WorkspaceHarness;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddHttpClient("GitHub", client =>
-{
-	client.BaseAddress = new Uri("https://api.github.com/");
-	client.Timeout = TimeSpan.FromMinutes(2);
-});
 builder.Services.AddHttpClient("Ollama", client =>
 {
 	client.BaseAddress = new Uri(builder.Configuration["Ollama:Url"] ?? "http://st-ollama.siegetower.svc.cluster.local:11434/");
@@ -34,23 +29,4 @@ app.MapPost("api/workspace/settings", (WorkspaceContext.WorkspaceSettings settin
 	harness.WorkspaceContext.UpdateSettings(settings);
 	return Results.Ok(harness.WorkspaceContext.Settings);
 });
-app.MapGet("api/project", (WorkspaceHarness harness) => Results.Ok(harness.WorkspaceContext.GetProjects()));
-app.MapPost("api/project", (WorkspaceProjectRow project, WorkspaceHarness harness) => Results.Ok(harness.WorkspaceContext.AddProject(project)));
-app.MapPost("api/project/{namespace}/git-pull", async (string @namespace, WorkspaceHarness harness, CancellationToken cancellationToken) =>
-{
-	try
-	{
-		await harness.WorkspaceContext.PullProjectAsync(@namespace, cancellationToken);
-		return Results.Ok();
-	}
-	catch (KeyNotFoundException exception)
-	{
-		return Results.NotFound(exception.Message);
-	}
-	catch (InvalidOperationException exception)
-	{
-		return Results.Problem(exception.Message, statusCode: StatusCodes.Status400BadRequest);
-	}
-});
-
 app.Run();

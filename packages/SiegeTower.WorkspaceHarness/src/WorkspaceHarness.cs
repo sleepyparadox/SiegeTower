@@ -54,17 +54,33 @@ public sealed class WorkspaceHarness
 			((GraphIndexUniqueGuid<OperationRow>)Cache.GetPrimaryIndex<Guid, OperationRow>()).Store([operation]);
 		}
 
-		_ = Task.Run(() => CompleteOperationAsync(operation));
+		_ = Task.Run(() => PerformOperationAsync(operation));
 		return true;
 	}
 
-	private async Task CompleteOperationAsync(OperationRow operation)
+	private async Task PerformOperationAsync(OperationRow operation)
 	{
 		try
 		{
-			if (operation.Operation.Prompt is not null)
+			if (operation.Operation.GitClone is not null)
 			{
-				await HandlePromptOperationAsync(operation, operation.Operation.Prompt);
+				await PerformGitCloneOperationAsync(operation, operation.Operation.GitClone);
+			}
+			else if (operation.Operation.GitCreateBranch is not null)
+			{
+				await PerformGitCreateBranchOperationAsync(operation, operation.Operation.GitCreateBranch);
+			}
+			else if (operation.Operation.GitPushOperation is not null)
+			{
+				await PerformGitPushOperationAsync(operation, operation.Operation.GitPushOperation);
+			}
+			else if (operation.Operation.GitCommitOperation is not null)
+			{
+				await PerformGitCommitOperationAsync(operation, operation.Operation.GitCommitOperation);
+			}
+			else if (operation.Operation.Prompt is not null)
+			{
+				await PerformPromptOperationAsync(operation, operation.Operation.Prompt);
 			}
 			else
 			{
@@ -87,7 +103,35 @@ public sealed class WorkspaceHarness
 		}
 	}
 
-	private async Task HandlePromptOperationAsync(OperationRow operation, PromptOperation prompt)
+	private async Task PerformGitCloneOperationAsync(OperationRow operation, GitCloneOperation gitClone)
+	{
+		AddLog(operation, "Git clone started.");
+		var result = await WorkspaceContext.Services.GitService.CloneAsync(gitClone, WorkspaceContext.GetGitAccessToken());
+		AddLog(operation, result.Output);
+	}
+
+	private async Task PerformGitCreateBranchOperationAsync(OperationRow operation, GitCreateBranchOperation gitCreateBranch)
+	{
+		AddLog(operation, "Git branch creation started.");
+		var result = await WorkspaceContext.Services.GitService.CreateBranchAsync(gitCreateBranch, WorkspaceContext.GetGitAccessToken());
+		AddLog(operation, result.Output);
+	}
+
+	private async Task PerformGitPushOperationAsync(OperationRow operation, GitPushOperation gitPush)
+	{
+		AddLog(operation, "Git push started.");
+		var result = await WorkspaceContext.Services.GitService.PushAsync(gitPush, WorkspaceContext.GetGitAccessToken());
+		AddLog(operation, result.Output);
+	}
+
+	private async Task PerformGitCommitOperationAsync(OperationRow operation, GitCommitOperation gitCommit)
+	{
+		AddLog(operation, "Git commit started.");
+		var result = await WorkspaceContext.Services.GitService.CommitAsync(gitCommit, WorkspaceContext.GetGitAccessToken());
+		AddLog(operation, result.Output);
+	}
+
+	private async Task PerformPromptOperationAsync(OperationRow operation, PromptOperation prompt)
 	{
 		AddLog(operation, "Prompt started.");
 		var messages = new List<OllamaChatMessage>

@@ -6,7 +6,6 @@ using SiegeTower.Client.Screens.Home;
 using SiegeTower.Client.Screens.WorkspaceList;
 using SiegeTower.Client.Screens.Ollama;
 using SiegeTower.Client.Screens.WorkspaceFiles;
-using SiegeTower.Client.Screens.WorkspaceGit;
 using SiegeTower.Client.Screens.WorkspaceHome;
 using SiegeTower.Client.Services.Uri;
 using SiegeTower.Client.UX;
@@ -88,7 +87,6 @@ public sealed class Session : IDisposable
 				ActiveScreen = parsedUri.PathParts.Length > 2
 					? parsedUri.PathParts[2].ToLowerInvariant() switch
 					{
-						"git" => new WorkspaceGitScreen(this),
 						"files" => new WorkspaceFilesScreen(this),
 						_ => new WorkspaceHomeScreen(this)
 					}
@@ -128,7 +126,6 @@ public sealed class Session : IDisposable
 	public string GetNavigationUrlWorkspaceListScreen() => BuildNavigationUrl("workspace");
 	public string GetNavigationUrlToWorkspaceScreen(string id) => BuildNavigationUrl("workspace", System.Uri.EscapeDataString(id));
 	public string GetNavigationUrlToWorkspaceSCreen(string id) => GetNavigationUrlToWorkspaceScreen(id);
-	public string GetNavigationUrlToWorkspaceGitScreen(string id) => BuildNavigationUrl("workspace", System.Uri.EscapeDataString(id), "git");
 	public string GetNavigationUrlToWorkspaceFilesScreen(string id) => BuildNavigationUrl("workspace", System.Uri.EscapeDataString(id), "files");
 	public string GetNavigationUrlOllamaScreen() => BuildNavigationUrl("ollama");
 

@@ -23,7 +23,6 @@ public sealed class WorkspaceFilesScreen : Screen
 			Items =
 			[
 				new("Workspace", () => session.NavigateTo(session.GetNavigationUrlToWorkspaceScreen(session.SessionContext.WorkspaceID))),
-				new("Git", () => session.NavigateTo(session.GetNavigationUrlToWorkspaceGitScreen(session.SessionContext.WorkspaceID))),
 				new("Files", () => session.NavigateTo(session.GetNavigationUrlToWorkspaceFilesScreen(session.SessionContext.WorkspaceID)))
 			]
 		};

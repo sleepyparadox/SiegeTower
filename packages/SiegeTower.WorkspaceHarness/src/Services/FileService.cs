@@ -55,7 +55,7 @@ public sealed class FileService
 		return new FileRow(Path.GetRelativePath(rootPath, safePath), contents);
 	}
 
-	private string GetSafePath(string path)
+	public string GetSafePath(string path)
 	{
 		var fullPath = Path.GetFullPath(path, rootPath);
 		var relativePath = Path.GetRelativePath(rootPath, fullPath);

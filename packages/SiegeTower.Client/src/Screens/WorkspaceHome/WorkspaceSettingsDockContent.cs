@@ -40,6 +40,9 @@ public sealed class WorkspaceSettingsDockContent : IDockContent
 		Error = null;
 		try
 		{
+			Settings.GitAccessToken = Settings.GitAccessToken?.Trim();
+			Settings.GitBranchName = Settings.GitBranchName?.Trim();
+			Settings.GitPR = Settings.GitPR?.Trim();
 			Settings = await WorkspaceSettingsService.SaveAsync(screen.SessionContext, screen.SessionServices.HttpClient, Settings);
 		}
 		catch (Exception exception)

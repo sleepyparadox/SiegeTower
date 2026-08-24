@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SiegeTower.Data;
 
 public sealed record GithubAccessTokenRequest
@@ -13,4 +15,12 @@ public sealed record GitStatus
 {
 	public bool GithubAccessTokenExists { get; set; }
 	public DateTime? GithubAccessTokenExpiresAtUtc { get; set; }
+}
+
+public sealed record GithubAccessToken
+{
+	public string Token { get; set; } = string.Empty;
+
+	[JsonPropertyName("expires_at")]
+	public DateTime ExpiresAt { get; set; }
 }

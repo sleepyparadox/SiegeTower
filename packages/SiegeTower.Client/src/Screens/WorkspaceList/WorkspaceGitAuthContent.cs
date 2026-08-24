@@ -1,7 +1,7 @@
-using SiegeTower.Data;
 using SiegeTower.Client.UX;
+using SiegeTower.Data;
 
-namespace SiegeTower.Client.Screens.WorkspaceGit;
+namespace SiegeTower.Client.Screens.WorkspaceList;
 
 public sealed class WorkspaceGitAuthContent : IDockContent
 {
@@ -14,6 +14,8 @@ public sealed class WorkspaceGitAuthContent : IDockContent
 	public string InstallationId { get; set; } = string.Empty;
 
 	public string PrivateKey { get; set; } = string.Empty;
+
+	public GithubAccessToken? AccessToken { get; set; }
 
 	public bool IsGenerating { get; set; }
 
