@@ -9,7 +9,7 @@ public static class GraphCacheService
 		var nodeType = typeof(TNode);
 		if (!cache.PrimaryIndexes.TryGetValue(nodeType, out var primaryIndex))
 		{
-			var nodeInfo = nodeType.GetCustomAttribute<GraphNodeInfoAttribute>();
+			var nodeInfo = nodeType.GetCustomAttribute<GraphNodeInfoAttribute>(inherit: false);
 			primaryIndex = nodeInfo!.NewPrimaryIndex();
 			cache.PrimaryIndexes.Add(nodeType, primaryIndex);
 		}

@@ -7,10 +7,16 @@ else
 	<div class="workspace-home-screen ux-box">
 		<TitleBarView />
 		<ToolbarGridView ToolbarGrid="WorkspaceHomeScreen.ToolbarGrid" />
+			<DockGridView DockGrid="WorkspaceHomeScreen.DockGrid" SendMethod="WorkspaceHomeScreen.SendMethod" />
 	</div>
 }
 
 @code {
 	[Parameter, EditorRequired]
 	public WorkspaceHomeScreen WorkspaceHomeScreen { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await WorkspaceHomeScreen.LoadAsync();
+	}
 }

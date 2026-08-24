@@ -1,0 +1,77 @@
+@using SiegeTower.Data
+
+@if (Content is GitCloneOperationDockContent)
+{
+	<div class="operation-dock-content ux-box ux-padded">
+		<strong>Git Clone</strong>
+		<label>Local path <input @bind="Clone.LocalPath" /></label>
+		<label>Repository <input @bind="Clone.Repo" /></label>
+		<label>Branch <input @bind="Clone.Branch" /></label>
+		<button type="button" @onclick="() => SendAsync(new Operation { GitClone = Clone })" disabled="@IsBusy">Send</button>
+	</div>
+}
+else if (Content is GitCreateBranchOperationDockContent)
+{
+	<div class="operation-dock-content ux-box ux-padded">
+		<strong>Create Branch</strong>
+		<label>Branch <input @bind="CreateBranch.Branch" /></label>
+		<button type="button" @onclick="() => SendAsync(new Operation { GitCreateBranch = CreateBranch })" disabled="@IsBusy">Send</button>
+	</div>
+}
+else if (Content is GitPushOperationDockContent)
+{
+	<div class="operation-dock-content ux-box ux-padded">
+		<strong>Git Push</strong>
+		<label>Branch <input @bind="Push.Branch" /></label>
+		<button type="button" @onclick="() => SendAsync(new Operation { GitPushOperation = Push })" disabled="@IsBusy">Send</button>
+	</div>
+}
+else if (Content is GitCommitOperationDockContent)
+{
+	<div class="operation-dock-content ux-box ux-padded">
+		<strong>Git Commit</strong>
+		<label>Message <textarea @bind="Commit.Message"></textarea></label>
+		<button type="button" @onclick="() => SendAsync(new Operation { GitCommitOperation = Commit })" disabled="@IsBusy">Send</button>
+	</div>
+}
+else if (Content is PromptOperationDockContent)
+{
+	<div class="operation-dock-content ux-box ux-padded">
+		<strong>Prompt</strong>
+		<label>Prompt <textarea @bind="Prompt.Prompt"></textarea></label>
+		<button type="button" @onclick="() => SendAsync(new Operation { Prompt = Prompt })" disabled="@IsBusy">Send</button>
+	</div>
+}
+
+@code {
+	[Parameter, EditorRequired]
+	public IDockContent Content { get; set; } = null!;
+
+	[Parameter]
+	public Func<Operation, Task>? SendMethod { get; set; }
+
+	private GitCloneOperation Clone { get; } = new();
+	private GitCreateBranchOperation CreateBranch { get; } = new();
+	private GitPushOperation Push { get; } = new();
+	private GitCommitOperation Commit { get; } = new();
+	private PromptOperation Prompt { get; } = new();
+	private bool IsBusy { get; set; }
+
+	private async Task SendAsync(Operation operation)
+	{
+		if (IsBusy || SendMethod is null)
+		{
+			return;
+		}
+
+		IsBusy = true;
+		try
+		{
+			await SendMethod(operation);
+		}
+		finally
+		{
+			IsBusy = false;
+		}
+	}
+}

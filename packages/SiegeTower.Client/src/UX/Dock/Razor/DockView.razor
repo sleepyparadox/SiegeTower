@@ -2,6 +2,8 @@
 @using SiegeTower.Client.Screens.WorkspaceFiles.Razor
 @using SiegeTower.Client.Screens.WorkspaceGit
 @using SiegeTower.Client.Screens.WorkspaceGit.Razor
+@using SiegeTower.Client.Screens.WorkspaceHome
+@using SiegeTower.Client.Screens.WorkspaceHome.Razor
 
 @inject IJSRuntime JS
 @inject Session Session
@@ -67,12 +69,32 @@
 		{
 			<WorkspaceGitAuthContentView Content="workspaceGitAuthContent" Screen="@GetWorkspaceGitScreen(workspaceGitAuthContent)" />
 		}
+		else if (Dock.ActiveContent is OperationHistoryContent operationHistoryContent)
+		{
+			<OperationHistoryContentView Content="operationHistoryContent" />
+		}
+		else if (Dock.ActiveContent is IDockContent operationDockContent
+			&& (operationDockContent is GitCloneOperationDockContent
+				|| operationDockContent is GitCreateBranchOperationDockContent
+				|| operationDockContent is GitPushOperationDockContent
+				|| operationDockContent is GitCommitOperationDockContent
+				|| operationDockContent is PromptOperationDockContent))
+		{
+			<OperationDockContentViews Content="operationDockContent" SendMethod="SendMethod" />
+		}
+		else if (Dock.ActiveContent is WorkspaceSettingsDockContent workspaceSettingsDockContent)
+		{
+			<WorkspaceSettingsDockContentView Content="workspaceSettingsDockContent" />
+		}
 	</div>
 </div>
 
 @code {
 	[Parameter, EditorRequired]
 	public Dock Dock { get; set; } = null!;
+
+	[Parameter]
+	public Func<Operation, Task>? SendMethod { get; set; }
 
 	private ElementReference HorizontalScrollElement { get; set; }
 

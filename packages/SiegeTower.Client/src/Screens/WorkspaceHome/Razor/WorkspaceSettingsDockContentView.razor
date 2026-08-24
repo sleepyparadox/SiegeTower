@@ -1,0 +1,17 @@
+@using SiegeTower.Data
+
+<div class="workspace-settings-content ux-box ux-padded">
+	<label>Git access token <input type="password" @bind="Content.Settings.GitAccessToken" /></label>
+	<label>Git branch name <input @bind="Content.Settings.GitBranchName" /></label>
+	<label>Git PR <input @bind="Content.Settings.GitPR" /></label>
+	<button type="button" @onclick="Content.SaveAsync" disabled="@Content.IsSaving">@(Content.IsSaving ? "Saving..." : "Save")</button>
+	@if (Content.Error is not null)
+	{
+		<div role="alert">@Content.Error.Message</div>
+	}
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public WorkspaceSettingsDockContent Content { get; set; } = null!;
+}

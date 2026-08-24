@@ -7,7 +7,7 @@
 	@if (!DockGrid.Left.IsHidden)
 	{
 		<div class="ux-dock ux-box ux-width-sidedock-default ux-drag-dock-width-left">
-			<DockView Dock="DockGrid.Left" />
+			<DockView Dock="DockGrid.Left" SendMethod="SendMethod" />
 		</div>
 	}
 	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
@@ -16,7 +16,7 @@
 		@ondblclick="ToggleLeftDock">
 	</div>
 	<div class="ux-dock ux-box">
-		<DockView Dock="DockGrid.Center" />
+		<DockView Dock="DockGrid.Center" SendMethod="SendMethod" />
 	</div>
 	<div class="ux-box ux-width-sidedock-divider ux-i-draggable" aria-hidden="true"
 		@onmousedown="StartRightWidthDrag"
@@ -26,7 +26,7 @@
 	@if (!DockGrid.Right.IsHidden)
 	{
 		<div class="ux-dock ux-box ux-width-sidedock-default ux-drag-dock-width-right">
-			<DockView Dock="DockGrid.Right"/>
+			<DockView Dock="DockGrid.Right" SendMethod="SendMethod" />
 		</div>
 	}
 </div>
@@ -34,6 +34,9 @@
 @code {
 	[Parameter, EditorRequired]
 	public DockGrid DockGrid { get; set; } = null!;
+
+	[Parameter]
+	public Func<Operation, Task>? SendMethod { get; set; }
 
 	private Task StartLeftWidthDrag()
 	{
