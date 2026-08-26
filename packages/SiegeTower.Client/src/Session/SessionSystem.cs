@@ -33,6 +33,7 @@ public sealed class SessionSystem : ISystem
 	public void SetActiveScreen(IScreenData screen)
 	{
 		ArgumentNullException.ThrowIfNull(screen);
+		UnloadActiveScreen();
 		data.ActiveScreen = screen;
 		Redraw();
 	}
@@ -47,6 +48,7 @@ public sealed class SessionSystem : ISystem
 	{
 		var homeBreadCrumb = new BreadCrumb("SiegeTower", GetNavigationUrlHomeScreen());
 		var parsedUri = UriService.Parse(uri, data.Context.BaseUri);
+		UnloadActiveScreen();
 		if (parsedUri.PathParts.Length > 0 && string.Equals(parsedUri.PathParts[0], "workspace"))
 		{
 			var workspacesBreadCrumb = new BreadCrumb("Workspaces", GetNavigationUrlWorkspaceListScreen());
@@ -77,6 +79,14 @@ public sealed class SessionSystem : ISystem
 
 		_ = SystemLoadActiveScreen();
 		Redraw();
+	}
+
+	private void UnloadActiveScreen()
+	{
+		if (data.ActiveScreen is WorkspaceHomeScreenData workspaceHomeScreen)
+		{
+			workspaceHomeScreen.System.Unload(workspaceHomeScreen);
+		}
 	}
 
 	private Task SystemLoadActiveScreen() => data.ActiveScreen switch

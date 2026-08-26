@@ -13,7 +13,7 @@ var app = builder.Build();
 app.MapGet("api/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("api/file", (WorkspaceHarness harness, bool contents = false) => harness.WorkspaceContext.Services.FileService.GetFiles(contents));
 app.MapGet("api/operation", (WorkspaceHarness harness) => Results.Ok(harness.GetOperations()));
-app.MapGet("api/operation/all/log", (WorkspaceHarness harness) => Results.Ok(harness.GetOperationLogs()));
+app.MapGet("api/operation/all/log", (WorkspaceHarness harness, long? minCreatedAtUtcTicks = null) => Results.Ok(harness.GetOperationLogs(minCreatedAtUtcTicks)));
 app.MapPost("api/operation", (OperationRow operation, WorkspaceHarness harness) =>
 {
 	if (!harness.TryStartOperation(operation))

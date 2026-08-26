@@ -27,11 +27,17 @@ public sealed class WorkspaceHarness
 		}
 	}
 
-	public IReadOnlyList<OperationLogRow> GetOperationLogs()
+	public IReadOnlyList<OperationLogRow> GetOperationLogs(long? minCreatedAtUtcTicks = null)
 	{
 		lock (Cache)
 		{
-			return Cache.GetPrimaryIndex<OperationLogRowKey, OperationLogRow>().Scan().ToArray();
+			var minCreatedAt = minCreatedAtUtcTicks.HasValue
+				? new DateTime(minCreatedAtUtcTicks.Value, DateTimeKind.Utc)
+				: (DateTime?)null;
+			return Cache.GetPrimaryIndex<OperationLogRowKey, OperationLogRow>()
+				.Scan()
+				.Where(log => minCreatedAt is null || log.CreatedAt >= minCreatedAt.Value)
+				.ToArray();
 		}
 	}
 

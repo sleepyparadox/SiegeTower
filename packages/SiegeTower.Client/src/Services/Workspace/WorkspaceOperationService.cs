@@ -13,9 +13,10 @@ public static class WorkspaceOperationService
 		return operations;
 	}
 
-	public static async Task<IReadOnlyList<WorkspaceOperationLog>> GetOperationLogsAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, CancellationToken cancellationToken = default)
+	public static async Task<IReadOnlyList<WorkspaceOperationLog>> GetOperationLogsAsync(GraphCache cache, SessionContext sessionContext, HttpClient httpClient, DateTime minCreatedAtUtc = default, CancellationToken cancellationToken = default)
 	{
-		var logs = await httpClient.GetFromJsonAsync<List<WorkspaceOperationLog>>(GetRoute(sessionContext, "api/operation/all/log"), cancellationToken) ?? [];
+		var route = $"api/operation/all/log?minCreatedAtUtcTicks={minCreatedAtUtc.ToUniversalTime().Ticks}";
+		var logs = await httpClient.GetFromJsonAsync<List<WorkspaceOperationLog>>(GetRoute(sessionContext, route), cancellationToken) ?? [];
 		((GraphIndexUniqueOperationIDSelfID<WorkspaceOperationLog>)cache.GetPrimaryIndex<OperationLogRowKey, WorkspaceOperationLog>()).Store(logs);
 		return logs;
 	}

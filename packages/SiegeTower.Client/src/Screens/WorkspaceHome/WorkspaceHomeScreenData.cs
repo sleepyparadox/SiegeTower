@@ -11,6 +11,7 @@ public sealed class WorkspaceHomeScreenData : IScreenData
 	public GraphCache Cache { get; } = new();
 	public SessionData Session { get; }
 	public bool IsLoadedOnce { get; internal set; }
+	public PeriodicTimer? RefreshTimer { get; internal set; }
 	public string Title => "Workspace";
 	public WorkspaceHomeScreenSystem System { get; }
 	public Toolbar WorkspaceToolbar { get; }

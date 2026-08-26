@@ -1,25 +1,27 @@
 @using SiegeTower.Data
 
-<div class="operation-history-content ux-box ux-height-fill">
-	@foreach (var operation in Content.Operations)
-	{
-		<div class="operation-history-item ux-line ux-padded">
-			<div>
-				<strong>@operation.CreatedAt.ToLocalTime().ToString("g")</strong>
-				<div>@GetOperationName(operation)</div>
-			</div>
-			<div>
-				@foreach (var log in Content.GetLogs(operation))
-				{
-					<div class="operation-history-log">
-						<span>@log.CreatedAt.ToLocalTime().ToString("T")</span>
-						<span>@log.Message</span>
-					</div>
-				}
-			</div>
-		</div>
-	}
-</div>
+<table class="operation-history-content data-table ux-width-fill">
+	<tbody>
+		@foreach (var operation in Content.Data.System.GetCachedOperations(Content.Data))
+		{
+			<tr class="operation-history-timestamp ux-line ux-padded">
+				<td colspan="2"><strong>@operation.CreatedAt.ToLocalTime().ToString("g")</strong></td>
+			</tr>
+			<tr class="operation-history-item ux-line ux-padded">
+				<td colspan="2">@GetOperationName(operation)</td>
+			</tr>
+			@foreach (var log in Content.Data.System.GetCachedOperationLogs(Content.Data, operation))
+			{
+				<tr class="operation-history-timestamp ux-line ux-padded">
+					<td colspan="2">@log.CreatedAt.ToLocalTime().ToString("T")</td>
+				</tr>
+				<tr class="operation-history-log ux-line ux-padded">
+					<td colspan="2">@log.Message</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>
 
 @code {
 	[Parameter, EditorRequired]
