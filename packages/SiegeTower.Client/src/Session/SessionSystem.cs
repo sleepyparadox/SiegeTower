@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Routing;
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 using SiegeTower.Client.Screens.Common;
 using SiegeTower.Client.Screens.Home;
 using SiegeTower.Client.Screens.WorkspaceList;
@@ -12,7 +12,7 @@ using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client;
 
-public sealed class SessionSystem : IDataSystem
+public sealed class SessionSystem : ISystem
 {
 	private readonly SessionData data;
 

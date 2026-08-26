@@ -1,11 +1,11 @@
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 using SiegeTower.Client.Services.Workspace;
 using SiegeTower.Data;
 using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceHome;
 
-public sealed class WorkspaceHomeScreenSystem : IDataSystem
+public sealed class WorkspaceHomeScreenSystem : ISystem
 {
 	public WorkspaceHomeScreenSystem() { }
 

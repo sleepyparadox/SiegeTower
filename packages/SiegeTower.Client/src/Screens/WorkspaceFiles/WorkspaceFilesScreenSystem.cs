@@ -1,4 +1,4 @@
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 using SiegeTower.Client.Services.Workspace;
 using SiegeTower.Client.UX;
 using SiegeTower.Data.Graph.File;
@@ -6,7 +6,7 @@ using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceFiles;
 
-public sealed class WorkspaceFilesScreenSystem : IDataSystem
+public sealed class WorkspaceFilesScreenSystem : ISystem
 {
 	public WorkspaceFilesScreenSystem() { }
 

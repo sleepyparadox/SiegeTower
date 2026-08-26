@@ -1,8 +1,8 @@
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 
 namespace SiegeTower.Client.Screens.Home;
 
-public sealed class HomeScreenSystem : IDataSystem
+public sealed class HomeScreenSystem : ISystem
 {
 	public HomeScreenSystem() { }
 

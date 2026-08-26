@@ -1,4 +1,4 @@
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 using SiegeTower.Client.UX;
 
 namespace SiegeTower.Client.Screens.Common;

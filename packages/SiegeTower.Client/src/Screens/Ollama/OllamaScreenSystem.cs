@@ -1,4 +1,4 @@
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 using SiegeTower.Client.Services.Ollama;
 using SiegeTower.Client.UX;
 using SiegeTower.Data.Ollama;
@@ -6,7 +6,7 @@ using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.Ollama;
 
-public sealed class OllamaScreenSystem : IDataSystem
+public sealed class OllamaScreenSystem : ISystem
 {
 	public OllamaScreenSystem() { }
 

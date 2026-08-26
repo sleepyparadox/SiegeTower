@@ -1,4 +1,4 @@
-using SiegeTower.Client.Pattern;
+using SiegeTower.Data.ECSPattern;
 using SiegeTower.Client.Services.API;
 using SiegeTower.Client.UX;
 using SiegeTower.Data;
@@ -6,7 +6,7 @@ using SiegeTower.GraphQuery;
 
 namespace SiegeTower.Client.Screens.WorkspaceList;
 
-public sealed class WorkspaceListScreenSystem : IDataSystem
+public sealed class WorkspaceListScreenSystem : ISystem
 {
 	public WorkspaceListScreenSystem() { }
 
