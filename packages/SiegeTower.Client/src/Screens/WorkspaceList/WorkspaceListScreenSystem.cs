@@ -19,11 +19,16 @@ public sealed class WorkspaceListScreenSystem : ISystem
 	{
 		ArgumentNullException.ThrowIfNull(data);
 		var task = LoadCoreAsync(data, cancellationToken);
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		return task;
 	}
 
-	public Task SystemLoad(WorkspaceListScreenData data, CancellationToken cancellationToken = default) => LoadAsync(data, cancellationToken);
+	public async Task SystemLoad(WorkspaceListScreenData data, CancellationToken cancellationToken = default)
+	{
+		await LoadAsync(data, cancellationToken);
+		data.IsLoadedOnce = true;
+		data.Session.RequestRedraw();
+	}
 
 	private async Task LoadCoreAsync(WorkspaceListScreenData data, CancellationToken cancellationToken)
 	{
@@ -93,7 +98,7 @@ public sealed class WorkspaceListScreenSystem : ISystem
 
 	private async Task TrackAsync(WorkspaceListScreenData data, Task task)
 	{
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		await task;
 	}
 }

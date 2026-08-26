@@ -16,7 +16,12 @@ public sealed class OllamaScreenSystem : ISystem
 		return LoadModelsAsync(data);
 	}
 
-	public Task SystemLoad(OllamaScreenData data) => Load(data);
+	public async Task SystemLoad(OllamaScreenData data)
+	{
+		await Load(data);
+		data.IsLoadedOnce = true;
+		data.Session.RequestRedraw();
+	}
 
 	public void NewChat(OllamaScreenData data)
 	{
@@ -63,7 +68,7 @@ public sealed class OllamaScreenSystem : ISystem
 
 	private async Task TrackAsync(OllamaScreenData data, Task task)
 	{
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		await task;
 	}
 }

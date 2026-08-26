@@ -10,7 +10,7 @@ public sealed class WorkspaceHomeScreenData : IScreenData
 {
 	public GraphCache Cache { get; } = new();
 	public SessionData Session { get; }
-	public LoadingQueue LoadingQueue { get; } = new();
+	public bool IsLoadedOnce { get; internal set; }
 	public string Title => "Workspace";
 	public WorkspaceHomeScreenSystem System { get; }
 	public Toolbar WorkspaceToolbar { get; }

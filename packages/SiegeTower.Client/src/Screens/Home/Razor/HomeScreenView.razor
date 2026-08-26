@@ -1,10 +1,6 @@
 @namespace SiegeTower.Client.Screens.Home
 
-@if (HomeScreenData.LoadingQueue.IsLoading)
-{
-	<LoadingQueueView />
-}
-else
+@if (HomeScreenData.IsLoadedOnce)
 {
 	<div class="home-screen ux-box">
 		<TitleBarView />

@@ -1,8 +1,4 @@
-@if (OllamaScreenData.LoadingQueue.IsLoading)
-{
-	<LoadingQueueView />
-}
-else
+@if (OllamaScreenData.IsLoadedOnce)
 {
 	<div class="ollama-screen ux-box">
 		<TitleBarView />

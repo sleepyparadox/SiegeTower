@@ -1,8 +1,4 @@
-@if (WorkspaceFilesScreenData.LoadingQueue.IsLoading)
-	{
-	<LoadingQueueView />
-}
-else
+@if (WorkspaceFilesScreenData.IsLoadedOnce)
 {
 	<div class="workspace-files-screen ux-box">
 		<TitleBarView />

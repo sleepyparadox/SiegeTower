@@ -10,9 +10,14 @@ public sealed class HomeScreenSystem : ISystem
 	{
 		ArgumentNullException.ThrowIfNull(data);
 		var task = Task.CompletedTask;
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		return task;
 	}
 
-	public Task SystemLoad(HomeScreenData data) => Load(data);
+	public async Task SystemLoad(HomeScreenData data)
+	{
+		await Load(data);
+		data.IsLoadedOnce = true;
+		data.Session.RequestRedraw();
+	}
 }

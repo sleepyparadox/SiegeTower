@@ -10,7 +10,7 @@ public sealed class WorkspaceListScreenData : IScreenData
 {
 	public GraphCache Cache { get; } = new();
 	public SessionData Session { get; }
-	public LoadingQueue LoadingQueue { get; } = new();
+	public bool IsLoadedOnce { get; internal set; }
 	public string Title => "Workspaces";
 	public IReadOnlyList<WorkspaceRow> Workspaces { get; internal set; } = [];
 	public WorkspaceListScreenSystem System { get; }

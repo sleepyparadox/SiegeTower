@@ -9,7 +9,7 @@ public sealed class HomeScreenData : IScreenData
 {
 	public GraphCache Cache { get; } = new();
 	public SessionData Session { get; }
-	public LoadingQueue LoadingQueue { get; } = new();
+	public bool IsLoadedOnce { get; internal set; }
 	public string Title => "Home";
 	public HomeScreenSystem System { get; }
 

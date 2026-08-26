@@ -1,6 +1,10 @@
 @namespace SiegeTower.Client.UX
 
-<div class="loading-queue ux-box" role="status" aria-live="polite">
+<div class="loading-queue @(IsLoading ? "loading-queue-visible" : "")" role="status" aria-live="polite">
 	<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-	<span>Loading...</span>
 </div>
+
+@code {
+	[Parameter]
+	public bool IsLoading { get; set; }
+}

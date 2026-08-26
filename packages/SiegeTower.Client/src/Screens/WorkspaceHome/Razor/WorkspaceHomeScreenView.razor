@@ -1,8 +1,4 @@
-@if (WorkspaceHomeScreenData.LoadingQueue.IsLoading)
-{
-	<LoadingQueueView />
-}
-else
+@if (WorkspaceHomeScreenData.IsLoadedOnce)
 {
 	<div class="workspace-home-screen ux-box">
 		<TitleBarView />

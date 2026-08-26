@@ -10,7 +10,7 @@ public sealed class OllamaScreenData : IScreenData
 {
 	public GraphCache Cache { get; } = new();
 	public SessionData Session { get; }
-	public LoadingQueue LoadingQueue { get; } = new();
+	public bool IsLoadedOnce { get; internal set; }
 	public string Title => "Ollama";
 	public IReadOnlyList<Chat> Chats { get; internal set; } = [];
 	public Chat CurrentChat { get; internal set; } = null!;

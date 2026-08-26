@@ -60,7 +60,7 @@
 					chat.History[assistantMessageIndex] = new OllamaChatMessage("assistant", response);
 					Content.Data.Session.RequestRedraw();
 				});
-			Content.Data.LoadingQueue.Append(task);
+			Content.Data.Session.LoadingQueue.Append(task);
 			await task;
 		}
 		finally
@@ -83,7 +83,7 @@
 			var task = OllamaService.ChatWorkspace(Content.WorkspaceFilesScreen.Cache, Content.WorkspaceFilesScreen.Session.Context, Content.WorkspaceFilesScreen.Session.Services.HttpClient,
 				workspaceID,
 				new OllamaChatMessage("user", prompt));
-			Content.WorkspaceFilesScreen.LoadingQueue.Append(task);
+			Content.WorkspaceFilesScreen.Session.LoadingQueue.Append(task);
 			var history = await task;
 			Content.WorkspaceHistory.Clear();
 			Content.WorkspaceHistory.AddRange(history);

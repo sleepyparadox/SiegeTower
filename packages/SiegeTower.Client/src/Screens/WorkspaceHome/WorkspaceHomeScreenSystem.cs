@@ -18,11 +18,16 @@ public sealed class WorkspaceHomeScreenSystem : ISystem
 	{
 		ArgumentNullException.ThrowIfNull(data);
 		var task = LoadCoreAsync(data, cancellationToken);
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		return task;
 	}
 
-	public Task SystemLoad(WorkspaceHomeScreenData data, CancellationToken cancellationToken = default) => LoadAsync(data, cancellationToken);
+	public async Task SystemLoad(WorkspaceHomeScreenData data, CancellationToken cancellationToken = default)
+	{
+		await LoadAsync(data, cancellationToken);
+		data.IsLoadedOnce = true;
+		data.Session.RequestRedraw();
+	}
 	public Task SendMethod(WorkspaceHomeScreenData data, Operation operation) => SendMethodCoreAsync(data, operation);
 
 	private async Task SendMethodCoreAsync(WorkspaceHomeScreenData data, Operation operation)

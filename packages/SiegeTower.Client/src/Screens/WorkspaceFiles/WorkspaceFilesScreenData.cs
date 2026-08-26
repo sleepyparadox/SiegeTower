@@ -10,7 +10,7 @@ public sealed class WorkspaceFilesScreenData : IScreenData
 {
 	public GraphCache Cache { get; } = new();
 	public SessionData Session { get; }
-	public LoadingQueue LoadingQueue { get; } = new();
+	public bool IsLoadedOnce { get; internal set; }
 	public string Title => "Workspace Files";
 	public IDictionary<string, FileEditDockContent> OpenFiles { get; } = new Dictionary<string, FileEditDockContent>(StringComparer.Ordinal);
 	public WorkspaceFilesScreenSystem System { get; }

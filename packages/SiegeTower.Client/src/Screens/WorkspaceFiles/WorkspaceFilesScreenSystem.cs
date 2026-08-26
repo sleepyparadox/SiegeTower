@@ -19,11 +19,16 @@ public sealed class WorkspaceFilesScreenSystem : ISystem
 	{
 		ArgumentNullException.ThrowIfNull(data);
 		var task = LoadCoreAsync(data, cancellationToken);
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		return task;
 	}
 
-	public Task SystemLoad(WorkspaceFilesScreenData data, CancellationToken cancellationToken = default) => LoadAsync(data, cancellationToken);
+	public async Task SystemLoad(WorkspaceFilesScreenData data, CancellationToken cancellationToken = default)
+	{
+		await LoadAsync(data, cancellationToken);
+		data.IsLoadedOnce = true;
+		data.Session.RequestRedraw();
+	}
 	public Task OpenFileAsync(WorkspaceFilesScreenData data, FileRow file) => TrackAsync(data, OpenFileCoreAsync(data, file));
 
 	private async Task LoadCoreAsync(WorkspaceFilesScreenData data, CancellationToken cancellationToken)
@@ -50,7 +55,7 @@ public sealed class WorkspaceFilesScreenSystem : ISystem
 
 	private async Task TrackAsync(WorkspaceFilesScreenData data, Task task)
 	{
-		data.LoadingQueue.Append(task);
+		data.Session.LoadingQueue.Append(task);
 		await task;
 	}
 }
