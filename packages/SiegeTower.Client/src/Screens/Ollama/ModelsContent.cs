@@ -12,5 +12,7 @@ public sealed class ModelsContent : IDockContent
 
 	#endregion
 
-	public OllamaScreen OllamaScreen { get; set; } = null!;
+	public OllamaScreenData Data { get; }
+
+	public ModelsContent(OllamaScreenData data) => Data = data ?? throw new ArgumentNullException(nameof(data));
 }

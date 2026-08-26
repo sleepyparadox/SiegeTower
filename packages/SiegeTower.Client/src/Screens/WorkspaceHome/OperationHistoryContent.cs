@@ -6,18 +6,18 @@ namespace SiegeTower.Client.Screens.WorkspaceHome;
 
 public sealed class OperationHistoryContent : IDockContent
 {
-	private readonly WorkspaceHomeScreen screen;
+	private readonly WorkspaceHomeScreenData data;
 
-	public OperationHistoryContent(WorkspaceHomeScreen screen)
+	public OperationHistoryContent(WorkspaceHomeScreenData data)
 	{
-		this.screen = screen ?? throw new ArgumentNullException(nameof(screen));
+		this.data = data ?? throw new ArgumentNullException(nameof(data));
 	}
 
 	public string Name => "Operation History";
 
 	public Dock? Parent { get; set; }
 
-	public IReadOnlyList<WorkspaceOperation> Operations => screen.UnitOfWork
+	public IReadOnlyList<WorkspaceOperation> Operations => data.Cache
 		.GetPrimaryIndex<Guid, WorkspaceOperation>()
 		.Scan()
 		.OrderByDescending(operation => operation.CreatedAt)
@@ -26,7 +26,7 @@ public sealed class OperationHistoryContent : IDockContent
 	public IReadOnlyList<WorkspaceOperationLog> GetLogs(WorkspaceOperation operation)
 	{
 		ArgumentNullException.ThrowIfNull(operation);
-		return screen.UnitOfWork
+		return data.Cache
 			.GetPrimaryIndex<OperationLogRowKey, WorkspaceOperationLog>()
 			.Seek(
 				new OperationLogRowKey(operation.ID, Guid.Empty),

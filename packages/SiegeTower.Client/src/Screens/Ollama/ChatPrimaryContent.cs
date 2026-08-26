@@ -14,11 +14,13 @@ public sealed class ChatPrimaryContent : IDockContent
 
 	#endregion
 
-	public OllamaScreen OllamaScreen { get; set; } = null!;
+	public OllamaScreenData Data { get; }
 
-	public WorkspaceFilesScreen? WorkspaceFilesScreen { get; set; }
+	public WorkspaceFilesScreenData? WorkspaceFilesScreen { get; set; }
 
 	public List<OllamaChatMessage> WorkspaceHistory { get; } = [];
 
 	public bool IsWorkspace => WorkspaceFilesScreen is not null;
+
+	public ChatPrimaryContent(OllamaScreenData data) => Data = data ?? throw new ArgumentNullException(nameof(data));
 }

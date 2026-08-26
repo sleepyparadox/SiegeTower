@@ -5,11 +5,11 @@ namespace SiegeTower.Client.Screens.WorkspaceFiles;
 
 public sealed class FileTreeDockContent : IDockContent
 {
-	private readonly WorkspaceFilesScreen screen;
+	private readonly WorkspaceFilesScreenData data;
 
-	public FileTreeDockContent(WorkspaceFilesScreen screen)
+	public FileTreeDockContent(WorkspaceFilesScreenData data)
 	{
-		this.screen = screen ?? throw new ArgumentNullException(nameof(screen));
+		this.data = data ?? throw new ArgumentNullException(nameof(data));
 	}
 
 	public string Name => "Files";
@@ -18,5 +18,5 @@ public sealed class FileTreeDockContent : IDockContent
 
 	public IReadOnlyList<FileRow> Files { get; set; } = [];
 
-	public Task OpenFileAsync(FileRow file) => screen.OpenFileAsync(file);
+	public Task OpenFileAsync(FileRow file) => data.System.OpenFileAsync(data, file);
 }

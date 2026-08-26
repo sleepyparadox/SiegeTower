@@ -1,4 +1,4 @@
-@if (WorkspaceFilesScreen.LoadingQueue.IsLoading)
+@if (WorkspaceFilesScreenData.LoadingQueue.IsLoading)
 	{
 	<LoadingQueueView />
 }
@@ -6,14 +6,14 @@ else
 {
 	<div class="workspace-files-screen ux-box">
 		<TitleBarView />
-		<WorkspaceFilesToolbarView ToolbarGrid="WorkspaceFilesScreen.ToolbarGrid" />
+		<WorkspaceFilesToolbarView ToolbarGrid="WorkspaceFilesScreenData.ToolbarGrid" />
 		@if (LoadError is not null)
 		{
 			<div class="ux-padded">Unable to load workspace files: @LoadError.Message</div>
 		}
 		else
 		{
-			<DockGridView DockGrid="WorkspaceFilesScreen.DockGrid" />
+			<DockGridView DockGrid="WorkspaceFilesScreenData.DockGrid" />
 		}
 	}
 </div>
@@ -21,19 +21,8 @@ else
 
 @code {
 	[Parameter, EditorRequired]
-	public WorkspaceFilesScreen WorkspaceFilesScreen { get; set; } = null!;
+	public WorkspaceFilesScreenData WorkspaceFilesScreenData { get; set; } = null!;
 
 	private Exception? LoadError { get; set; }
 
-	protected override async Task OnInitializedAsync()
-	{
-		try
-		{
-			await WorkspaceFilesScreen.LoadAsync();
-		}
-		catch (Exception exception)
-		{
-			LoadError = exception;
-		}
-	}
 }

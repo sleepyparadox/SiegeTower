@@ -5,11 +5,11 @@ namespace SiegeTower.Client.Screens.WorkspaceList;
 
 public sealed class WorkspaceListDockContent : IDockContent
 {
-	private readonly WorkspaceListScreen screen;
+	private readonly WorkspaceListScreenData data;
 
-	public WorkspaceListDockContent(WorkspaceListScreen screen)
+	public WorkspaceListDockContent(WorkspaceListScreenData data)
 	{
-		this.screen = screen ?? throw new ArgumentNullException(nameof(screen));
+		this.data = data ?? throw new ArgumentNullException(nameof(data));
 	}
 
 	#region  IDockContent
@@ -22,9 +22,9 @@ public sealed class WorkspaceListDockContent : IDockContent
 
 	public IReadOnlyList<WorkspaceRow> Workspaces { get; set; } = [];
 
-	public void OpenWorkspace(string id) => screen.OpenWorkspace(id);
+	public void OpenWorkspace(string id) => data.System.OpenWorkspace(data, id);
 
-	public Task DeleteWorkspaceAsync(string id) => screen.DeleteWorkspaceAsync(id);
+	public Task DeleteWorkspaceAsync(string id) => data.System.DeleteWorkspaceAsync(data, id);
 
-	public Task DeleteAllWorkspacesAsync() => screen.DeleteAllWorkspacesAsync();
+	public Task DeleteAllWorkspacesAsync() => data.System.DeleteAllWorkspacesAsync(data);
 }

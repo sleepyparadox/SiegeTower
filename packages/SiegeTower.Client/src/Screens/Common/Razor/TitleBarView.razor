@@ -5,7 +5,7 @@
 	@if (isBurgerMenuOpen)
 	{
 		<div class="title-bar-burger-menu">
-			@foreach (var menuItem in Session.BurgerMenu)
+			@foreach (var menuItem in Session.Data.BurgerMenu)
 			{
 				<button type="button" class="ux-height-line" @onclick="() => SelectMenuItem(menuItem)">
 					@menuItem.Name
@@ -15,7 +15,7 @@
 	}
 	<i class="fa-solid fa-tower-observation" aria-hidden="true"></i>
 	<span class="title-bar-breadcrumbs">
-		@foreach (var (breadCrumb, index) in Session.BreadCrumbs.Select((value, index) => (value, index)))
+		@foreach (var (breadCrumb, index) in Session.Data.BreadCrumbs.Select((value, index) => (value, index)))
 		{
 			@if (index > 0)
 			{
@@ -28,7 +28,7 @@
 
 @code {
 	[Inject]
-	private Session Session { get; set; } = null!;
+	private SessionBlazorHandler Session { get; set; } = null!;
 
 	private bool isBurgerMenuOpen;
 

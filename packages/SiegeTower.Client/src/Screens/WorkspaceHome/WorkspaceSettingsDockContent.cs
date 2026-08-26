@@ -6,11 +6,11 @@ namespace SiegeTower.Client.Screens.WorkspaceHome;
 
 public sealed class WorkspaceSettingsDockContent : IDockContent
 {
-	private readonly WorkspaceHomeScreen screen;
+	private readonly WorkspaceHomeScreenData data;
 
-	public WorkspaceSettingsDockContent(WorkspaceHomeScreen screen)
+	public WorkspaceSettingsDockContent(WorkspaceHomeScreenData data)
 	{
-		this.screen = screen ?? throw new ArgumentNullException(nameof(screen));
+		this.data = data ?? throw new ArgumentNullException(nameof(data));
 	}
 
 	public string Name => "Settings";
@@ -43,7 +43,7 @@ public sealed class WorkspaceSettingsDockContent : IDockContent
 			Settings.GitAccessToken = Settings.GitAccessToken?.Trim();
 			Settings.GitBranchName = Settings.GitBranchName?.Trim();
 			Settings.GitPR = Settings.GitPR?.Trim();
-			Settings = await WorkspaceSettingsService.SaveAsync(screen.SessionContext, screen.SessionServices.HttpClient, Settings);
+			Settings = await WorkspaceSettingsService.SaveAsync(data.Session.Context, data.Session.Services.HttpClient, Settings);
 		}
 		catch (Exception exception)
 		{
@@ -52,7 +52,7 @@ public sealed class WorkspaceSettingsDockContent : IDockContent
 		finally
 		{
 			IsSaving = false;
-			screen.Redraw();
+			data.Session.RequestRedraw();
 		}
 	}
 }

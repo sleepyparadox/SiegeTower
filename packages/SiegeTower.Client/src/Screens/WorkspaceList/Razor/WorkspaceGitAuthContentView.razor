@@ -24,9 +24,9 @@
 	public WorkspaceGitAuthContent Content { get; set; } = null!;
 
 	[Parameter, EditorRequired]
-	public WorkspaceListScreen Screen { get; set; } = null!;
+	public WorkspaceListScreenData Data { get; set; } = null!;
 
-	private Task GenerateAccessTokenAsync() => Screen.GenerateAccessTokenAsync();
+	private Task GenerateAccessTokenAsync() => Data.System.GenerateAccessTokenAsync(Data);
 
 	private async Task CopyAccessTokenAsync()
 	{

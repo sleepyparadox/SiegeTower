@@ -1,6 +1,6 @@
 @namespace SiegeTower.Client.UX
 
-<div class="ux-width-fill" @onmouseup="() => Session.DragStop(ToolbarGrid)">
+	<div class="ux-width-fill" @onmouseup="() => Session.System.DragStop(ToolbarGrid)">
 	@foreach (var toolbar in ToolbarGrid.Toolbars)
 	{
 		<ToolbarView Toolbar="toolbar" />
@@ -9,7 +9,7 @@
 
 @code {
 	[Inject]
-	private Session Session { get; set; } = null!;
+	private SessionBlazorHandler Session { get; set; } = null!;
 
 	[Parameter, EditorRequired]
 	public ToolbarGrid ToolbarGrid { get; set; } = null!;

@@ -5,6 +5,13 @@ namespace SiegeTower.Client.Screens.WorkspaceList;
 
 public sealed class WorkspaceGitAuthContent : IDockContent
 {
+	public WorkspaceListScreenData Data { get; }
+
+	public WorkspaceGitAuthContent(WorkspaceListScreenData data)
+	{
+		Data = data ?? throw new ArgumentNullException(nameof(data));
+	}
+
 	public string Name => "GitHub Access";
 
 	public Dock? Parent { get; set; }

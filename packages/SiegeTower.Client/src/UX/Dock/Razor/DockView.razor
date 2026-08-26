@@ -5,7 +5,7 @@
 @using SiegeTower.Client.Screens.WorkspaceHome.Razor
 
 @inject IJSRuntime JS
-@inject Session Session
+@inject SessionBlazorHandler Session
 
 <div class="dock-view ux-box ux-height-fill" @onmouseup="() => DragStop(Dock)">
 	<div @ref="HorizontalScrollElement"
@@ -16,7 +16,7 @@
 			<button type="button"
 					class="dock-tab ux-i-draggable ux-padded @(ReferenceEquals(content, Dock.ActiveContent) ? "active" : "")"
 					@onmousedown="() => StartPreviewDrag(content)"
-					@onmouseup="() => Session.DragStop(content)"
+					@onmouseup="() => Session.System.DragStop(content)"
 					@onclick="() => ActivateContent(content)">
 				@content.Name
 			</button>
@@ -58,7 +58,7 @@
 		}
 		else if (Dock.ActiveContent is WorkspaceGitAuthContent workspaceGitAuthContent)
 		{
-			<WorkspaceGitAuthContentView Content="workspaceGitAuthContent" Screen="@GetWorkspaceListScreen(workspaceGitAuthContent)" />
+			<WorkspaceGitAuthContentView Content="workspaceGitAuthContent" Data="workspaceGitAuthContent.Data" />
 		}
 		else if (Dock.ActiveContent is OperationHistoryContent operationHistoryContent)
 		{
@@ -94,23 +94,17 @@
 		Dock.ActiveContent = content;
 	}
 
-	private WorkspaceListScreen GetWorkspaceListScreen(WorkspaceGitAuthContent content)
-	{
-		return Session.ActiveScreen as WorkspaceListScreen
-			?? throw new InvalidOperationException("Git auth content is not hosted by the workspace list screen.");
-	}
-
 	private void DragStop(object? content)
 	{
 		if (content is not null)
 		{
-			Session.DragStop(content);
+			Session.System.DragStop(content);
 		}
 	}
 
 	private async Task StartPreviewDrag(IDockContent content)
 	{
-		Session.DragStart(content);
+		Session.System.DragStart(content);
 		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
 	}
 

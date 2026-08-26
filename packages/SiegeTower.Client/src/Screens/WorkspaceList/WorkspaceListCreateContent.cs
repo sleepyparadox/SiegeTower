@@ -12,12 +12,12 @@ public sealed class WorkspaceListCreateContent : IDockContent
 
 	#endregion
 
-	public WorkspaceListCreateContent(WorkspaceListScreen screen)
+	public WorkspaceListCreateContent(WorkspaceListScreenData data)
 	{
-		Screen = screen ?? throw new ArgumentNullException(nameof(screen));
+		Data = data ?? throw new ArgumentNullException(nameof(data));
 	}
 
-	public WorkspaceListScreen Screen { get; }
+	public WorkspaceListScreenData Data { get; }
 
 	public string WorkspaceName { get; set; } = "";
 

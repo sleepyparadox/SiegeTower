@@ -43,7 +43,7 @@
 			return;
 		}
 
-		var chat = Content.OllamaScreen.CurrentChat;
+		var chat = Content.Data.CurrentChat;
 		chat.History.Add(new OllamaChatMessage("user", prompt));
 		var requestHistory = chat.History.ToArray();
 		var assistantMessageIndex = chat.History.Count;
@@ -51,16 +51,16 @@
 		IsBusy = true;
 		try
 		{
-			var task = OllamaService.ChatAsync(Content.OllamaScreen.UnitOfWork, Content.OllamaScreen.SessionContext, Content.OllamaScreen.SessionServices.HttpClient,
-				Content.OllamaScreen.Models.FirstOrDefault()?.Name ?? "qwen3.5:2b",
+			var task = OllamaService.ChatAsync(Content.Data.Cache, Content.Data.Session.Context, Content.Data.Session.Services.HttpClient,
+				Content.Data.Models.FirstOrDefault()?.Name ?? "qwen3.5:2b",
 				requestHistory,
 				token =>
 				{
 					var response = chat.History[assistantMessageIndex].Content + token;
 					chat.History[assistantMessageIndex] = new OllamaChatMessage("assistant", response);
-					Content.OllamaScreen.Redraw();
+					Content.Data.Session.RequestRedraw();
 				});
-			Content.OllamaScreen.LoadingQueue.Append(task);
+			Content.Data.LoadingQueue.Append(task);
 			await task;
 		}
 		finally
@@ -71,7 +71,7 @@
 
 	private async Task SendWorkspaceAsync(string prompt)
 	{
-		var workspaceID = Content.WorkspaceFilesScreen!.SessionContext.WorkspaceID;
+		var workspaceID = Content.WorkspaceFilesScreen!.Session.Context.WorkspaceID;
 		if (string.IsNullOrWhiteSpace(workspaceID))
 		{
 			return;
@@ -80,14 +80,14 @@
 		IsBusy = true;
 		try
 		{
-			var task = OllamaService.ChatWorkspace(Content.WorkspaceFilesScreen.UnitOfWork, Content.WorkspaceFilesScreen.SessionContext, Content.WorkspaceFilesScreen.SessionServices.HttpClient,
+			var task = OllamaService.ChatWorkspace(Content.WorkspaceFilesScreen.Cache, Content.WorkspaceFilesScreen.Session.Context, Content.WorkspaceFilesScreen.Session.Services.HttpClient,
 				workspaceID,
 				new OllamaChatMessage("user", prompt));
 			Content.WorkspaceFilesScreen.LoadingQueue.Append(task);
 			var history = await task;
 			Content.WorkspaceHistory.Clear();
 			Content.WorkspaceHistory.AddRange(history);
-			Content.WorkspaceFilesScreen.Redraw();
+			Content.WorkspaceFilesScreen.Session.RequestRedraw();
 		}
 		finally
 		{
@@ -97,5 +97,5 @@
 
 	private IReadOnlyList<OllamaChatMessage> History => Content.IsWorkspace
 		? Content.WorkspaceHistory
-		: Content.OllamaScreen.CurrentChat.History;
+		: Content.Data.CurrentChat.History;
 }

@@ -12,5 +12,7 @@ public sealed class ChatHistoryContent : IDockContent
 
 	#endregion
 
-	public OllamaScreen OllamaScreen { get; set; } = null!;
+	public OllamaScreenData Data { get; }
+
+	public ChatHistoryContent(OllamaScreenData data) => Data = data ?? throw new ArgumentNullException(nameof(data));
 }

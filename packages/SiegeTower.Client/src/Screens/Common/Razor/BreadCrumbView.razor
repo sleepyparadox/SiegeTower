@@ -4,7 +4,7 @@
 
 @code {
 	[Inject]
-	private Session Session { get; set; } = null!;
+	private SessionBlazorHandler Session { get; set; } = null!;
 
 	[Parameter, EditorRequired]
 	public BreadCrumb BreadCrumb { get; set; } = null!;
@@ -13,7 +13,7 @@
 	{
 		if (args.Button == 0)
 		{
-			Session.NavigateTo(BreadCrumb.Uri);
+			Session.System.NavigateTo(BreadCrumb.Uri);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 @namespace SiegeTower.Client.Screens.Home
 
-@if (HomeScreen.LoadingQueue.IsLoading)
+@if (HomeScreenData.LoadingQueue.IsLoading)
 {
 	<LoadingQueueView />
 }
@@ -13,5 +13,5 @@ else
 
 @code {
 	[Parameter, EditorRequired]
-	public HomeScreen HomeScreen { get; set; } = null!;
+	public HomeScreenData HomeScreenData { get; set; } = null!;
 }

@@ -1,15 +1,15 @@
 @namespace SiegeTower.Client.UX
 
 @inject IJSRuntime JS
-@inject Session Session
+@inject SessionBlazorHandler Session
 
 <div @ref="HorizontalScrollElement"
 	 class="ux-line ux-width-fill ux-horizontal-gap ux-scroll-horizontal"
-	 @onmouseup="() => Session.DragStop(Toolbar)">
+	 @onmouseup="() => Session.System.DragStop(Toolbar)">
 	<i class="fa-solid fa-grip-vertical ux-i-dragable"
 	   aria-hidden="true"
 	@onmousedown="StartPreviewDrag"
-	   @onmouseup="() => Session.DragStop(Toolbar)"></i>
+	   @onmouseup="() => Session.System.DragStop(Toolbar)"></i>
 	@foreach (var item in Toolbar.Items)
 	{
 		<button type="button" @onclick="item.OnClick">@item.Label</button>
@@ -24,7 +24,7 @@
 
 	private async Task StartPreviewDrag()
 	{
-		Session.DragStart(Toolbar);
+		Session.System.DragStart(Toolbar);
 		await JS.InvokeVoidAsync("window.siegetower.drag.DragStart", "Preview");
 	}
 

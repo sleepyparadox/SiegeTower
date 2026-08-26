@@ -1,4 +1,4 @@
-@if (WorkspaceListScreen.LoadingQueue.IsLoading)
+@if (WorkspaceListScreenData.LoadingQueue.IsLoading)
 {
 	<LoadingQueueView />
 }
@@ -6,17 +6,13 @@ else
 {
 	<div class="workspace-list-screen ux-box">
 		<TitleBarView />
-		<ToolbarGridView ToolbarGrid="WorkspaceListScreen.ToolbarGrid" />
-		<DockGridView DockGrid="WorkspaceListScreen.DockGrid" />
+		<ToolbarGridView ToolbarGrid="WorkspaceListScreenData.ToolbarGrid" />
+		<DockGridView DockGrid="WorkspaceListScreenData.DockGrid" />
 	</div>
 }
 
 @code {
 	[Parameter, EditorRequired]
-	public WorkspaceListScreen WorkspaceListScreen { get; set; } = null!;
+	public WorkspaceListScreenData WorkspaceListScreenData { get; set; } = null!;
 
-	protected override async Task OnInitializedAsync()
-	{
-		await WorkspaceListScreen.LoadAsync();
-	}
 }

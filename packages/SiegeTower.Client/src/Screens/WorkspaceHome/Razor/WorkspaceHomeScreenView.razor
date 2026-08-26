@@ -1,4 +1,4 @@
-@if (WorkspaceHomeScreen.LoadingQueue.IsLoading)
+@if (WorkspaceHomeScreenData.LoadingQueue.IsLoading)
 {
 	<LoadingQueueView />
 }
@@ -6,17 +6,13 @@ else
 {
 	<div class="workspace-home-screen ux-box">
 		<TitleBarView />
-		<ToolbarGridView ToolbarGrid="WorkspaceHomeScreen.ToolbarGrid" />
-			<DockGridView DockGrid="WorkspaceHomeScreen.DockGrid" SendMethod="WorkspaceHomeScreen.SendMethod" />
+		<ToolbarGridView ToolbarGrid="WorkspaceHomeScreenData.ToolbarGrid" />
+			<DockGridView DockGrid="WorkspaceHomeScreenData.DockGrid" SendMethod="@(operation => WorkspaceHomeScreenData.System.SendMethod(WorkspaceHomeScreenData, operation))" />
 	</div>
 }
 
 @code {
 	[Parameter, EditorRequired]
-	public WorkspaceHomeScreen WorkspaceHomeScreen { get; set; } = null!;
+	public WorkspaceHomeScreenData WorkspaceHomeScreenData { get; set; } = null!;
 
-	protected override async Task OnInitializedAsync()
-	{
-		await WorkspaceHomeScreen.LoadAsync();
-	}
 }
