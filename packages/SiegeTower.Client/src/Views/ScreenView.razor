@@ -1,6 +1,7 @@
 @namespace SiegeTower.Client.Views
 
 <div class="screen-view">
+    <h1>@Screen.Title</h1>
     @if (Screen.GetComponents<BreadCrumb>().Any())
     {
         <nav aria-label="Breadcrumb">
@@ -10,7 +11,7 @@
                     <li class="breadcrumb-item">
 						@if (h is not null)
 						{
-							<a href="@h.Uri">@b?.Text</a>
+                            <a href="@h.Uri" @onclick="(MouseEventArgs e) => Screen.Session.HandleEvent(new NavigationEvent(h, e))" @onclick:preventDefault="h.IsInternal">@b?.Text</a>
 						}
 						else
 						{

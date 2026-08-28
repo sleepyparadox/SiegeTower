@@ -2,10 +2,23 @@
 @page "/{*Path}"
 @using SiegeTower.Client.Views
 @inject Session Session
+@implements IDisposable
 
 <ScreenView Screen="@Session.ActiveScreen" />
 
 @code {
 	[Parameter]
 	public string? Path { get; set; }
+
+	protected override void OnInitialized()
+	{
+		Session.RedrawRequested += Redraw;
+	}
+
+	public void Dispose()
+	{
+		Session.RedrawRequested -= Redraw;
+	}
+
+	void Redraw() => InvokeAsync(StateHasChanged);
 }
