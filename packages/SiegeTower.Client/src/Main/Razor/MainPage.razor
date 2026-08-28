@@ -1,78 +1,8 @@
 @page "/"
 @page "/{*Path}"
-@inject SessionBlazorHandler Session
-@implements IDisposable
-
-<PageTitle>@Session.Data.ActiveScreenData.Title</PageTitle>
-
-<div class="app-background" @onmouseup="StopDrag">
-	@if (Session.Data.ActiveScreen is WorkspaceListScreenData workspaceListScreen)
-	{
-		<WorkspaceListScreenView WorkspaceListScreenData="workspaceListScreen" />
-	}
-	else if (Session.Data.ActiveScreen is HomeScreenData homeScreen)
-	{
-		<HomeScreenView HomeScreenData="homeScreen" />
-	}
-	else if (Session.Data.ActiveScreen is OllamaScreenData ollamaScreen)
-	{
-		<OllamaScreenView OllamaScreenData="ollamaScreen" />
-	}
-	else if (Session.Data.ActiveScreen is WorkspaceFilesScreenData workspaceFilesScreen)
-	{
-		<WorkspaceFilesScreenView WorkspaceFilesScreenData="workspaceFilesScreen" />
-	}
-	else if (Session.Data.ActiveScreen is WorkspaceHomeScreenData workspaceHomeScreen)
-	{
-		<WorkspaceHomeScreenView WorkspaceHomeScreenData="workspaceHomeScreen" />
-	}
-
-	<div id="DragPreview"
-	     class="drag-preview @(Session.Data.DragOperation.Target is not null ? "drag-preview-active" : "")"
-	     aria-hidden="true">
-		@if (Session.Data.DragOperation.Target is not null)
-		{
-			@switch (Session.Data.DragOperation.Target)
-			{
-				case Toolbar toolbar:
-					<ToolbarDragPreview Toolbar="toolbar" />
-					break;
-				case IDockContent dockContent:
-					<DockTabDragPreview Content="dockContent" />
-					break;
-				case DockGrid.Divider:
-					break;
-				default:
-					<div>@Session.Data.DragOperation.Target?.GetType().Name</div>
-					break;
-			}
-		}
-	</div>
-
-	<LoadingQueueView IsLoading="Session.Data.LoadingQueue.IsLoading" />
-</div>
+@inject Session Session
 
 @code {
 	[Parameter]
 	public string? Path { get; set; }
-
-	protected override void OnInitialized()
-	{
-		Session.Data.RedrawRequested += HandleRedrawRequested;
-	}
-
-	private void HandleRedrawRequested(object? sender, EventArgs args)
-	{
-		_ = InvokeAsync(StateHasChanged);
-	}
-
-	private void StopDrag(MouseEventArgs args)
-	{
-		Session.System.DragStop(args);
-	}
-
-	public void Dispose()
-	{
-		Session.Data.RedrawRequested -= HandleRedrawRequested;
-	}
 }
