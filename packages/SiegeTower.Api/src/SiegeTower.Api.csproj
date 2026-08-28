@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../../SiegeTower.Data/src/SiegeTower.Data.csproj" />
     <ProjectReference Include="../../SiegeTower.GraphQuery/src/SiegeTower.GraphQuery.csproj" />
+    <ProjectReference Include="../../SiegeTower.ECS/src/SiegeTower.ECS.csproj" />
   </ItemGroup>
 
   <Target Name="CopyGraphQueryDist"
@@ -29,6 +30,26 @@
     <Copy
       SourceFiles="@(GraphQueryDistFiles)"
       DestinationFiles="@(GraphQueryDistFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyEcsDist"
+          BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <EcsDist>$(MSBuildThisFileDirectory)..\..\SiegeTower.ECS\dist\</EcsDist>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <EcsDistFiles Include="$(EcsDist)**\*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(EcsDistFiles)"
+      DestinationFiles="@(EcsDistFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="@(EcsDistFiles)"
+      DestinationFiles="@(EcsDistFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
       SkipUnchangedFiles="true" />
   </Target>
 
