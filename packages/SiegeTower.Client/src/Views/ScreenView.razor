@@ -1,0 +1,29 @@
+@namespace SiegeTower.Client.Views
+
+<div class="screen-view">
+    @if (Screen.GetComponents<BreadCrumb>().Any())
+    {
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
+                @foreach ((BreadCrumb? b, Hyperlink? h) in Screen.TryGetComponents<BreadCrumb, Hyperlink>())
+                {
+                    <li class="breadcrumb-item">
+						@if (h is not null)
+						{
+							<a href="@h.Uri">@b?.Text</a>
+						}
+						else
+						{
+							@b?.Text
+						}
+                    </li>
+                }
+            </ol>
+        </nav>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Screen Screen { get; set; } = default!;
+}

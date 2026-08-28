@@ -1,6 +1,13 @@
 namespace SiegeTower.Client;
 
-public class Screen
+public class Screen : EntityStorage
 {
-	 public EntityStorage Entities { get; } = new();
+	public Session Session { get; set; }
+	public string Title { get; set; }
+	
+	public Screen(Session session, string title)
+	{
+		Session = session;
+		Title = title;
+	}
 }

@@ -1,6 +1,9 @@
 @page "/"
 @page "/{*Path}"
+@using SiegeTower.Client.Views
 @inject Session Session
+
+<ScreenView Screen="@Session.ActiveScreen" />
 
 @code {
 	[Parameter]
