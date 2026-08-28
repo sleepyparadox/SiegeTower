@@ -71,6 +71,10 @@ public static class NavigationSystem
 		{
 			var homeScreen = new Screen(session, "Home");
 			homeScreen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+
+			var rows = homeScreen.AddNewEntityAndComponents((s, e) => new Element(s, e, "Toolbar"), (s, e) => new ToolbarRows(s, e))
+				.Item2;
+
 			session.ActiveScreen = homeScreen;
 		}
 

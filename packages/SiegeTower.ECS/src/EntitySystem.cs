@@ -1,5 +1,7 @@
 public static class EntitySystem
 {
+	#region Single Components
+
 	public static T AddNewEntityAndComponent<T>(this EntityStorage storage, Func<EntityStorage, Guid, T> initComponent) where T : Component
 	{
 		var e = Guid.NewGuid();
@@ -87,6 +89,101 @@ public static class EntitySystem
 			}
 		}
 	}
+
+	#endregion
+
+	#region Tuple Components
+
+	public static Tuple<T1, T2> AddNewEntityAndComponents<T1, T2>(this EntityStorage storage, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2) where T1 : Component where T2 : Component
+	{
+		var e = Guid.NewGuid();
+		storage.Entities.Add(e);
+		var c1 = AddComponent(storage, e, init1);
+		var c2 = AddComponent(storage, e, init2);
+		return new Tuple<T1, T2>(c1, c2);
+	}
+
+	public static Tuple<T1, T2> AddComponents<T1, T2>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2) where T1 : Component where T2 : Component
+	{
+		var c1 = init1(storage, e);
+		var c2 = init2(storage, e);
+		storage.UpsertComponentDict<T1>().Add(e, c1);
+		storage.UpsertComponentDict<T2>().Add(e, c2);
+		return new Tuple<T1, T2>(c1, c2);
+	}
+
+	public static Tuple<T1, T2, T3> AddComponents<T1, T2, T3>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3) where T1 : Component where T2 : Component where T3 : Component
+	{
+		var c1 = init1(storage, e);
+		var c2 = init2(storage, e);
+		var c3 = init3(storage, e);
+		storage.UpsertComponentDict<T1>().Add(e, c1);
+		storage.UpsertComponentDict<T2>().Add(e, c2);
+		storage.UpsertComponentDict<T3>().Add(e, c3);
+		return new Tuple<T1, T2, T3>(c1, c2, c3);
+	}
+
+	public static Tuple<T1, T2, T3, T4> AddComponents<T1, T2, T3, T4>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
+	{
+		var c1 = init1(storage, e);
+		var c2 = init2(storage, e);
+		var c3 = init3(storage, e);
+		var c4 = init4(storage, e);
+		storage.UpsertComponentDict<T1>().Add(e, c1);
+		storage.UpsertComponentDict<T2>().Add(e, c2);
+		storage.UpsertComponentDict<T3>().Add(e, c3);
+		storage.UpsertComponentDict<T4>().Add(e, c4);
+		return new Tuple<T1, T2, T3, T4>(c1, c2, c3, c4);
+	}
+
+	public static Tuple<T1, T2, T3, T4, T5> AddComponents<T1, T2, T3, T4, T5>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
+	{
+		var c1 = init1(storage, e);
+		var c2 = init2(storage, e);
+		var c3 = init3(storage, e);
+		var c4 = init4(storage, e);
+		var c5 = init5(storage, e);
+		storage.UpsertComponentDict<T1>().Add(e, c1);
+		storage.UpsertComponentDict<T2>().Add(e, c2);
+		storage.UpsertComponentDict<T3>().Add(e, c3);
+		storage.UpsertComponentDict<T4>().Add(e, c4);
+		storage.UpsertComponentDict<T5>().Add(e, c5);
+		return new Tuple<T1, T2, T3, T4, T5>(c1, c2, c3, c4, c5);
+	}
+
+	public static Tuple<T1, T2, T3, T4, T5, T6> AddComponents<T1, T2, T3, T4, T5, T6>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5, Func<EntityStorage, Guid, T6> init6) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
+	{
+		var c1 = init1(storage, e);
+		var c2 = init2(storage, e);
+		var c3 = init3(storage, e);
+		var c4 = init4(storage, e);
+		var c5 = init5(storage, e);
+		var c6 = init6(storage, e);
+		storage.UpsertComponentDict<T1>().Add(e, c1);
+		storage.UpsertComponentDict<T2>().Add(e, c2);
+		storage.UpsertComponentDict<T3>().Add(e, c3);
+		storage.UpsertComponentDict<T4>().Add(e, c4);
+		storage.UpsertComponentDict<T5>().Add(e, c5);
+		storage.UpsertComponentDict<T6>().Add(e, c6);
+		return new Tuple<T1, T2, T3, T4, T5, T6>(c1, c2, c3, c4, c5, c6);
+	}
+
+	public static Tuple<T1, T2> AddComponents<T1, T2>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2) where T1 : Component where T2 : Component
+		=> AddComponents(baseComponent.EntityStorage, e, init1, init2);
+
+	public static Tuple<T1, T2, T3> AddComponents<T1, T2, T3>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3) where T1 : Component where T2 : Component where T3 : Component
+		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3);
+
+	public static Tuple<T1, T2, T3, T4> AddComponents<T1, T2, T3, T4>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
+		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3, init4);
+
+	public static Tuple<T1, T2, T3, T4, T5> AddComponents<T1, T2, T3, T4, T5>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
+		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3, init4, init5);
+
+	public static Tuple<T1, T2, T3, T4, T5, T6> AddComponents<T1, T2, T3, T4, T5, T6>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5, Func<EntityStorage, Guid, T6> init6) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
+		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3, init4, init5, init6);
+
+	#endregion
 
 	#region WhereGetComponents
 
