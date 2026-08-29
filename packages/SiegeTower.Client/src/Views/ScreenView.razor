@@ -1,30 +1,23 @@
 @namespace SiegeTower.Client.Views
+@using SiegeTower.Client.Views.Components
 
 <div class="screen-view">
     <h1>@Screen.Title</h1>
-    @if (Screen.GetComponents<BreadCrumb>().Any())
+    @if (Screen.SelectComponents<BreadCrumb>().Any())
     {
         <nav aria-label="Breadcrumb">
             <ol class="breadcrumb">
-                @foreach ((BreadCrumb? b, Hyperlink? h) in Screen.TryGetComponents<BreadCrumb, Hyperlink>())
+                @foreach (BreadCrumb breadcrumb in Screen.SelectComponents<BreadCrumb>().OrderBy(b => b.Index))
                 {
-                    <li class="breadcrumb-item">
-						@if (h is not null)
-						{
-                            <a href="@h.Uri" @onclick="(MouseEventArgs e) => Screen.Session.HandleEvent(new NavigationEvent(h, e))" @onclick:preventDefault="h.IsInternal">@b?.Text</a>
-						}
-						else
-						{
-							@b?.Text
-						}
-                    </li>
+                    <Breadcrumb BreadCrumb="@breadcrumb" Session="@Screen.Session" />
                 }
             </ol>
         </nav>
     }
 </div>
 
-@code {
+@code 
+{
     [Parameter, EditorRequired]
     public Screen Screen { get; set; } = default!;
 }

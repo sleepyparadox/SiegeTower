@@ -4,8 +4,8 @@ public class Hyperlink : Component
 
 	public bool IsInternal { get; set; }
 
-	public Hyperlink(EntityStorage entityStorage, Guid entityID, string url, bool isInternal) 
-		: base(entityStorage, entityID)
+	public Hyperlink(Entity entity, string url, bool isInternal)
+		: base(entity)
 	{
 		Uri = url;
 		IsInternal = isInternal;

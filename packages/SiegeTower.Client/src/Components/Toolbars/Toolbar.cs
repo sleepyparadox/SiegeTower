@@ -1,7 +1,7 @@
-public class Toolbar : Component
+public class Toolbar : Component, IRequires<Element>
 {
-	public Toolbar(EntityStorage entityStorage, Guid entityID, int row, int index)
-		: base(entityStorage, entityID)
+	public Toolbar(Entity entity)
+		: base(entity)
 	{
 	}
 }

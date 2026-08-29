@@ -1,47 +1,76 @@
 public static class EntitySystem
 {
-	#region Single Components
+	#region Entity
 
-	public static T AddNewEntityAndComponent<T>(this EntityStorage storage, Func<EntityStorage, Guid, T> initComponent) where T : Component
+	public static Entity NewEntity(this EntityStorage storage)
+		=> NewEntity(storage, out _);
+
+	public static Entity NewEntity(this EntityStorage storage, out Entity result)
 	{
-		var e = Guid.NewGuid();
-		storage.Entities.Add(e);
-		var c = AddComponent(storage, e, initComponent);
-		return c;
+		result = new Entity(storage, Guid.NewGuid());
+		storage.Entities.Add(result.ID);
+		return result;
 	}
 
-	public static T AddComponent<T>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T> initComponent) where T : Component
-	{
-		var c = initComponent(storage, e);
-		ArgumentNullException.ThrowIfNull(c);
-		storage.UpsertComponentDict<T>().Add(e, c);
-		return c;
-	}
+	#endregion
 
-	public static T AddComponent<T>(this Component baseComponent, Func<EntityStorage, Guid, T> initComponent) where T : Component
-	{
-		var storage = baseComponent.EntityStorage;
-		var e = baseComponent.EntityID;
-		var c = initComponent(storage, e);
-		ArgumentNullException.ThrowIfNull(c);
-		storage.UpsertComponentDict<T>().Add(e, c);
-		return c;
-	}
 
-	public static IEnumerable<T> GetComponents<T>(this EntityStorage storage) where T : Component
+	#region AddComponent
+
+	public static T AddComponent<T>(this Entity entity) where T : Component
+		=> AddComponent<T>(entity, e => (T)Activator.CreateInstance(typeof(T), e)!, out _);
+
+	public static T AddComponent<T>(this Entity entity, out T result) where T : Component
+		=> AddComponent<T>(entity, e => (T)Activator.CreateInstance(typeof(T), e)!, out result);
+
+	public static T AddComponent<T>(this Entity entity, Func<Entity, T> constructor) where T : Component
+		=> AddComponent<T>(entity, constructor, out _);
+
+	public static T AddComponent<T>(this Component baseComponent) where T : Component
+		=> AddComponent<T>(baseComponent.Entity, e => (T)Activator.CreateInstance(typeof(T), e)!, out _);
+
+	public static T AddComponent<T>(this Component baseComponent, out T result) where T : Component
+		=> AddComponent<T>(baseComponent.Entity, e => (T)Activator.CreateInstance(typeof(T), e)!, out result);
+
+	public static T AddComponent<T>(this Component baseComponent, Func<Entity, T> constructor) where T : Component
+		=> AddComponent<T>(baseComponent.Entity, constructor, out _);
+
+	public static T AddComponent<T>(this Entity entity, Func<Entity, T> constructor, out T result) where T : Component
 	{
-		if (storage.Components.TryGetValue(typeof(T), out var componentDict))
+		var firstMissingRequirement = entity.GetMissingRequirements<T>().FirstOrDefault();
+		if(firstMissingRequirement != null)
 		{
-			return componentDict.Values.Cast<T>();
+			throw new InvalidOperationException($"Cannot add component of type {typeof(T).Name} to entity {entity.ID} because {typeof(T).Name} requires a {firstMissingRequirement.Name} are not met.");
 		}
-		return Enumerable.Empty<T>();
+
+		result = constructor(entity)!;
+		entity.EntityStorage.UpsertComponentDict<T>().Add(entity.ID, result);
+		return result!;
 	}
 
-	public static bool TryGetComponent<T>(this EntityStorage storage, Guid e, out T? c) where T : Component
+	static IEnumerable<Type> GetMissingRequirements<T>(this Entity entity) where T : Component
 	{
-		if (storage.Components.TryGetValue(typeof(T), out var componentDict))
+		var requirements = typeof(T).GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequires<>)).ToList();
+		foreach (var requirement in requirements)
 		{
-			if (componentDict.TryGetValue(e, out var component))
+			var requiredType = requirement.GetGenericArguments()[0];
+			if (!entity.EntityStorage.Components.TryGetValue(requiredType, out var componentDict) || !componentDict.ContainsKey(entity.ID))
+			{
+				yield return requiredType;
+			}
+		}
+	}
+
+	#endregion
+
+
+	#region TryGet
+
+	public static bool TryGetComponent<T>(this Entity entity, out T? c) where T : Component
+	{
+		if (entity.EntityStorage.Components.TryGetValue(typeof(T), out var componentDict))
+		{
+			if (componentDict.TryGetValue(entity.ID, out var component))
 			{
 				c = (T)component;
 				return true;
@@ -51,19 +80,198 @@ public static class EntitySystem
 		return false;
 	}
 
-	public static bool TryGetComponent<T>(this Component baseComponent, Guid e, out T? c) where T : Component
+	public static bool TryGetComponent<T>(this Component baseComponent, out T? c) where T : Component
 	{
-		var storage = baseComponent.EntityStorage;
-		return storage.TryGetComponent<T>(e, out c);
+		return baseComponent.Entity.TryGetComponent(out c);
 	}
+
+	#region GetComponent
+
+	public static T GetComponent<T>(this IRequires<T> baseComponent) where T : Component
+		=> GetComponent<T>(baseComponent, out _);
+
+	public static T GetComponent<T>(this IRequires<T> baseComponent, out T? c) where T : Component
+	{
+		baseComponent.Entity.TryGetComponent(out c);
+		// Validation ensures component will exist
+		return c!;
+	}
+
+	#endregion
+
+	#endregion
+
+	#region TryOutComponent
+
+	public static TBase OutComponent<TBase, T>(this TBase baseComponent, out T? c) where T : Component where TBase : Component
+	{
+		baseComponent.Entity.TryGetComponent(out c);
+		return baseComponent;
+	}
+
+	#endregion
+
+	#region SelectComponents
+
+	public static IEnumerable<T> SelectComponents<T>(this EntityStorage storage) where T : Component
+	{
+		return storage.Components.TryGetValue(typeof(T), out var componentDict)
+			? componentDict.Values.Cast<T>()
+			: Enumerable.Empty<T>();	
+	}
+
+	public static Tuple<T1, T2> SelectComponents<T1, T2>(this Entity entity) where T1 : Component where T2 : Component
+	{
+		entity.TryGetComponent(out T1? c1);
+		entity.TryGetComponent(out T2? c2);
+		return new Tuple<T1, T2>(c1!, c2!);
+	}
+
+	public static Tuple<T1, T2, T3> SelectComponents<T1, T2, T3>(this Entity entity) where T1 : Component where T2 : Component where T3 : Component
+	{
+		entity.TryGetComponent(out T1? c1);
+		entity.TryGetComponent(out T2? c2);
+		entity.TryGetComponent(out T3? c3);
+		return new Tuple<T1, T2, T3>(c1!, c2!, c3!);
+	}
+
+	public static Tuple<T1, T2, T3, T4> SelectComponents<T1, T2, T3, T4>(this Entity entity) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
+	{
+		entity.TryGetComponent(out T1? c1);
+		entity.TryGetComponent(out T2? c2);
+		entity.TryGetComponent(out T3? c3);
+		entity.TryGetComponent(out T4? c4);
+		return new Tuple<T1, T2, T3, T4>(c1!, c2!, c3!, c4!);
+	}
+
+	public static Tuple<T1, T2, T3, T4, T5> SelectComponents<T1, T2, T3, T4, T5>(this Entity entity) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
+	{
+		entity.TryGetComponent(out T1? c1);
+		entity.TryGetComponent(out T2? c2);
+		entity.TryGetComponent(out T3? c3);
+		entity.TryGetComponent(out T4? c4);
+		entity.TryGetComponent(out T5? c5);
+		return new Tuple<T1, T2, T3, T4, T5>(c1!, c2!, c3!, c4!, c5!);
+	}
+
+	public static Tuple<T1, T2, T3, T4, T5, T6> SelectComponents<T1, T2, T3, T4, T5, T6>(this Entity entity) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
+	{
+		entity.TryGetComponent(out T1? c1);
+		entity.TryGetComponent(out T2? c2);
+		entity.TryGetComponent(out T3? c3);
+		entity.TryGetComponent(out T4? c4);
+		entity.TryGetComponent(out T5? c5);
+		entity.TryGetComponent(out T6? c6);
+		return new Tuple<T1, T2, T3, T4, T5, T6>(c1!, c2!, c3!, c4!, c5!, c6!);
+	}
+
+	public static Tuple<T1, T2, T3, T4, T5, T6, T7> SelectComponents<T1, T2, T3, T4, T5, T6, T7>(this Entity entity) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component where T7 : Component
+	{
+		entity.TryGetComponent(out T1? c1);
+		entity.TryGetComponent(out T2? c2);
+		entity.TryGetComponent(out T3? c3);
+		entity.TryGetComponent(out T4? c4);
+		entity.TryGetComponent(out T5? c5);
+		entity.TryGetComponent(out T6? c6);
+		entity.TryGetComponent(out T7? c7);
+		return new Tuple<T1, T2, T3, T4, T5, T6, T7>(c1!, c2!, c3!, c4!, c5!, c6!, c7!);
+	}
+
+	public static IEnumerable<Tuple<T1, T2>> SelectComponentsWhereExist<T1, T2>(this EntityStorage storage) where T1 : Component where T2 : Component
+	=> storage.SelectComponents<T1>().SelectComponentsWhereExist<T1, T2>();
+
+	public static IEnumerable<Tuple<T1, T2>> SelectComponentsWhereExist<T1, T2>(this IEnumerable<T1> initCollection) where T1 : Component where T2 : Component
+	{
+		foreach (var c1 in initCollection)
+		{
+			if (c1.Entity.TryGetComponent(out T2? c2))
+			{
+				yield return new Tuple<T1, T2>(c1, c2!);
+			}
+		}
+	}
+
+	public static IEnumerable<Tuple<T1, T2, T3>> SelectComponentsWhereExist<T1, T2, T3>(this EntityStorage storage) where T1 : Component where T2 : Component where T3 : Component
+	=> storage.SelectComponents<T1>().SelectComponentsWhereExist<T1, T2, T3>();
+
+	public static IEnumerable<Tuple<T1, T2, T3>> SelectComponentsWhereExist<T1, T2, T3>(this IEnumerable<T1> initCollection) where T1 : Component where T2 : Component where T3 : Component
+	{
+		foreach (var c1 in initCollection)
+		{
+			if (c1.Entity.TryGetComponent(out T2? c2) && c1.Entity.TryGetComponent(out T3? c3))
+			{
+				yield return new Tuple<T1, T2, T3>(c1, c2!, c3!);
+			}
+		}
+	}
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4>> SelectComponentsWhereExist<T1, T2, T3, T4>(this EntityStorage storage) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
+	=> storage.SelectComponents<T1>().SelectComponentsWhereExist<T1, T2, T3, T4>();
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4>> SelectComponentsWhereExist<T1, T2, T3, T4>(this IEnumerable<T1> initCollection) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
+	{
+		foreach (var c1 in initCollection)
+		{
+			if (c1.Entity.TryGetComponent(out T2? c2) && c1.Entity.TryGetComponent(out T3? c3) && c1.Entity.TryGetComponent(out T4? c4))
+			{
+				yield return new Tuple<T1, T2, T3, T4>(c1, c2!, c3!, c4!);
+			}
+		}
+	}
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4, T5>> SelectComponentsWhereExist<T1, T2, T3, T4, T5>(this EntityStorage storage) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
+	=> storage.SelectComponents<T1>().SelectComponentsWhereExist<T1, T2, T3, T4, T5>();
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4, T5>> SelectComponentsWhereExist<T1, T2, T3, T4, T5>(this IEnumerable<T1> initCollection) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
+	{
+		foreach (var c1 in initCollection)
+		{
+			if (c1.Entity.TryGetComponent(out T2? c2) && c1.Entity.TryGetComponent(out T3? c3) && c1.Entity.TryGetComponent(out T4? c4) && c1.Entity.TryGetComponent(out T5? c5))
+			{
+				yield return new Tuple<T1, T2, T3, T4, T5>(c1, c2!, c3!, c4!, c5!);
+			}
+		}
+	}
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4, T5, T6>> SelectComponentsWhereExist<T1, T2, T3, T4, T5, T6>(this EntityStorage storage) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
+	=> storage.SelectComponents<T1>().SelectComponentsWhereExist<T1, T2, T3, T4, T5, T6>();
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4, T5, T6>> SelectComponentsWhereExist<T1, T2, T3, T4, T5, T6>(this IEnumerable<T1> initCollection) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
+	{
+		foreach (var c1 in initCollection)
+		{
+			if (c1.Entity.TryGetComponent(out T2? c2) && c1.Entity.TryGetComponent(out T3? c3) && c1.Entity.TryGetComponent(out T4? c4) && c1.Entity.TryGetComponent(out T5? c5) && c1.Entity.TryGetComponent(out T6? c6))
+			{
+				yield return new Tuple<T1, T2, T3, T4, T5, T6>(c1, c2!, c3!, c4!, c5!, c6!);
+			}
+		}
+	}
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4, T5, T6, T7>> SelectComponentsWhereExist<T1, T2, T3, T4, T5, T6, T7>(this EntityStorage storage) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component where T7 : Component
+	=> storage.SelectComponents<T1>().SelectComponentsWhereExist<T1, T2, T3, T4, T5, T6, T7>();
+
+	public static IEnumerable<Tuple<T1, T2, T3, T4, T5, T6, T7>> SelectComponentsWhereExist<T1, T2, T3, T4, T5, T6, T7>(this IEnumerable<T1> initCollection) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component where T7 : Component
+	{
+		foreach (var c1 in initCollection)
+		{
+			if (c1.Entity.TryGetComponent(out T2? c2) && c1.Entity.TryGetComponent(out T3? c3) && c1.Entity.TryGetComponent(out T4? c4) && c1.Entity.TryGetComponent(out T5? c5) && c1.Entity.TryGetComponent(out T6? c6) && c1.Entity.TryGetComponent(out T7? c7))
+			{
+				yield return new Tuple<T1, T2, T3, T4, T5, T6, T7>(c1, c2!, c3!, c4!, c5!, c6!, c7!);
+			}
+		}
+	}
+
+	#endregion
+
+	#region TryDelete
 
 	public static void TryDeleteComponent<T>(this EntityStorage storage, T c) where T : Component
 	{
 		if (storage.Components.TryGetValue(typeof(T), out var componentDict))
 		{
-			if (componentDict.ContainsKey(c.EntityID))
+			if (componentDict.ContainsKey(c.Entity.ID))
 			{
-				componentDict.Remove(c.EntityID);
+				componentDict.Remove(c.Entity.ID);
 			}
 		}
 
@@ -73,308 +281,20 @@ public static class EntitySystem
 		}
 	}
 
-	public static void TryDeleteEntity(this EntityStorage storage, Guid e)
+	public static void TryDeleteEntity(this Entity entity)
 	{
-		storage.Entities.Remove(e);
-		foreach (var componentDict in storage.Components.Values)
+		entity.EntityStorage.Entities.Remove(entity.ID);
+		foreach (var componentDict in entity.EntityStorage.Components.Values)
 		{
-			if (componentDict.TryGetValue(e, out var c))
+			if (componentDict.TryGetValue(entity.ID, out var c))
 			{
-				componentDict.Remove(e);
+				componentDict.Remove(entity.ID);
 
 				if (c is IDisposable disposable)
 				{
 					disposable.Dispose();
 				}
 			}
-		}
-	}
-
-	#endregion
-
-	#region Tuple Components
-
-	public static Tuple<T1, T2> AddNewEntityAndComponents<T1, T2>(this EntityStorage storage, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2) where T1 : Component where T2 : Component
-	{
-		var e = Guid.NewGuid();
-		storage.Entities.Add(e);
-		var c1 = AddComponent(storage, e, init1);
-		var c2 = AddComponent(storage, e, init2);
-		return new Tuple<T1, T2>(c1, c2);
-	}
-
-	public static Tuple<T1, T2> AddComponents<T1, T2>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2) where T1 : Component where T2 : Component
-	{
-		var c1 = init1(storage, e);
-		var c2 = init2(storage, e);
-		storage.UpsertComponentDict<T1>().Add(e, c1);
-		storage.UpsertComponentDict<T2>().Add(e, c2);
-		return new Tuple<T1, T2>(c1, c2);
-	}
-
-	public static Tuple<T1, T2, T3> AddComponents<T1, T2, T3>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3) where T1 : Component where T2 : Component where T3 : Component
-	{
-		var c1 = init1(storage, e);
-		var c2 = init2(storage, e);
-		var c3 = init3(storage, e);
-		storage.UpsertComponentDict<T1>().Add(e, c1);
-		storage.UpsertComponentDict<T2>().Add(e, c2);
-		storage.UpsertComponentDict<T3>().Add(e, c3);
-		return new Tuple<T1, T2, T3>(c1, c2, c3);
-	}
-
-	public static Tuple<T1, T2, T3, T4> AddComponents<T1, T2, T3, T4>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
-	{
-		var c1 = init1(storage, e);
-		var c2 = init2(storage, e);
-		var c3 = init3(storage, e);
-		var c4 = init4(storage, e);
-		storage.UpsertComponentDict<T1>().Add(e, c1);
-		storage.UpsertComponentDict<T2>().Add(e, c2);
-		storage.UpsertComponentDict<T3>().Add(e, c3);
-		storage.UpsertComponentDict<T4>().Add(e, c4);
-		return new Tuple<T1, T2, T3, T4>(c1, c2, c3, c4);
-	}
-
-	public static Tuple<T1, T2, T3, T4, T5> AddComponents<T1, T2, T3, T4, T5>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
-	{
-		var c1 = init1(storage, e);
-		var c2 = init2(storage, e);
-		var c3 = init3(storage, e);
-		var c4 = init4(storage, e);
-		var c5 = init5(storage, e);
-		storage.UpsertComponentDict<T1>().Add(e, c1);
-		storage.UpsertComponentDict<T2>().Add(e, c2);
-		storage.UpsertComponentDict<T3>().Add(e, c3);
-		storage.UpsertComponentDict<T4>().Add(e, c4);
-		storage.UpsertComponentDict<T5>().Add(e, c5);
-		return new Tuple<T1, T2, T3, T4, T5>(c1, c2, c3, c4, c5);
-	}
-
-	public static Tuple<T1, T2, T3, T4, T5, T6> AddComponents<T1, T2, T3, T4, T5, T6>(this EntityStorage storage, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5, Func<EntityStorage, Guid, T6> init6) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
-	{
-		var c1 = init1(storage, e);
-		var c2 = init2(storage, e);
-		var c3 = init3(storage, e);
-		var c4 = init4(storage, e);
-		var c5 = init5(storage, e);
-		var c6 = init6(storage, e);
-		storage.UpsertComponentDict<T1>().Add(e, c1);
-		storage.UpsertComponentDict<T2>().Add(e, c2);
-		storage.UpsertComponentDict<T3>().Add(e, c3);
-		storage.UpsertComponentDict<T4>().Add(e, c4);
-		storage.UpsertComponentDict<T5>().Add(e, c5);
-		storage.UpsertComponentDict<T6>().Add(e, c6);
-		return new Tuple<T1, T2, T3, T4, T5, T6>(c1, c2, c3, c4, c5, c6);
-	}
-
-	public static Tuple<T1, T2> AddComponents<T1, T2>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2) where T1 : Component where T2 : Component
-		=> AddComponents(baseComponent.EntityStorage, e, init1, init2);
-
-	public static Tuple<T1, T2, T3> AddComponents<T1, T2, T3>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3) where T1 : Component where T2 : Component where T3 : Component
-		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3);
-
-	public static Tuple<T1, T2, T3, T4> AddComponents<T1, T2, T3, T4>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4) where T1 : Component where T2 : Component where T3 : Component where T4 : Component
-		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3, init4);
-
-	public static Tuple<T1, T2, T3, T4, T5> AddComponents<T1, T2, T3, T4, T5>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
-		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3, init4, init5);
-
-	public static Tuple<T1, T2, T3, T4, T5, T6> AddComponents<T1, T2, T3, T4, T5, T6>(this Component baseComponent, Guid e, Func<EntityStorage, Guid, T1> init1, Func<EntityStorage, Guid, T2> init2, Func<EntityStorage, Guid, T3> init3, Func<EntityStorage, Guid, T4> init4, Func<EntityStorage, Guid, T5> init5, Func<EntityStorage, Guid, T6> init6) where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
-		=> AddComponents(baseComponent.EntityStorage, e, init1, init2, init3, init4, init5, init6);
-
-	#endregion
-
-	#region WhereGetComponents
-
-	public static IEnumerable<Tuple<TBase, T1>> WhereGetComponents<TBase, T1>(this EntityStorage storage) where TBase : Component where T1 : Component
-		=> storage.GetComponents<TBase>().WhereGetComponents<TBase, T1>();
-
-	public static IEnumerable<Tuple<TBase, T1, T2>> WhereGetComponents<TBase, T1, T2>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component
-		=> storage.GetComponents<TBase>().WhereGetComponents<TBase, T1, T2>();
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3>> WhereGetComponents<TBase, T1, T2, T3>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component
-		=> storage.GetComponents<TBase>().WhereGetComponents<TBase, T1, T2, T3>();
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3, T4>> WhereGetComponents<TBase, T1, T2, T3, T4>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component
-		=> storage.GetComponents<TBase>().WhereGetComponents<TBase, T1, T2, T3, T4>();
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3, T4, T5>> WhereGetComponents<TBase, T1, T2, T3, T4, T5>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
-		=> storage.GetComponents<TBase>().WhereGetComponents<TBase, T1, T2, T3, T4, T5>();
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3, T4, T5, T6>> WhereGetComponents<TBase, T1, T2, T3, T4, T5, T6>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
-		=> storage.GetComponents<TBase>().WhereGetComponents<TBase, T1, T2, T3, T4, T5, T6>();
-
-	public static IEnumerable<Tuple<TBase, T1>> WhereGetComponents<TBase, T1>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			if (baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1))
-			{
-				yield return new Tuple<TBase, T1>(baseComponent, c1!);
-			}
-		}
-	}
-
-
-	public static IEnumerable<Tuple<TBase, T1, T2>> WhereGetComponents<TBase, T1, T2>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			if (baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1)
-				&& baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2))
-			{
-				yield return new Tuple<TBase, T1, T2>(baseComponent, c1!, c2!);
-			}
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3>> WhereGetComponents<TBase, T1, T2, T3>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			if (baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1)
-				&& baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2)
-				&& baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3))
-			{
-				yield return new Tuple<TBase, T1, T2, T3>(baseComponent, c1!, c2!, c3!);
-			}
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3, T4>> WhereGetComponents<TBase, T1, T2, T3, T4>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			if (baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1)
-				&& baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2)
-				&& baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3)
-				&& baseComponent.EntityStorage.TryGetComponent<T4>(baseComponent.EntityID, out var c4))
-			{
-				yield return new Tuple<TBase, T1, T2, T3, T4>(baseComponent, c1!, c2!, c3!, c4!);
-			}
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3, T4, T5>> WhereGetComponents<TBase, T1, T2, T3, T4, T5>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			if (baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1)
-				&& baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2)
-				&& baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3)
-				&& baseComponent.EntityStorage.TryGetComponent<T4>(baseComponent.EntityID, out var c4)
-				&& baseComponent.EntityStorage.TryGetComponent<T5>(baseComponent.EntityID, out var c5))
-			{
-				yield return new Tuple<TBase, T1, T2, T3, T4, T5>(baseComponent, c1!, c2!, c3!, c4!, c5!);
-			}
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1, T2, T3, T4, T5, T6>> WhereGetComponents<TBase, T1, T2, T3, T4, T5, T6>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			if (baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1)
-				&& baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2)
-				&& baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3)
-				&& baseComponent.EntityStorage.TryGetComponent<T4>(baseComponent.EntityID, out var c4)
-				&& baseComponent.EntityStorage.TryGetComponent<T5>(baseComponent.EntityID, out var c5)
-				&& baseComponent.EntityStorage.TryGetComponent<T6>(baseComponent.EntityID, out var c6))
-			{
-				yield return new Tuple<TBase, T1, T2, T3, T4, T5, T6>(baseComponent, c1!, c2!, c3!, c4!, c5!, c6!);
-			}
-		}
-	}
-
-	#endregion
-
-	#region TryGetComponents
-
-	public static IEnumerable<Tuple<TBase, T1?>> TryGetComponents<TBase, T1>(this EntityStorage storage) where TBase : Component where T1 : Component
-		=> storage.GetComponents<TBase>().TryGetComponents<TBase, T1>();
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?>> TryGetComponents<TBase, T1, T2>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component
-		=> storage.GetComponents<TBase>().TryGetComponents<TBase, T1, T2>();
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?>> TryGetComponents<TBase, T1, T2, T3>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component
-		=> storage.GetComponents<TBase>().TryGetComponents<TBase, T1, T2, T3>();
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?, T4?>> TryGetComponents<TBase, T1, T2, T3, T4>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component
-		=> storage.GetComponents<TBase>().TryGetComponents<TBase, T1, T2, T3, T4>();
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?, T4?, T5?>> TryGetComponents<TBase, T1, T2, T3, T4, T5>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
-		=> storage.GetComponents<TBase>().TryGetComponents<TBase, T1, T2, T3, T4, T5>();
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?, T4?, T5?, T6?>> TryGetComponents<TBase, T1, T2, T3, T4, T5, T6>(this EntityStorage storage) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
-		=> storage.GetComponents<TBase>().TryGetComponents<TBase, T1, T2, T3, T4, T5, T6>();
-
-	public static IEnumerable<Tuple<TBase, T1?>> TryGetComponents<TBase, T1>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1);
-			yield return new Tuple<TBase, T1?>(baseComponent, c1);
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?>> TryGetComponents<TBase, T1, T2>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1);
-			baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2);
-			yield return new Tuple<TBase, T1?, T2?>(baseComponent, c1, c2);
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?>> TryGetComponents<TBase, T1, T2, T3>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1);
-			baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2);
-			baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3);
-			yield return new Tuple<TBase, T1?, T2?, T3?>(baseComponent, c1, c2, c3);
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?, T4?>> TryGetComponents<TBase, T1, T2, T3, T4>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1);
-			baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2);
-			baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3);
-			baseComponent.EntityStorage.TryGetComponent<T4>(baseComponent.EntityID, out var c4);
-			yield return new Tuple<TBase, T1?, T2?, T3?, T4?>(baseComponent, c1, c2, c3, c4);
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?, T4?, T5?>> TryGetComponents<TBase, T1, T2, T3, T4, T5>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1);
-			baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2);
-			baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3);
-			baseComponent.EntityStorage.TryGetComponent<T4>(baseComponent.EntityID, out var c4);
-			baseComponent.EntityStorage.TryGetComponent<T5>(baseComponent.EntityID, out var c5);
-			yield return new Tuple<TBase, T1?, T2?, T3?, T4?, T5?>(baseComponent, c1, c2, c3, c4, c5);
-		}
-	}
-
-	public static IEnumerable<Tuple<TBase, T1?, T2?, T3?, T4?, T5?, T6?>> TryGetComponents<TBase, T1, T2, T3, T4, T5, T6>(this IEnumerable<TBase> baseComponents) where TBase : Component where T1 : Component where T2 : Component where T3 : Component where T4 : Component where T5 : Component where T6 : Component
-	{
-		foreach (var baseComponent in baseComponents)
-		{
-			baseComponent.EntityStorage.TryGetComponent<T1>(baseComponent.EntityID, out var c1);
-			baseComponent.EntityStorage.TryGetComponent<T2>(baseComponent.EntityID, out var c2);
-			baseComponent.EntityStorage.TryGetComponent<T3>(baseComponent.EntityID, out var c3);
-			baseComponent.EntityStorage.TryGetComponent<T4>(baseComponent.EntityID, out var c4);
-			baseComponent.EntityStorage.TryGetComponent<T5>(baseComponent.EntityID, out var c5);
-			baseComponent.EntityStorage.TryGetComponent<T6>(baseComponent.EntityID, out var c6);
-			yield return new Tuple<TBase, T1?, T2?, T3?, T4?, T5?, T6?>(baseComponent, c1, c2, c3, c4, c5, c6);
 		}
 	}
 

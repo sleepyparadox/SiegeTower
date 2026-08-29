@@ -1,5 +1,8 @@
 public static class ElementSystem
 {
+	public static void Attach(IRequires<Element> parent, IRequires<Element> child)
+		=> Attach(parent.GetComponent(), child.GetComponent());
+
 	public static void Attach(Element parent, Element child)
 	{
 		ArgumentNullException.ThrowIfNull(parent);
@@ -29,21 +32,12 @@ public static class ElementSystem
 		children.Remove(child);
 		parent.Children = children;
 
-		if (child.Parent.RefID == parent.EntityID)
+		if (child.Parent.Get() == parent)
 		{
-			child.Parent = null;
+			child.Parent = new ComponentRef<Element>();
 		}
 	}
 
 	private static Element? FindElement(ComponentRef<Element> elementReference)
-	{
-		if (!elementReference.RefID.HasValue ||
-			!elementReference.EntityStorage.Components.TryGetValue(typeof(Element), out var elements) ||
-			!elements.TryGetValue(elementReference.RefID.Value, out var component))
-		{
-			return null;
-		}
-
-		return component as Element;
-	}
+		=> elementReference.Get();
 }

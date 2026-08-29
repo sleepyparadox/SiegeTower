@@ -1,12 +1,9 @@
 public class Component
 {
-	public EntityStorage EntityStorage { get; set; }
+	public Entity Entity { get; set; }
 
-	public Guid EntityID { get; set; }
-
-	public Component(EntityStorage entityStorage, Guid entityID)
+	public Component(Entity entity)
 	{
-		EntityID = entityID;
-		EntityStorage = entityStorage;
+		Entity = entity;
 	}
 }

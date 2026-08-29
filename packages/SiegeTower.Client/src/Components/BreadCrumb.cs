@@ -4,8 +4,8 @@ public class BreadCrumb : Component
 
 	public int Index { get; set; }
 
-	public BreadCrumb(EntityStorage entityStorage, Guid entityID, string text, int index = 0) 
-		: base(entityStorage, entityID)
+	public BreadCrumb(Entity entity, string text, int index = 0)
+		: base(entity)
 	{
         ArgumentNullException.ThrowIfNull(text);
 		Text = text;
@@ -17,8 +17,8 @@ public static class BreadCrumbEntity
 {
 	public static BreadCrumb AddNewBreadCrumbEntity(this EntityStorage storage, string text, string uri, bool uriIsInternal, int index)
 	{
-		var breadCrumb = storage.AddNewEntityAndComponent((s, e) => new BreadCrumb(s, e, text, index));
-		breadCrumb.AddComponent((s, e) => new Hyperlink(s, e, uri, uriIsInternal));
+		var breadCrumb = storage.NewEntity().AddComponent(e => new BreadCrumb(e, text, index));
+		breadCrumb.Entity.AddComponent(e => new Hyperlink(e, uri, uriIsInternal));
 		return breadCrumb;
 	}
 }

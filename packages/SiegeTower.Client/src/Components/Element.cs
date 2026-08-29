@@ -6,15 +6,15 @@ public class Element : Component
 
 	public ComponentRefList<Element> Children { get; set; }
 
-	public Element(EntityStorage entityStorage, Guid entityID, string id)
-		: base(entityStorage, entityID)
+	public Element(Entity entity, string id)
+		: base(entity)
 	{
 		Id = id;
-		Parent = new ComponentRef<Element>(entityStorage);
-		Children = new ComponentRefList<Element>(entityStorage);
+		Parent = new ComponentRef<Element>();
+		Children = new ComponentRefList<Element>();
 	}
 
-	public int Index => Parent.RefID.HasValue
+	public int Index => Parent.HasValue
 		? Parent.Get()!.Children.IndexOf(this)
 		: -1;
 }
