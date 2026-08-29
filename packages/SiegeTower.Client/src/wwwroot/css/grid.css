@@ -1,0 +1,151 @@
+/*
+ * Grid composition rules are intentional. Do not add bespoke margins, gaps,
+ * padding, or dimensions here or in components; extend the grid vocabulary.
+ */
+
+:root {
+    --grid-unit: 2rem;
+    --grid-status-unit: calc(var(--grid-unit) / 2);
+}
+
+html,
+body {
+    /* Monospace keeps content rhythmically legible inside the 2rem grid. */
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1rem;
+}
+
+.grid-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 0;
+}
+
+.grid-line {
+    display: flex;
+    height: var(--grid-unit);
+    flex: 0 0 var(--grid-unit);
+}
+
+.grid-height-line {
+    height: var(--grid-unit);
+}
+
+.grid-line-x2 {
+    display: flex;
+    flex: 0 0 calc(var(--grid-unit) * 2);
+    height: calc(var(--grid-unit) * 2);
+}
+
+.grid-dock-region {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.grid-dock {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+
+.grid-dock-fill {
+    flex: 1 1 0;
+}
+
+.grid-tabs {
+    display: flex;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.grid-tab {
+    flex: 0 0 auto;
+    height: var(--grid-unit);
+    white-space: nowrap;
+}
+
+.grid-dock-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+}
+
+.grid-status-bar {
+    align-items: center;
+    display: flex;
+    flex: 0 0 var(--grid-status-unit);
+    font-size: .5rem;
+    height: var(--grid-status-unit);
+    line-height: var(--grid-status-unit);
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: calc(var(--grid-unit) / 8);
+    white-space: nowrap;
+}
+
+.grid-overflow-x {
+    overflow-x: auto;
+}
+
+.grid-overflow-y {
+    overflow-y: auto;
+}
+
+.grid-wrap-x {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.grid-divider {
+    align-items: center;
+    display: flex;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    justify-content: center;
+}
+
+.grid-divider::before {
+    content: "|";
+}
+
+.grid-center-vertically {
+    align-items: center;
+}
+
+.grid-box {
+    box-sizing: border-box;
+    margin: 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.grid-padded {
+    padding: calc(var(--grid-unit) / 4);
+}
+
+.grid-height-fill {
+    height: 100%;
+    min-height: 0;
+}
+
+.grid-width-fill {
+    min-width: 0;
+    width: 100%;
+}
+
+.grid-i-draggable {
+    cursor: grab;
+}
