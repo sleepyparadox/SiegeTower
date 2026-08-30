@@ -149,3 +149,111 @@ body {
 .grid-i-draggable {
     cursor: grab;
 }
+
+.screen-view {
+    position: relative;
+}
+
+.screen-layer,
+.menu-space {
+    min-height: 0;
+    min-width: 0;
+}
+
+.screen-layer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    z-index: 0;
+}
+
+.menu-space {
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.screen-title-bar {
+    align-items: center;
+    flex: 0 0 var(--grid-unit);
+    min-width: 0;
+}
+
+.screen-tower-mark {
+    align-items: center;
+    display: flex;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    justify-content: center;
+}
+
+.nav-burger-menu {
+    height: var(--grid-unit);
+    position: relative;
+    width: var(--grid-unit);
+}
+
+.nav-burger-button {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    height: var(--grid-unit);
+    padding: 0;
+    width: var(--grid-unit);
+}
+
+.nav-burger-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+.nav-burger-popup {
+    border: 1px solid currentColor;
+    box-shadow: 2px 2px 0 currentColor;
+    left: var(--grid-unit);
+    min-width: calc(var(--grid-unit) * 6);
+    pointer-events: auto;
+    position: absolute;
+    top: var(--grid-unit);
+}
+
+.nav-burger-popup ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-burger-item a {
+    align-items: center;
+    color: inherit;
+    display: flex;
+    gap: calc(var(--grid-unit) / 4);
+    min-height: var(--grid-unit);
+    padding: calc(var(--grid-unit) / 4);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.nav-burger-item a:hover,
+.nav-burger-item a:focus-visible {
+    background-color: var(--color-success-background);
+}
+
+.screen-title-bar .breadcrumb {
+    align-items: center;
+    display: flex;
+    height: var(--grid-unit);
+    list-style: none;
+    margin: 0;
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.screen-content {
+    flex-direction: column;
+    overflow: auto;
+}

@@ -1,23 +1,48 @@
 @namespace SiegeTower.Client.Views
 @using SiegeTower.Client.Views.Components
 
-<div class="screen-view">
-    <h1>@Screen.Title</h1>
-    @if (Screen.SelectComponents<BreadCrumb>().Any())
-    {
-        <nav aria-label="Breadcrumb">
-            <ol class="breadcrumb">
-                @foreach (BreadCrumb breadcrumb in Screen.SelectComponents<BreadCrumb>().OrderBy(b => b.Index))
-                {
-                    <Breadcrumb BreadCrumb="@breadcrumb" Session="@Screen.Session" />
-                }
-            </ol>
-        </nav>
-    }
+<div class="screen-view grid-shell">
+    <div class="screen-layer">
+        <header class="screen-title-bar grid-line color-primary">
+            <NavBurgerMenuView Session="@Screen.Session" Menu="@Menu" />
+            <span class="screen-tower-mark" aria-label="SiegeTower">
+                <i class="fa-solid fa-tower-observation" aria-hidden="true"></i>
+            </span>
+            @if (Screen.SelectComponents<BreadCrumb>().Any())
+            {
+                <nav aria-label="Breadcrumb">
+                    <ol class="breadcrumb">
+                        @foreach (BreadCrumb breadcrumb in Screen.SelectComponents<BreadCrumb>().OrderBy(b => b.Index))
+                        {
+                            <BreadcrumbView BreadCrumb="@breadcrumb" Session="@Screen.Session" />
+                        }
+                    </ol>
+                </nav>
+            }
+        </header>
+        <main class="screen-content grid-dock-region">
+            <h1>@Screen.Title</h1>
+        </main>
+    </div>
+    <div class="menu-space" aria-live="polite">
+        @if (Menu.IsOpen)
+        {
+            <nav class="nav-burger-popup color-secondary" aria-label="Navigation menu">
+                <ul>
+                    @foreach (var menuItem in Screen.SelectComponents<MenuItemComponent>().OrderBy(item => item.GetComponent<Element>().Index))
+                    {
+                        <NavBurgerItemView MenuItem="@menuItem" Session="@Screen.Session" />
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
 </div>
 
 @code 
 {
     [Parameter, EditorRequired]
     public Screen Screen { get; set; } = default!;
+
+    private MenuComponent Menu => Screen.SelectComponents<MenuComponent>().Single();
 }

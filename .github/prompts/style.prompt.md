@@ -19,6 +19,62 @@ The interface uses a monospace font to reinforce the grid. Text and Font Awesome
 - Use `grid-dock`, `grid-dock-fill`, `grid-tabs`, `grid-tab`, and `grid-dock-content` to keep dock tabs and active content in separate regions.
 - Use `grid-height-fill` and `grid-width-fill` only when a region should consume remaining space.
 - Use existing width utilities for standard dock columns instead of introducing one-off widths.
+- Compose UI components from grid classes first. A component-specific class may identify semantics or provide behavior that cannot be expressed by the grid, but must not create a competing spacing or sizing system.
+
+## Component and View Rules
+
+- Treat `Element` as the common UI component. It owns the parent/child hierarchy, grid placement intent, and semantic visual state for its entity.
+- Keep UI component data and relationships in ECS components. Use `IRequires<Element>` for components that must be rendered as elements and use additional `IRequires<>` relationships to enforce required data.
+- Use reusable `{Component}View.razor` files to render ECS components. Views should receive components as parameters, compose their markup from shared CSS classes, and avoid owning persistent UI state.
+- Name reusable component Razor files with the `View` postfix, such as `BreadcrumbView.razor`, `MenuView.razor`, and `ToolbarView.razor`. Reserve other Razor names for application roots, pages, and layouts.
+- Store persistent UI state on ECS components, not in views. Menu open state, selected tabs, expanded nodes, inactive state, and drag state belong to components or `Session`.
+- Use `Session` for global interactions such as navigation, dragging, resizing, selection coordination, and context menus. Views render the resulting state.
+- Reuse the same view for the same component in different contexts. Use role classes such as `menu-burger`, `menu-dropdown`, `menu-context`, `tabs-top`, and `tabs-subwindow` to describe placement without duplicating the component view.
+- Keep hierarchy and ordering in `Element` and `ElementSystem`. Do not encode component relationships in CSS selectors or view-local collections.
+
+## CSS Composition Rules
+
+- Use one semantic base class only when a component needs a stable semantic hook or component-specific behavior. Do not repeat grid rules in base classes.
+- Use `grid-*` classes for spatial composition: dimensions, alignment, padding, fill behavior, indentation, overflow, scrolling, and separators.
+- Use `color-*` classes for semantic surfaces: `color-primary`, `color-secondary`, `color-success`, and `color-danger`.
+- Use `is-*` classes for visual state: `is-hoverable`, `is-selected`, `is-inactive`, `is-disabled`, `is-open`, `is-expanded`, `is-draggable`, `is-dragging`, and `is-drop-target`.
+- Keep color and state classes independent from component classes so the same color or state can be used by menus, buttons, tabs, toolbars, trees, docks, and status items.
+- Prefer semantic style values on `Element` that render to classes. Do not put raw CSS declarations, arbitrary colors, margins, gaps, or dimensions in ECS components.
+- Use hover styling only for elements that are explicitly interactive or marked as hoverable. Selected and inactive styling must remain available even when hover is not present.
+- Use `:focus-visible` and the shared focus treatment for keyboard interaction. Do not use hover as the only indication of an available action.
+- Keep component CSS small. If a rule describes reusable geometry, add or extend a grid primitive instead of adding it to the component stylesheet.
+
+## Planned UI Elements
+
+| ECS component | Reusable view | Grid composition | Role or state composition |
+| --- | --- | --- | --- |
+| `Screen` | `ScreenView.razor` | `grid-shell` | `layer-screen` |
+| `ScreenTitleBar` | `ScreenTitleBarView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `color-primary` |
+| `TowerIcon` | `TowerIconView.razor` | `grid-line`, `grid-center-vertically` | `icon-*` |
+| `Breadcrumbs` | `BreadcrumbsView.razor` | `grid-tabs`, `grid-overflow-x`, `grid-center-vertically` | `breadcrumbs` |
+| `Breadcrumb` | `BreadcrumbView.razor` | `grid-tab`, `grid-center-vertically` | `is-hoverable`, `is-selected`, `is-inactive` |
+| `MenuComponent` | `MenuView.razor` | `grid-dock`, `grid-overflow-y` | `menu-burger`, `menu-dropdown`, `menu-context`, `layer-menu`, `color-*` |
+| `MenuItemComponent` | `MenuItemView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `is-hoverable`, `is-selected`, `is-inactive`, `is-disabled` |
+| `Toolbar` | `ToolbarView.razor` | `grid-dock`, `grid-width-fill` | `color-*`, `is-dragging`, `is-drop-target` |
+| `ToolbarRow` | `ToolbarRowView.razor` | `grid-line`, `grid-center-vertically`, `grid-wrap-x` | `is-draggable` |
+| `ToolbarGrip` | `ToolbarGripView.razor` | `grid-line`, `grid-center-vertically`, `grid-i-draggable` | `is-dragging` |
+| `Button` | `ButtonView.razor` | `grid-line`, `grid-center-vertically`, `grid-padded` | `button-*`, `color-*`, `is-selected`, `is-disabled` |
+| `Dropdown` | `DropdownView.razor` | `grid-line`, `grid-center-vertically` | `is-open`, `is-selected`, `is-disabled` |
+| `DockLayout` | `DockLayoutView.razor` | `grid-dock-region`, `grid-width-fill`, `grid-height-fill` | `layer-screen` |
+| `Dock` | `DockView.razor` | `grid-dock`, `grid-overflow-y` | `dock-left`, `dock-middle`, `dock-right`, `is-resizing` |
+| `Subwindow` | `SubwindowView.razor` | `grid-dock`, `grid-height-fill` | `is-selected`, `is-inactive`, `is-collapsed` |
+| `Tabs` | `TabsView.razor` | `grid-tabs`, `grid-overflow-x` | `tabs-top`, `tabs-subwindow` |
+| `Tab` | `TabView.razor` | `grid-tab`, `grid-center-vertically`, `grid-padded` | `is-selected`, `is-inactive`, `is-disabled` |
+| `TabContent` | `TabContentView.razor` | `grid-dock-content`, `grid-overflow-x`, `grid-overflow-y` | `is-selected` |
+| `Tree` | `TreeView.razor` | `grid-dock-content`, `grid-overflow-y`, `grid-width-fill` | `grid-fill` |
+| `TreeNode` | `TreeNodeView.razor` | `grid-width-fill` | `is-expanded`, `is-collapsed`, `is-selected`, `is-inactive` |
+| `TreeNodeRow` | `TreeNodeRowView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `is-drop-target`, `--tree-depth` |
+| `StatusBar` | `StatusBarView.razor` | `grid-status-bar`, `grid-overflow-x` | `layer-status`, `color-*` |
+| `StatusItem` | `StatusItemView.razor` | `grid-center-vertically`, `grid-wrap-x` | `is-inactive` |
+| `Text` | `TextView.razor` | `grid-wrap-x` | `text-*` |
+| `Label` | `LabelView.razor` | `grid-center-vertically`, `grid-wrap-x` | `label-interactive`, `is-hoverable`, `is-inactive` |
+
+The table is a component vocabulary, not a requirement that every element must have every listed class. Select only the classes that express the element's actual layout, role, and state.
 
 ## Unit Rules
 

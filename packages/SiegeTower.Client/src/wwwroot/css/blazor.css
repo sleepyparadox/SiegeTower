@@ -1,8 +1,8 @@
 /* Blazor framework, document defaults, and validation styles. */
 
 html, body {
-    background: #f3f5f2;
-    color: #17201b;
+    background: var(--color-background);
+    color: var(--color-text);
     font-family: Georgia, 'Times New Roman', serif;
     margin: 0;
     min-height: 100%;
@@ -13,17 +13,17 @@ h1:focus {
 }
 
 a, .btn-link {
-    color: #0071c1;
+    color: var(--color-link);
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: var(--color-on-dark);
+    background-color: var(--color-primary-background);
+    border-color: var(--color-primary-background);
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem var(--color-on-dark), 0 0 0 0.25rem var(--color-focus);
 }
 
 .content {
@@ -31,7 +31,7 @@ a, .btn-link {
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--color-validation-success);
 }
 
 .invalid {
@@ -48,14 +48,14 @@ a, .btn-link {
 
 .loading-progress circle {
     fill: none;
-    stroke: #e0e0e0;
+    stroke: var(--color-loading-track);
     stroke-width: .6rem;
     transform-origin: 50% 50%;
     transform: rotate(-90deg);
 }
 
 .loading-progress circle:last-child {
-    stroke: #1b6ec2;
+    stroke: var(--color-primary-background);
     stroke-dasharray: calc(3.14159 * 80%), 100%;
     stroke-dashoffset: calc(3.14159 * 20%);
     animation: loading-progress-animation 1s linear infinite;
@@ -70,9 +70,9 @@ a, .btn-link {
 }
 
 #blazor-error-ui {
-    background: lightyellow;
+    background: var(--color-error-background);
     bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, .2);
+    box-shadow: 0 -1px 2px var(--color-error-shadow);
     display: none;
     left: 0;
     padding: .6rem 1.25rem .7rem;

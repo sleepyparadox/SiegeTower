@@ -1,0 +1,20 @@
+@namespace SiegeTower.Client.Views.Components
+
+<li class="nav-burger-item">
+    <a href="@Hyperlink.Uri"
+       @onclick="(MouseEventArgs e) => Session.HandleEvent(new NavigationEvent(Hyperlink, e))"
+       @onclick:preventDefault="Hyperlink.IsInternal">
+        <i class="@MenuItem.Icon" aria-hidden="true"></i>
+        <span>@MenuItem.Text</span>
+    </a>
+</li>
+
+@code {
+    [Parameter, EditorRequired]
+    public MenuItemComponent MenuItem { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+
+    private Hyperlink Hyperlink => MenuItem.GetComponent<Hyperlink>();
+}

@@ -35,53 +35,75 @@ public static class NavigationSystem
 		var pathParts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
 		if (pathParts.Length == 0)
 		{
-			var homeScreen = new Screen(session, "Home");
-			homeScreen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-			session.ActiveScreen = homeScreen;
+			session.ActiveScreen = NewHomeScreen(session);
 		}
 		else if (pathParts.Length == 1 && pathParts[0].Equals("workspace", StringComparison.OrdinalIgnoreCase))
 		{
-			var workspaceListScreen = new Screen(session, "Workspaces");
-			workspaceListScreen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-			workspaceListScreen.AddNewBreadCrumbEntity("Workspaces", "/workspace", true, 1);
-			session.ActiveScreen = workspaceListScreen;
+			session.ActiveScreen = NewWorkspaceListScreen(session);
 		}
 		else if (pathParts.Length == 1 && pathParts[0].Equals("ollama", StringComparison.OrdinalIgnoreCase))
 		{
-			var ollamaScreen = new Screen(session, "Ollama");
-			ollamaScreen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-			ollamaScreen.AddNewBreadCrumbEntity("Ollama", "/ollama", true, 1);
-			session.ActiveScreen = ollamaScreen;
+			session.ActiveScreen = NewOllamaScreen(session);
 		}
 		else if (pathParts.Length >= 2 && pathParts[0].Equals("workspace", StringComparison.OrdinalIgnoreCase))
 		{
 			var workspacePath = $"/workspace/{pathParts[1]}";
 			var isFilesScreen = pathParts.Length == 3 && pathParts[2].Equals("files", StringComparison.OrdinalIgnoreCase);
-			var workspaceScreen = new Screen(session, isFilesScreen ? "Workspace Files" : "Workspace");
-			workspaceScreen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-			workspaceScreen.AddNewBreadCrumbEntity("Workspaces", "/workspace", true, 1);
-			workspaceScreen.AddNewBreadCrumbEntity("Workspace", workspacePath, true, 2);
-			if (isFilesScreen)
-			{
-				workspaceScreen.AddNewBreadCrumbEntity("Files", $"{workspacePath}/files", true, 3);
-			}
-			session.ActiveScreen = workspaceScreen;
+			session.ActiveScreen = NewWorkspaceScreen(session, workspacePath, isFilesScreen);
 		}
 		else
 		{
-			var homeScreen = new Screen(session, "Home");
-			homeScreen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-
-			var toolbarRows = homeScreen.NewEntity().AddComponent<Element>().AddComponent<ToolbarRows>();
-			var toolbarRow = homeScreen.NewEntity().AddComponent<Element>().AddComponent<ToolbarRow>();
-			var toolbar1 = homeScreen.NewEntity().AddComponent<Element>().AddComponent<Toolbar>();
-			
-			ElementSystem.Attach(toolbarRows, toolbarRow);
-			ElementSystem.Attach(toolbarRow, toolbar1);	
-
-			session.ActiveScreen = homeScreen;
+			session.ActiveScreen = NewFallbackScreen(session);
 		}
 
 		session.NavigationManager.NavigateTo(url);
+	}
+
+	static Screen NewHomeScreen(Session session)
+	{
+		var screen = new Screen(session, "Home");
+		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		return screen;
+	}
+
+	static Screen NewWorkspaceListScreen(Session session)
+	{
+		var screen = new Screen(session, "Workspaces");
+		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity("Workspaces", "/workspace", true, 1);
+		return screen;
+	}
+
+	static Screen NewOllamaScreen(Session session)
+	{
+		var screen = new Screen(session, "Ollama");
+		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity("Ollama", "/ollama", true, 1);
+		return screen;
+	}
+
+	static Screen NewWorkspaceScreen(Session session, string workspacePath, bool isFilesScreen)
+	{
+		var screen = new Screen(session, isFilesScreen ? "Workspace Files" : "Workspace");
+		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity("Workspaces", "/workspace", true, 1);
+		screen.AddNewBreadCrumbEntity("Workspace", workspacePath, true, 2);
+		if (isFilesScreen)
+		{
+			screen.AddNewBreadCrumbEntity("Files", $"{workspacePath}/files", true, 3);
+		}
+		return screen;
+	}
+
+	static Screen NewFallbackScreen(Session session)
+	{
+		var screen = NewHomeScreen(session);
+		var toolbarRows = screen.NewEntity().AddComponent<Element>().AddComponent<ToolbarRows>();
+		var toolbarRow = screen.NewEntity().AddComponent<Element>().AddComponent<ToolbarRow>();
+		var toolbar = screen.NewEntity().AddComponent<Element>().AddComponent<Toolbar>();
+
+		ElementSystem.Attach(toolbarRows, toolbarRow);
+		ElementSystem.Attach(toolbarRow, toolbar);
+		return screen;
 	}
 }
