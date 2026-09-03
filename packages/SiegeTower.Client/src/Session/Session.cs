@@ -12,7 +12,8 @@ public sealed class Session // 1 session per tab
 	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient)
 	{
 		NavigationManager = injectedNavigationManager;
-		NavigationSystem.NavigateTo(this, "/");
+		var currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+		HandleEvent(new NavigationEvent($"/{currentUrl}"));
 	}
 
 	public void HandleEvent(SessionEvent sessionEvent)

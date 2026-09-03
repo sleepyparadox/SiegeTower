@@ -8,6 +8,14 @@ Build UI from a flush, consistent grid. The core grid unit is `2rem`. Structural
 
 The interface uses a monospace font to reinforce the grid. Text and Font Awesome icons are content inside the grid, not replacements for structural layout rules.
 
+## Complexity Hint
+
+- Reduce complexity before adding components, state, or styling. Keep the UI focused on the small set of elements the user directly interacts with.
+- Prefer the simplest usable composition over feature-heavy or decorative UI. Reuse the same views and screen structure wherever the interaction is the same.
+- Put standardized, reusable layout behavior in `grid.css`. Extend the shared `grid-*` vocabulary for repeated rows, alignment, sizing, overflow, scrolling, and spacing instead of adding one-off component rules.
+- Keep screen composition, rendering, and layout responsibilities separate: ECS components own data and relationships, reusable views render them, and grid CSS controls spatial behavior.
+- When debugging missing or incorrect UI, trace the smallest path from route to screen factory, ECS components, view queries, rendered markup, and CSS layout. Fix the first point where the expected content or behavior is lost.
+
 ## Composition Rules
 
 - Compose the application as a `grid-shell`: fixed title and toolbar rows at whole grid-unit heights, followed by one `grid-dock-region` that fills the remaining height, and a final `grid-status-bar`.
@@ -51,7 +59,7 @@ The interface uses a monospace font to reinforce the grid. Text and Font Awesome
 | `Screen` | `ScreenView.razor` | `grid-shell` | `layer-screen` |
 | `ScreenTitleBar` | `ScreenTitleBarView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `color-primary` |
 | `TowerIcon` | `TowerIconView.razor` | `grid-line`, `grid-center-vertically` | `icon-*` |
-| `Breadcrumbs` | `BreadcrumbsView.razor` | `grid-tabs`, `grid-overflow-x`, `grid-center-vertically` | `breadcrumbs` |
+| `Breadcrumbs` | `BreadcrumbsView.razor` | `grid-row-layout`, `grid-center-vertically` | `breadcrumbs` |
 | `Breadcrumb` | `BreadcrumbView.razor` | `grid-tab`, `grid-center-vertically` | `is-hoverable`, `is-selected`, `is-inactive` |
 | `MenuComponent` | `MenuView.razor` | `grid-dock`, `grid-overflow-y` | `menu-burger`, `menu-dropdown`, `menu-context`, `layer-menu`, `color-*` |
 | `MenuItemComponent` | `MenuItemView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `is-hoverable`, `is-selected`, `is-inactive`, `is-disabled` |

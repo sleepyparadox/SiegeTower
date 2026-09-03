@@ -18,12 +18,12 @@ public static class NavigationSystem
 		ArgumentNullException.ThrowIfNull(session);
 		ArgumentNullException.ThrowIfNull(navigationEvent);
 
-		if (navigationEvent.IsCanceled || !navigationEvent.Hyperlink.IsInternal)
+		if (navigationEvent.IsCanceled || navigationEvent.Hyperlink is not null && !navigationEvent.Hyperlink.IsInternal)
 		{
 			return;
 		}
 
-		NavigateTo(session, navigationEvent.Hyperlink.Uri);
+		NavigateTo(session, navigationEvent.Uri);
 	}
 
 	public static void NavigateTo(Session session, string url)
