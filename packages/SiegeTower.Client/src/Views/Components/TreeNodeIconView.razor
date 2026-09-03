@@ -1,0 +1,8 @@
+@namespace SiegeTower.Client.Views.Components
+
+<i class="tree-node-icon @Icon.Icon" aria-hidden="true"></i>
+
+@code {
+    [Parameter, EditorRequired]
+    public TreeNodeIcon Icon { get; set; } = default!;
+}

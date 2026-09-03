@@ -1,0 +1,8 @@
+@namespace SiegeTower.Client.Views.Components
+
+<span class="grid-center-vertically grid-wrap-x label">@Label.Value</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public Label Label { get; set; } = default!;
+}

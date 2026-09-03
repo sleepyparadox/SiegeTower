@@ -1,0 +1,13 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="tree-node-children grid-width-fill">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TreeNodeChildren Children { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

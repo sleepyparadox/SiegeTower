@@ -1,0 +1,10 @@
+@namespace SiegeTower.Client.Views.Components
+
+<button class="@ElementCss.Classes(Element, "button", "grid-line", "grid-center-vertically", "grid-padded")" type="button">@Button.Text</button>
+
+@code {
+    [Parameter, EditorRequired]
+    public Button Button { get; set; } = default!;
+
+    Element Element => Button.GetComponent<Element>();
+}

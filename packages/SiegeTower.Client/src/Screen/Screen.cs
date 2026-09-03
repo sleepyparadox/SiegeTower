@@ -1,6 +1,6 @@
 namespace SiegeTower.Client;
 
-public class Screen : EntityStorage
+public sealed class Screen : EntityStorage
 {
 	public Session Session { get; set; }
 	public string Title { get; set; }
@@ -14,13 +14,26 @@ public class Screen : EntityStorage
 		AddMenuItem(menu, "Home", "/", "fa-solid fa-house");
 		AddMenuItem(menu, "Workspaces", "/workspace", "fa-solid fa-folder");
 		AddMenuItem(menu, "Ollama", "/ollama", "fa-solid fa-microchip");
+		var example = AddMenuItem(menu, "Example", "/example", "fa-solid fa-flask");
+		AddMenuItem(example, "Files", "/example/files", "fa-solid fa-file");
+		AddMenuItem(example, "SQL", "/example/sql", "fa-solid fa-database");
 	}
 
-	private void AddMenuItem(MenuComponent menu, string text, string uri, string icon)
+	private MenuItemComponent AddMenuItem(MenuComponent menu, string text, string uri, string icon)
 	{
 		var item = this.NewEntity().AddComponent<Element>(e => new Element(e, $"menu-{text.ToLowerInvariant()}"));
 		item.Entity.AddComponent(e => new Hyperlink(e, uri, true));
 		var menuItem = item.Entity.AddComponent(e => new MenuItemComponent(e, text, icon));
 		ElementSystem.Attach(menu, menuItem);
+		return menuItem;
+	}
+
+	private MenuItemComponent AddMenuItem(MenuItemComponent parent, string text, string uri, string icon)
+	{
+		var item = this.NewEntity().AddComponent<Element>(e => new Element(e, $"menu-{text.ToLowerInvariant()}"));
+		item.Entity.AddComponent(e => new Hyperlink(e, uri, true));
+		var menuItem = item.Entity.AddComponent(e => new MenuItemComponent(e, text, icon));
+		ElementSystem.Attach(parent, menuItem);
+		return menuItem;
 	}
 }

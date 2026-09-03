@@ -1,7 +1,7 @@
 @namespace SiegeTower.Client.Views.Components
 
 <li class="breadcrumb-item">
-    @if (BreadCrumb.Entity.TryGetComponent(out Hyperlink? hyperlink))
+    @if (BreadCrumb.Entity.TryGetComponent(out Hyperlink? hyperlink) && hyperlink is not null)
     {
         <a href="@hyperlink.Uri" @onclick="(MouseEventArgs e) => Session.HandleEvent(new NavigationEvent(hyperlink, e))" @onclick:preventDefault="hyperlink.IsInternal">@BreadCrumb.Text</a>
     }

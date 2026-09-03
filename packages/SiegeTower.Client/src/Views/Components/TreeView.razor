@@ -1,0 +1,17 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-dock-content grid-overflow-y grid-width-fill tree">
+    @foreach (var child in Tree.GetComponent<Element>().Children.Values)
+    {
+        if (child.Entity.TryGetComponent(out TreeNode? node))
+        {
+            <TreeNodeView Node="@node" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Tree Tree { get; set; } = default!;
+
+}

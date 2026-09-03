@@ -1,0 +1,8 @@
+@namespace SiegeTower.Client.Views.Components
+
+<button class="tab-close grid-center-vertically" type="button" aria-label="Close tab">&times;</button>
+
+@code {
+    [Parameter, EditorRequired]
+    public TabClose Close { get; set; } = default!;
+}

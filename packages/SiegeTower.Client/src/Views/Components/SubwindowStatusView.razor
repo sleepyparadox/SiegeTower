@@ -1,0 +1,13 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-status-bar subwindow-status">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public SubwindowStatus Status { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

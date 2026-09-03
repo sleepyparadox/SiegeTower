@@ -1,0 +1,16 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-line grid-center-vertically grid-width-fill tree-node-row" style="--tree-depth: @Depth">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TreeNodeRow Row { get; set; } = default!;
+
+    [Parameter]
+    public int Depth { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

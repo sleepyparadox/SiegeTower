@@ -1,0 +1,17 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="toolbar-rows grid-line grid-row-layout grid-width-fill">
+    @foreach (var child in ToolbarRows.GetComponent<Element>().Children.Values)
+    {
+        if (child.Entity.TryGetComponent(out Toolbar? toolbar))
+        {
+            <ToolbarView Toolbar="@toolbar" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ToolbarRows ToolbarRows { get; set; } = default!;
+
+}

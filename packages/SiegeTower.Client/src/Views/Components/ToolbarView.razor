@@ -1,0 +1,36 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="@ElementCss.Classes(Element, "toolbar", "grid-line", "grid-width-fit")">
+    <span class="grid-line grid-width-fit grid-center-vertically grid-i-draggable toolbar-grip" aria-label="Move toolbar">
+        <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+    </span>
+    @foreach (var row in Element.Children.Values)
+    {
+        @foreach (var child in row.Children.Values)
+        {
+            if (child.Entity.TryGetComponent(out ToolbarButton? button))
+            {
+                <ToolbarButtonView Button="@button" />
+            }
+            else if (child.Entity.TryGetComponent(out ToolbarDropdown? dropdown))
+            {
+                <ToolbarDropdownView Dropdown="@dropdown">Connection: Default DB</ToolbarDropdownView>
+            }
+            else if (child.Entity.TryGetComponent(out ToolbarSeparator? separator))
+            {
+                <ToolbarSeparatorView Separator="@separator" />
+            }
+            else if (child.Entity.TryGetComponent(out ToolbarLabel? label))
+            {
+                <ToolbarLabelView Label="@label" />
+            }
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Toolbar Toolbar { get; set; } = default!;
+
+    Element Element => Toolbar.GetComponent<Element>();
+}

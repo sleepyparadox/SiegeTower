@@ -1,6 +1,12 @@
 @namespace SiegeTower.Client.Views
 @using SiegeTower.Client.Views.Components
 
+@if (Screen.SelectComponents<ScreenTitleBar>().Any())
+{
+    <ExampleScreenView Screen="@Screen" />
+}
+else
+{
 <div class="screen-view grid-shell">
     <div class="screen-layer">
         <header class="screen-title-bar grid-line color-primary">
@@ -11,7 +17,7 @@
             @if (Screen.SelectComponents<BreadCrumb>().Any())
             {
                 <nav aria-label="Breadcrumb">
-                    <ol class="breadcrumb">
+                    <ol class="breadcrumb grid-row-layout">
                         @foreach (BreadCrumb breadcrumb in Screen.SelectComponents<BreadCrumb>().OrderBy(b => b.Index))
                         {
                             <BreadcrumbView BreadCrumb="@breadcrumb" Session="@Screen.Session" />
@@ -29,7 +35,7 @@
         {
             <nav class="nav-burger-popup color-secondary" aria-label="Navigation menu">
                 <ul>
-                    @foreach (var menuItem in Screen.SelectComponents<MenuItemComponent>().OrderBy(item => item.GetComponent<Element>().Index))
+                    @foreach (var menuItem in Screen.SelectComponents<MenuItemComponent>().Where(item => item.GetComponent<Element>().Parent.Get() == Menu.GetComponent<Element>()).OrderBy(item => item.GetComponent<Element>().Index))
                     {
                         <NavBurgerItemView MenuItem="@menuItem" Session="@Screen.Session" />
                     }
@@ -38,6 +44,7 @@
         }
     </div>
 </div>
+}
 
 @code 
 {

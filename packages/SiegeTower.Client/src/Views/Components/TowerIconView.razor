@@ -1,0 +1,10 @@
+@namespace SiegeTower.Client.Views.Components
+
+<span class="icon grid-line grid-center-vertically" aria-label="SiegeTower">
+    <i class="@Tower.Icon" aria-hidden="true"></i>
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public TowerIcon Tower { get; set; } = default!;
+}

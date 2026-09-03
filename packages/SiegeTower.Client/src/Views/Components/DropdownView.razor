@@ -1,0 +1,15 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="@ElementCss.Classes(Element, "dropdown")">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Dropdown Dropdown { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    Element Element => Dropdown.GetComponent<Element>();
+}

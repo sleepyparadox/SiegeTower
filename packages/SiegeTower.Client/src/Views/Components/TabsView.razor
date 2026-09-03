@@ -1,0 +1,22 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-tabs grid-overflow-x tabs @RoleClass">
+    @foreach (var child in Tabs.GetComponent<Element>().Children.Values)
+    {
+        if (child.Entity.TryGetComponent(out Tab? tab))
+        {
+            <TabView Tab="@tab" Session="@Session" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Tabs Tabs { get; set; } = default!;
+
+    [Parameter]
+    public string RoleClass { get; set; } = "tabs-subwindow";
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

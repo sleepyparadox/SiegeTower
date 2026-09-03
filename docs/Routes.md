@@ -16,6 +16,7 @@ The load balancer is the public entry point for SiegeTower. Keep public route na
 | `/api/*` | `SiegeTower.Api` | Proxy to `st-api:80/api/*`. |
 | `/ollama` | `SiegeTower.Client` / `OllamaScreen` | Serve the client application. |
 | `/ollama/api/*` | Ollama | Proxy to `st-ollama:11434/api/*`. |
+| `/example` | `SiegeTower.Client` / `ExampleScreen` | Serve the client application. |
 
 The client serves the remaining non-API routes from its static files and falls back to `index.html` for client-side navigation.
 

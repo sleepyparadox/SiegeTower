@@ -1,6 +1,10 @@
 public class Element : Component
 {
 	public string Id { get; set; }
+	public ElementColor Color { get; set; }
+	public ElementState State { get; set; }
+	public GridAlignment Alignment { get; set; }
+	public int? GridIndent { get; set; }
 
 	public ComponentRef<Element> Parent { get; set; }
 
@@ -10,6 +14,9 @@ public class Element : Component
 		: base(entity)
 	{
 		Id = id;
+		Color = ElementColor.None;
+		State = ElementState.None;
+		Alignment = GridAlignment.Default;
 		Parent = new ComponentRef<Element>();
 		Children = new ComponentRefList<Element>();
 	}
