@@ -1,11 +1,11 @@
 @namespace SiegeTower.Client.Views.Components
 
-<div class="grid-dock-content grid-overflow-y grid-width-fill tree">
+<div class="grid-dock-content grid-overflow-x grid-overflow-y grid-width-fill tree">
     @foreach (var child in Tree.GetComponent<Element>().Children.Values)
     {
         if (child.Entity.TryGetComponent(out TreeNode? node))
         {
-            <TreeNodeView Node="@node" />
+            <TreeNodeRowView Node="@node" Session="@Session" />
         }
     }
 </div>
@@ -13,5 +13,8 @@
 @code {
     [Parameter, EditorRequired]
     public Tree Tree { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
 
 }

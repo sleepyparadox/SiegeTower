@@ -231,25 +231,36 @@ public static class NavigationSystem
 
 	static void AddFileNodes(Screen screen, Tree tree)
 	{
-		var root = AddTreeNode(screen, "node-root", "src");
-		var client = AddTreeNode(screen, "node-client", "SiegeTower.Client");
-		var file = AddTreeNode(screen, "node-file", "README.md");
-		ElementSystem.Attach(tree, root);
-		ElementSystem.Attach(root, client);
-		ElementSystem.Attach(client, file);
-		root.GetComponent<Element>().State |= ElementState.Expanded;
-		client.GetComponent<Element>().State |= ElementState.Expanded;
-		file.GetComponent<Element>().State |= ElementState.Selected;
+		var src = AddTreeNode(screen, "node-src", "src", TreeNodeIcon.Folder);
+		var app = AddTreeNode(screen, "node-app", "App", TreeNodeIcon.Folder);
+		var program = AddTreeNode(screen, "node-program", "Program.cs");
+		var sql = AddTreeNode(screen, "node-sql", "SQL", TreeNodeIcon.Folder);
+		var query = AddTreeNode(screen, "node-query", "Query.sql");
+		var dist = AddTreeNode(screen, "node-dist", "Dist", TreeNodeIcon.Folder);
+		var output = AddTreeNode(screen, "node-output", "output.txt");
+		var readme = AddTreeNode(screen, "node-readme", "README.md");
+
+		ElementSystem.Attach(tree, src);
+		ElementSystem.Attach(src, app);
+		ElementSystem.Attach(app, program);
+		ElementSystem.Attach(app, sql);
+		ElementSystem.Attach(sql, query);
+		ElementSystem.Attach(src, dist);
+		ElementSystem.Attach(dist, output);
+		ElementSystem.Attach(src, readme);
+
+		src.IsExpanded = true;
+		app.IsExpanded = true;
+		sql.IsExpanded = true;
+		dist.IsExpanded = true;
+		readme.IsSelected = true;
 	}
 
-	static TreeNode AddTreeNode(Screen screen, string id, string text)
+	static TreeNode AddTreeNode(Screen screen, string id, string text, TreeNodeIcon icon = TreeNodeIcon.File)
 	{
-		var node = AddElement<TreeNode>(screen, id, text);
-		var row = AddElement<TreeNodeRow>(screen, $"{id}-row");
-		var label = AddElement<TreeNodeLabel>(screen, $"{id}-label", text);
-		ElementSystem.Attach(node, row);
-		ElementSystem.Attach(row, label);
-		return node;
+		var entity = screen.NewEntity();
+		entity.AddComponent(e => new Element(e, id));
+		return entity.AddComponent(e => new TreeNode(e, text, icon));
 	}
 
 	static Screen NewWorkspaceScreen(Session session, string workspacePath, bool isFilesScreen)

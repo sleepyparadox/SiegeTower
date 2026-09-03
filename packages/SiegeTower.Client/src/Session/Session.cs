@@ -20,6 +20,7 @@ public sealed class Session // 1 session per tab
 	{
 		ArgumentNullException.ThrowIfNull(sessionEvent);
 		NavigationSystem.HandleEvent(this, sessionEvent);
+		TreeSystem.HandleEvent(this, sessionEvent);
 		
 		// Assume something changed
 		Redraw();

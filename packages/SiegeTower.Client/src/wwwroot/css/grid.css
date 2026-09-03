@@ -206,6 +206,21 @@ body {
     width: max-content;
 }
 
+.grid-indent {
+    padding-left: calc(var(--grid-unit) * var(--grid-indent-depth, 0));
+}
+
+.tree {
+    min-width: 100%;
+    width: max-content;
+}
+
+.tree-node,
+.tree-node-children {
+    min-width: 100%;
+    width: max-content;
+}
+
 .grid-i-draggable {
     cursor: grab;
 }

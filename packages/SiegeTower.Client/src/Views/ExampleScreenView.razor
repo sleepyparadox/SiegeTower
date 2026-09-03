@@ -17,7 +17,7 @@
             <div class="dock-row grid-width-fill grid-height-fill">
                 <div class="dock-stack dock-width-8">
                     <DockView Dock="@LeftDock" CssClass="dock-fill-height">
-                        <TreeView Tree="@FileTree" />
+                        <TreeView Tree="@FileTree" Session="@Screen.Session" />
                     </DockView>
                     <DockView Dock="@BarDock" CssClass="dock-height-6">
                         <SubwindowView Subwindow="@OutlineSubwindow">
@@ -96,13 +96,4 @@
     bool HasElementId(Component component, string id)
         => component.Entity.TryGetComponent(out Element? element) && element is not null && element.Id == id;
 
-    Element Element(TreeNode node) => node.GetComponent<Element>();
-
-    TreeNodeRow NodeRow(TreeNode node) => Component<TreeNodeRow>($"{Element(node).Id}-row");
-
-    TreeNodeLabel NodeLabel(TreeNode node) => Component<TreeNodeLabel>($"{Element(node).Id}-label");
-
-    int Depth(TreeNode node) => node.GetComponent<Element>().Parent.HasValue
-        ? node.GetComponent<Element>().Parent.Get()!.Index + 1
-        : 0;
 }

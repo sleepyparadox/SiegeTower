@@ -1,16 +1,54 @@
 @namespace SiegeTower.Client.Views.Components
 
-<div class="grid-line grid-center-vertically grid-width-fill tree-node-row" style="--tree-depth: @Depth">
-    @ChildContent
-</div>
+<section class="tree-node">
+    <div class="grid-line grid-center-vertically grid-indent tree-node-row @(Node.IsSelected ? "is-selected" : null)"
+         style="--grid-indent-depth: @Depth"
+         @onclick="(MouseEventArgs args) => Session.HandleEvent(new ClickedEvent(Node, args))">
+        @if (HasChildren)
+        {
+            <button class="tree-node-toggle grid-center-vertically" type="button" aria-label="Expand or collapse node" aria-expanded="@Node.IsExpanded"
+                    @onclick="(MouseEventArgs args) => Session.HandleEvent(new TreeNodeToggleEvent(Node, args))"
+                    @onclick:stopPropagation="true">
+                <i class="tree-node-toggle-icon @(Node.IsExpanded ? "fa-solid fa-chevron-down" : "fa-solid fa-chevron-right")" aria-hidden="true"></i>
+            </button>
+        }
+        else
+        {
+            <span class="tree-node-toggle grid-center-vertically" aria-hidden="true"></span>
+        }
+        <i class="tree-node-icon @IconClass" aria-hidden="true"></i>
+        <span class="tree-node-label">@Node.Text</span>
+    </div>
+    @if (Node.IsExpanded)
+    {
+        <div class="tree-node-children">
+            @foreach (var child in Children)
+            {
+                <TreeNodeRowView Node="@child" Session="@Session" Depth="@(Depth + 1)" />
+            }
+        </div>
+    }
+</section>
 
 @code {
     [Parameter, EditorRequired]
-    public TreeNodeRow Row { get; set; } = default!;
+    public TreeNode Node { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
 
     [Parameter]
     public int Depth { get; set; }
 
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+    bool HasChildren => Children.Any();
+
+    string IconClass => Node.Icon switch
+    {
+        TreeNodeIcon.Folder => "fa-regular fa-folder",
+        _ => "fa-regular fa-file"
+    };
+
+    IEnumerable<TreeNode> Children => Node.GetComponent<Element>().Children.Values
+        .Select(child => child.Entity.TryGetComponent(out TreeNode? node) ? node : null)
+        .Where(node => node is not null)!;
 }
