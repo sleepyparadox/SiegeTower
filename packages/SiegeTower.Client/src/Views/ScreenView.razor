@@ -7,8 +7,7 @@
         {
             @if (child is TitleLayout titleLayout)
             {
-                @* Temporary inline title layout while title features migrate. *@
-                <header class="screen-title-bar grid-line color-primary">@titleLayout.Title</header>
+                <TitleLayoutView Layout="@titleLayout" Session="@Screen.Session" />
             }
             else if (child is ToolbarLayout toolbarLayout)
             {

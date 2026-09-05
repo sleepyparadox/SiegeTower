@@ -70,23 +70,26 @@ public static class NavigationSystem
 	static Screen NewHomeScreen(Session session)
 	{
 		var screen = new Screen(session, "Home");
-		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		var titleLayout = AddTitleLayout(screen, "Home");
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
 		return screen;
 	}
 
 	static Screen NewWorkspaceListScreen(Session session)
 	{
 		var screen = new Screen(session, "Workspaces");
-		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity("Workspaces", "/workspace", true, 1);
+		var titleLayout = AddTitleLayout(screen, "Workspaces");
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", true, 1);
 		return screen;
 	}
 
 	static Screen NewOllamaScreen(Session session)
 	{
 		var screen = new Screen(session, "Ollama");
-		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity("Ollama", "/ollama", true, 1);
+		var titleLayout = AddTitleLayout(screen, "Ollama");
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Ollama", "/ollama", true, 1);
 		return screen;
 	}
 
@@ -94,11 +97,12 @@ public static class NavigationSystem
 	{
 		var screen = new Screen(session, title);
 		var screenLayout = screen.NewEntity().AddComponent<ScreenLayout>();
-		var titleLayout = screen.NewEntity().AddComponent(e => new TitleLayout(e, title));
+		var titleLayout = AddTitleLayout(screen, title);
 		var toolbarLayout = screen.NewEntity().AddComponent<ToolbarLayout>();
 		var dockingLayout = screen.NewEntity().AddComponent<DockingLayout>();
 
-		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, titleLayout);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, title, "/example", true, 1);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, toolbarLayout);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, dockingLayout);
 		AddFileToolbar(screen, toolbarLayout);
@@ -129,6 +133,19 @@ public static class NavigationSystem
 		var propertiesWindow = AddDockWindow(screen, rightStack, "Properties", "Name: README.md\nType: Markdown\nStatus: " + status);
 		AddPropertiesControlLayout(screen, propertiesWindow, status);
 		return screen;
+	}
+
+	static TitleLayout AddTitleLayout(Screen screen, string title)
+	{
+		var screenLayout = screen.SelectComponents<ScreenLayout>().SingleOrDefault();
+		if (screenLayout is null)
+		{
+			screenLayout = screen.NewEntity().AddComponent<ScreenLayout>();
+		}
+
+		var titleLayout = screen.NewEntity().AddComponent(entity => new TitleLayout(entity, title));
+		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, titleLayout);
+		return titleLayout;
 	}
 
 	static DockWindow AddDockWindow(Screen screen, DockWindowGroup group, string title, string content)
@@ -304,12 +321,13 @@ public static class NavigationSystem
 	static Screen NewWorkspaceScreen(Session session, string workspacePath, bool isFilesScreen)
 	{
 		var screen = new Screen(session, isFilesScreen ? "Workspace Files" : "Workspace");
-		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity("Workspaces", "/workspace", true, 1);
-		screen.AddNewBreadCrumbEntity("Workspace", workspacePath, true, 2);
+		var titleLayout = AddTitleLayout(screen, screen.Title);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", true, 1);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Workspace", workspacePath, true, 2);
 		if (isFilesScreen)
 		{
-			screen.AddNewBreadCrumbEntity("Files", $"{workspacePath}/files", true, 3);
+			screen.AddNewBreadCrumbEntity(titleLayout, "Files", $"{workspacePath}/files", true, 3);
 		}
 		return screen;
 	}
