@@ -1,0 +1,8 @@
+@namespace SiegeTower.Client.Views.Components
+
+<button class="toolbar-button button grid-padded" type="button">@Control.Text</button>
+
+@code {
+    [Parameter, EditorRequired]
+    public ButtonControl Control { get; set; } = default!;
+}

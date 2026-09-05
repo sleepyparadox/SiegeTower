@@ -101,9 +101,9 @@ public static class NavigationSystem
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, titleLayout);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, toolbarLayout);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, dockingLayout);
-		AddToolbar(screen, toolbarLayout, 0);
-		AddToolbar(screen, toolbarLayout, 0);
-		AddToolbar(screen, toolbarLayout, 1);
+		AddFileToolbar(screen, toolbarLayout);
+		AddSearchToolbar(screen, toolbarLayout);
+		AddWorkspaceToolbar(screen, toolbarLayout);
 
 		var root = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Horizontal));
 		ParentingSystem.AttachParentChild<DockingLayout, DockNode>(dockingLayout, root);
@@ -170,11 +170,51 @@ public static class NavigationSystem
 		tabs.WithChildren(tab);
 	}
 
+	static Toolbar AddFileToolbar(Screen screen, ToolbarLayout layout)
+	{
+		var toolbar = AddToolbar(screen, layout, 0);
+		AddToolbarControl<ButtonControl>(screen, toolbar, entity => new ButtonControl(entity, "New"));
+		AddToolbarControl<ButtonControl>(screen, toolbar, entity => new ButtonControl(entity, "Open"));
+		AddToolbarControl<SeparatorControl>(screen, toolbar, entity => new SeparatorControl(entity));
+		AddToolbarControl<ButtonControl>(screen, toolbar, entity => new ButtonControl(entity, "Save"));
+		return toolbar;
+	}
+
+	static Toolbar AddSearchToolbar(Screen screen, ToolbarLayout layout)
+	{
+		var toolbar = AddToolbar(screen, layout, 0);
+		AddToolbarControl<LabelControl>(screen, toolbar, entity => new LabelControl(entity, "Find"));
+		AddToolbarControl<TextInputControl>(screen, toolbar, entity => new TextInputControl(entity, "Query.sql"));
+		AddToolbarControl<SeparatorControl>(screen, toolbar, entity => new SeparatorControl(entity));
+		AddToolbarControl<ComboBoxControl>(screen, toolbar, entity => new ComboBoxControl(entity, "Current file"));
+		return toolbar;
+	}
+
+	static Toolbar AddWorkspaceToolbar(Screen screen, ToolbarLayout layout)
+	{
+		var toolbar = AddToolbar(screen, layout, 1);
+		AddToolbarControl<LabelControl>(screen, toolbar, entity => new LabelControl(entity, "Workspace"));
+		AddToolbarControl<ComboBoxControl>(screen, toolbar, entity => new ComboBoxControl(entity, "Development"));
+		AddToolbarControl<SeparatorControl>(screen, toolbar, entity => new SeparatorControl(entity));
+		AddToolbarControl<ButtonControl>(screen, toolbar, entity => new ButtonControl(entity, "Run"));
+		return toolbar;
+	}
+
 	static Toolbar AddToolbar(Screen screen, ToolbarLayout layout, int rowIndex)
 	{
 		var toolbar = screen.NewEntity().AddComponent(entity => new Toolbar(entity, rowIndex));
 		ParentingSystem.AttachParentChild<ToolbarLayout, Toolbar>(layout, toolbar);
 		return toolbar;
+	}
+
+	static TControl AddToolbarControl<TControl>(Screen screen, Toolbar toolbar, Func<Entity, TControl> createControl)
+		where TControl : Component
+	{
+		var entity = screen.NewEntity();
+		var toolbarControl = entity.AddComponent<ToolbarControl>();
+		var control = entity.AddComponent(createControl);
+		ParentingSystem.AttachParentChild<Toolbar, ToolbarControl>(toolbar, toolbarControl);
+		return control;
 	}
 
 	static Dock AddDock(Screen screen, string region, string title)
