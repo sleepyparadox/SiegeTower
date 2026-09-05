@@ -1,0 +1,31 @@
+@namespace SiegeTower.Client.Views.Components
+
+@if (Entity.TryGetComponent(out ButtonControl? button))
+{
+    <ButtonControlView Control="@button" />
+}
+else if (Entity.TryGetComponent(out ComboBoxControl? comboBox))
+{
+    <ComboBoxControlView Control="@comboBox" />
+}
+else if (Entity.TryGetComponent(out TextInputControl? textInput))
+{
+    <TextInputControlView Control="@textInput" />
+}
+else if (Entity.TryGetComponent(out LabelControl? label))
+{
+    <LabelControlView Control="@label" />
+}
+else if (Entity.TryGetComponent(out SeparatorControl? separator))
+{
+    <SeparatorControlView Control="@separator" />
+}
+else if (Entity.TryGetComponent(out GridControl? grid))
+{
+    <GridControlView Control="@grid" />
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public Entity Entity { get; set; } = default!;
+}

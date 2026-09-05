@@ -125,22 +125,52 @@ public static class NavigationSystem
 		AddDockWindow(screen, filesGroup, "Files", "src\n  App\n    Program.cs\n    SQL\n      Query.sql\n  Dist\nREADME.md");
 		AddDockWindow(screen, outlineGroup, "Outline", "README.md\nFiles");
 		AddDockWindow(screen, documentGroup, title, documentContent);
-		AddDockWindow(screen, rightStack, "Properties", "Name: README.md\nType: Markdown\nStatus: " + status);
+		var propertiesWindow = AddDockWindow(screen, rightStack, "Properties", "Name: README.md\nType: Markdown\nStatus: " + status);
+		AddPropertiesControlLayout(screen, propertiesWindow, status);
 		return screen;
 	}
 
-	static void AddDockWindow(Screen screen, DockWindowGroup group, string title, string content)
+	static DockWindow AddDockWindow(Screen screen, DockWindowGroup group, string title, string content)
 	{
 		var window = screen.NewEntity().AddComponent(e => new DockWindow(e, title, content));
 		group.AttachChild(window);
 		group.ActiveWindow = window;
+		return window;
 	}
 
-	static void AddDockWindow(Screen screen, DockContainer container, string title, string content)
+	static DockWindow AddDockWindow(Screen screen, DockContainer container, string title, string content)
 	{
 		var group = screen.NewEntity().AddComponent<DockWindowGroup>();
 		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(container, group);
-		AddDockWindow(screen, group, title, content);
+		return AddDockWindow(screen, group, title, content);
+	}
+
+	static void AddPropertiesControlLayout(Screen screen, DockWindow window, string status)
+	{
+		var layout = window.AddComponent<ControlLayout>();
+		window.AddComponent<DockWindowControlLayout>();
+		var root = screen.NewEntity().AddComponent(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
+		ParentingSystem.AttachParentChild<ControlLayout, ControlLayoutNode>(layout, root);
+
+		var gridEntity = screen.NewEntity();
+		var gridPlacement = gridEntity.AddComponent<ControlLayoutControl>();
+		var grid = gridEntity.AddComponent(entity => new GridControl(entity, 2));
+		ParentingSystem.AttachParentChild<ControlLayoutNode, ControlLayoutControl>(root, gridPlacement);
+
+		AddGridCellControl(screen, grid, 0, 0, entity => new LabelControl(entity, "Name"));
+		AddGridCellControl(screen, grid, 0, 1, entity => new TextInputControl(entity, "README.md"));
+		AddGridCellControl(screen, grid, 1, 0, entity => new LabelControl(entity, "Status"));
+		AddGridCellControl(screen, grid, 1, 1, entity => new LabelControl(entity, status));
+	}
+
+	static TControl AddGridCellControl<TControl>(Screen screen, GridControl grid, int row, int column, Func<Entity, TControl> createControl)
+		where TControl : Component
+	{
+		var entity = screen.NewEntity();
+		var cell = entity.AddComponent(entity => new GridCellControl(entity, row, column));
+		var control = entity.AddComponent(createControl);
+		ParentingSystem.AttachParentChild<GridControl, GridCellControl>(grid, cell);
+		return control;
 	}
 
 	static T AddElement<T>(Screen screen, string id) where T : Component, IRequires<Element>

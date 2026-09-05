@@ -180,6 +180,24 @@ body {
     white-space: nowrap;
 }
 
+.control-layout-row {
+    display: flex;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.control-layout-stack {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.grid-control {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-control-columns), minmax(0, 1fr));
+    min-width: 0;
+}
+
 .toolbar-layout {
     display: flex;
     flex: 0 0 auto;

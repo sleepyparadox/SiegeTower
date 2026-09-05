@@ -1,0 +1,21 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-control" style="--grid-control-columns: @Control.ColumnCount">
+    @foreach (var cell in ((IParentOf<GridCellControl>)Control).Children.Values)
+    {
+        <div style="grid-area: @(cell.Row + 1) / @(cell.Column + 1) / span @cell.RowSpan / span @cell.ColumnSpan">
+            <ControlView Entity="@cell.Entity" />
+        </div>
+    }
+    @foreach (var cell in ((IParentOf<GridCellLayoutControl>)Control).Children.Values)
+    {
+        <div style="grid-area: @(cell.Row + 1) / @(cell.Column + 1) / span @cell.RowSpan / span @cell.ColumnSpan">
+            <ControlLayoutView Layout="@(cell.GetComponent<ControlLayout>())" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public GridControl Control { get; set; } = default!;
+}
