@@ -1,0 +1,8 @@
+@namespace SiegeTower.Client.Views.Components
+
+<input class="grid-padded" type="text" value="@Control.Value" />
+
+@code {
+    [Parameter, EditorRequired]
+    public TextInputControl Control { get; set; } = default!;
+}

@@ -1,0 +1,21 @@
+@namespace SiegeTower.Client.Views.Components
+
+<header class="screen-title-bar grid-line color-primary">
+    <span class="grid-padded">@Layout.Title</span>
+    <nav class="breadcrumbs grid-row-layout grid-width-fill grid-center-vertically" aria-label="Breadcrumb">
+        <ol>
+            @foreach (var breadcrumb in Layout.Children.Values.OrderBy(breadcrumb => breadcrumb.Index))
+            {
+                <BreadcrumbView BreadCrumb="@breadcrumb" Session="@Session" />
+            }
+        </ol>
+    </nav>
+</header>
+
+@code {
+    [Parameter, EditorRequired]
+    public TitleLayout Layout { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

@@ -1,0 +1,30 @@
+@namespace SiegeTower.Client.Views
+@using SiegeTower.Client.Views.Components
+
+<div class="screen-view grid-shell">
+    <div class="screen-layer">
+        @foreach (var child in Layout.Children.Values)
+        {
+            @if (child is TitleLayout titleLayout)
+            {
+                <TitleLayoutView Layout="@titleLayout" Session="@Screen.Session" />
+            }
+            else if (child is ToolbarLayout toolbarLayout)
+            {
+                <ToolbarLayoutView Layout="@toolbarLayout" Session="@Screen.Session" />
+            }
+            else if (child is DockingLayout dockingLayout)
+            {
+                <DockingLayoutTreeView Layout="@dockingLayout" Session="@Screen.Session" />
+            }
+        }
+    </div>
+</div>
+
+@code 
+{
+    [Parameter, EditorRequired]
+    public Screen Screen { get; set; } = default!;
+
+    private ScreenLayout Layout => Screen.SelectComponents<ScreenLayout>().Single();
+}

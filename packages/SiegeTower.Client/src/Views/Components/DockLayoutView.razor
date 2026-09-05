@@ -1,0 +1,13 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-dock-region grid-width-fill grid-height-fill dock-layout">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public DockLayout Layout { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

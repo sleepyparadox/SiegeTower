@@ -1,0 +1,19 @@
+@namespace SiegeTower.Client.Views.Components
+
+<section class="grid-dock grid-height-fill @CssClass dock-@Dock.Region">
+    <div class="grid-tabs tabs-dock">
+        <button class="grid-tab tab is-selected grid-center-vertically grid-padded" type="button">@Dock.Title</button>
+    </div>
+    @ChildContent
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public Dock Dock { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string CssClass { get; set; } = "dock-fill-width";
+}

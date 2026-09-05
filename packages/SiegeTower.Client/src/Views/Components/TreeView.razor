@@ -1,0 +1,17 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-dock-content grid-overflow-x grid-overflow-y grid-width-fill tree">
+    @foreach (var node in Tree.Children.Values)
+    {
+        <TreeNodeRowView Node="@node" Session="@Session" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TreeControl Tree { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+
+}

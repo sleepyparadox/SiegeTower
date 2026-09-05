@@ -1,0 +1,47 @@
+@namespace SiegeTower.Client.Views.Components
+
+<li class="nav-burger-item">
+    <a href="@Hyperlink.Uri"
+       @onclick="(MouseEventArgs e) => Session.HandleEvent(new NavigationEvent(Hyperlink, e))"
+       @onclick:preventDefault="Hyperlink.IsInternal">
+        <i class="@MenuItem.Icon" aria-hidden="true"></i>
+        <span>@MenuItem.Text</span>
+        @if (Children.Any())
+        {
+            <span class="menu-item-arrow" aria-hidden="true">&gt;</span>
+        }
+    </a>
+    @if (Children.Any())
+    {
+        <ul>
+            @foreach (var child in Children)
+            {
+                <NavBurgerItemView MenuItem="@child" Session="@Session" />
+            }
+        </ul>
+    }
+</li>
+
+@code {
+    [Parameter, EditorRequired]
+    public MenuItemComponent MenuItem { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+
+    private Hyperlink Hyperlink => MenuItem.GetComponent<Hyperlink>();
+
+    private IEnumerable<MenuItemComponent> Children
+    {
+        get
+        {
+            foreach (var child in MenuItem.GetComponent<Element>().Children.Values)
+            {
+                if (child.Entity.TryGetComponent(out MenuItemComponent? menuItem) && menuItem is not null)
+                {
+                    yield return menuItem;
+                }
+            }
+        }
+    }
+}

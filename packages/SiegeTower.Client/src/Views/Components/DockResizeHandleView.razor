@@ -1,0 +1,8 @@
+@namespace SiegeTower.Client.Views.Components
+
+<span class="grid-line grid-center-vertically grid-i-draggable dock-resize-handle" aria-label="Resize dock"></span>
+
+@code {
+    [Parameter, EditorRequired]
+    public DockResizeHandle Handle { get; set; } = default!;
+}

@@ -1,0 +1,13 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="grid-status-bar status-bar">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public StatusBar StatusBar { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

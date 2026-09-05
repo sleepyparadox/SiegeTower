@@ -1,0 +1,100 @@
+@namespace SiegeTower.Client.Views.Components
+
+@if (Node is DockContainer container)
+{
+    <div class="@ContainerClass(container)">
+        @foreach (var child in container.Children.Values)
+        {
+            <DockNodeTreeView Node="@child" Session="@Session" />
+        }
+    </div>
+}
+else if (Node is DockWindowGroup group)
+{
+        <section class="grid-dock grid-height-fill dock-window-group @(IsDragging ? "is-dragging" : "")">
+           <div class="dock-drop-zone dock-drop-zone-top @DropZoneClass(group, DockWindowDropPosition.Top)"
+               @ondragenter="eventArgs => SetTarget(group, DockWindowDropPosition.Top, eventArgs)"
+               @ondragover:preventDefault="true"
+               @ondrop="eventArgs => Drop(group, DockWindowDropPosition.Top, eventArgs)"></div>
+           <div class="dock-drop-zone dock-drop-zone-right @DropZoneClass(group, DockWindowDropPosition.Right)"
+               @ondragenter="eventArgs => SetTarget(group, DockWindowDropPosition.Right, eventArgs)"
+               @ondragover:preventDefault="true"
+               @ondrop="eventArgs => Drop(group, DockWindowDropPosition.Right, eventArgs)"></div>
+           <div class="dock-drop-zone dock-drop-zone-bottom @DropZoneClass(group, DockWindowDropPosition.Bottom)"
+               @ondragenter="eventArgs => SetTarget(group, DockWindowDropPosition.Bottom, eventArgs)"
+               @ondragover:preventDefault="true"
+               @ondrop="eventArgs => Drop(group, DockWindowDropPosition.Bottom, eventArgs)"></div>
+           <div class="dock-drop-zone dock-drop-zone-left @DropZoneClass(group, DockWindowDropPosition.Left)"
+               @ondragenter="eventArgs => SetTarget(group, DockWindowDropPosition.Left, eventArgs)"
+               @ondragover:preventDefault="true"
+               @ondrop="eventArgs => Drop(group, DockWindowDropPosition.Left, eventArgs)"></div>
+           <div class="dock-drop-zone dock-drop-zone-center @DropZoneClass(group, DockWindowDropPosition.Center)"
+               @ondragenter="eventArgs => SetTarget(group, DockWindowDropPosition.Center, eventArgs)"
+               @ondragover:preventDefault="true"
+               @ondrop="eventArgs => Drop(group, DockWindowDropPosition.Center, eventArgs)"></div>
+        <div class="grid-tabs tabs-dock">
+            @foreach (var window in group.Children.Values)
+            {
+                 <button class="grid-tab tab grid-center-vertically grid-padded @(window == group.ActiveWindow.Get() ? "is-selected" : "")"
+                        type="button"
+                        draggable="true"
+                        @onclick="eventArgs => Activate(window, eventArgs)"
+                        @ondragstart="eventArgs => StartDrag(window, eventArgs)"
+                        @ondragend="eventArgs => CancelDrag(eventArgs)">@window.Name</button>
+            }
+        </div>
+        @if (group.ActiveWindow.Get() is DockWindow activeWindow)
+        {
+            @if (activeWindow.Entity.TryGetComponent(out DockWindowControlLayout? dockWindowControlLayout))
+            {
+                <div class="grid-dock-content grid-overflow-y grid-padded">
+                    <ControlLayoutView Layout="@(dockWindowControlLayout!.GetComponent<ControlLayout>())" Session="@Session" />
+                </div>
+            }
+            else
+            {
+                <pre class="grid-dock-content grid-overflow-y grid-padded">@activeWindow.Contents</pre>
+            }
+        }
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public DockLayoutNode Node { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+
+    private DockWindowDragOperation? DragOperation => Session.ActiveScreen.SelectComponents<DockWindowDragOperation>().SingleOrDefault();
+
+    private bool IsDragging => DragOperation is not null;
+
+    private string DropZoneClass(DockWindowGroup group, DockWindowDropPosition position)
+        => DragOperation?.TargetGroup.Get() == group && DragOperation.TargetPosition == position ? "is-active" : string.Empty;
+
+    private void StartDrag(DockWindow window, DragEventArgs eventArgs)
+        => Session.HandleEvent(new DockWindowDragStarted(window, eventArgs));
+
+    private void Activate(DockWindow window, MouseEventArgs eventArgs)
+        => Session.HandleEvent(new DockWindowActivated(window, eventArgs));
+
+    private void SetTarget(DockWindowGroup group, DockWindowDropPosition position, DragEventArgs eventArgs)
+        => Session.HandleEvent(new DockWindowDragTargetChanged(group, position, eventArgs));
+
+    private void Drop(DockWindowGroup group, DockWindowDropPosition position, DragEventArgs eventArgs)
+        => Session.HandleEvent(new DockWindowDragStopped(group, position, eventArgs));
+
+    private void CancelDrag(DragEventArgs eventArgs)
+        => Session.HandleEvent(new DockWindowDragCanceled(eventArgs));
+
+    private static string ContainerClass(DockContainer container)
+        => container.Orientation == DockOrientation.Horizontal
+            ? "dock-row grid-width-fill grid-height-fill"
+            : $"dock-stack grid-height-fill {WidthClass(container)}";
+
+    private static string WidthClass(DockContainer container)
+        => container.IsFixedWidth && container.WidthInGridUnits is int width
+            ? $"dock-width-{width}"
+            : "dock-fill-width";
+}

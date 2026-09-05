@@ -1,0 +1,17 @@
+@namespace SiegeTower.Client.Views.Components
+
+<button class="@ElementCss.Classes(Element, "grid-tab", "tab", "grid-center-vertically", "grid-padded")" type="button"
+        @onclick="(MouseEventArgs e) => Session.HandleEvent(new NavigationEvent(Hyperlink, e))">
+    @Tab.Text
+</button>
+
+@code {
+    [Parameter, EditorRequired]
+    public Tab Tab { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+
+    Element Element => Tab.GetComponent<Element>();
+    Hyperlink Hyperlink => Tab.GetComponent<Hyperlink>();
+}

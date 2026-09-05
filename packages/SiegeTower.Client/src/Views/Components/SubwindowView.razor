@@ -1,0 +1,14 @@
+@namespace SiegeTower.Client.Views.Components
+
+<section class="grid-dock grid-height-fill subwindow">
+    <header class="grid-line grid-center-vertically subwindow-title-bar">@Subwindow.Title</header>
+    @ChildContent
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public Subwindow Subwindow { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
