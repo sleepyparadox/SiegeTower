@@ -18,7 +18,7 @@ public static class NavigationSystem
 		ArgumentNullException.ThrowIfNull(session);
 		ArgumentNullException.ThrowIfNull(navigationEvent);
 
-		if (navigationEvent.IsCanceled || navigationEvent.Hyperlink is not null && !navigationEvent.Hyperlink.IsInternal)
+		if (navigationEvent.IsCanceled)
 		{
 			return;
 		}
@@ -71,7 +71,7 @@ public static class NavigationSystem
 	{
 		var screen = new Screen(session, "Home");
 		var titleLayout = AddTitleLayout(screen, "Home");
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
 		return screen;
 	}
 
@@ -79,8 +79,8 @@ public static class NavigationSystem
 	{
 		var screen = new Screen(session, "Workspaces");
 		var titleLayout = AddTitleLayout(screen, "Workspaces");
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", true, 1);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", 1);
 		return screen;
 	}
 
@@ -88,8 +88,8 @@ public static class NavigationSystem
 	{
 		var screen = new Screen(session, "Ollama");
 		var titleLayout = AddTitleLayout(screen, "Ollama");
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Ollama", "/ollama", true, 1);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Ollama", "/ollama", 1);
 		return screen;
 	}
 
@@ -101,8 +101,8 @@ public static class NavigationSystem
 		var toolbarLayout = screen.NewEntity().AddComponent<ToolbarLayout>();
 		var dockingLayout = screen.NewEntity().AddComponent<DockingLayout>();
 
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity(titleLayout, title, "/example", true, 1);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, title, "/example", 1);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, toolbarLayout);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, dockingLayout);
 		AddFileToolbar(screen, toolbarLayout);
@@ -285,12 +285,12 @@ public static class NavigationSystem
 	{
 		var screen = new Screen(session, isFilesScreen ? "Workspace Files" : "Workspace");
 		var titleLayout = AddTitleLayout(screen, screen.Title);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", true, 1);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspace", workspacePath, true, 2);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", 1);
+		screen.AddNewBreadCrumbEntity(titleLayout, "Workspace", workspacePath, 2);
 		if (isFilesScreen)
 		{
-			screen.AddNewBreadCrumbEntity(titleLayout, "Files", $"{workspacePath}/files", true, 3);
+			screen.AddNewBreadCrumbEntity(titleLayout, "Files", $"{workspacePath}/files", 3);
 		}
 		return screen;
 	}

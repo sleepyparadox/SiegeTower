@@ -1,0 +1,14 @@
+@namespace SiegeTower.Client.Views.Components
+
+<li class="breadcrumb-item">
+    <a href="@BreadCrumb.Url" @onclick="(MouseEventArgs e) => Session.HandleEvent(new NavigationEvent(BreadCrumb, e))" @onclick:preventDefault="true">@BreadCrumb.Text</a>
+</li>
+
+@code
+{
+    [Parameter, EditorRequired]
+    public BreadCrumb BreadCrumb { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

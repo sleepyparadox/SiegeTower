@@ -3,14 +3,14 @@ namespace SiegeTower.Client;
 public sealed class NavigationEvent : SessionEvent
 {
 	public string Uri { get; }
-	public Hyperlink? Hyperlink { get; }
+	public BreadCrumb? BreadCrumb { get; }
 
-	public NavigationEvent(Hyperlink hyperlink, EventArgs? userInteractionEvent = null)
+	public NavigationEvent(BreadCrumb breadCrumb, EventArgs? userInteractionEvent = null)
 		: base(userInteractionEvent)
 	{
-		ArgumentNullException.ThrowIfNull(hyperlink);
-		Hyperlink = hyperlink;
-		Uri = hyperlink.Uri;
+		ArgumentNullException.ThrowIfNull(breadCrumb);
+		BreadCrumb = breadCrumb;
+		Uri = breadCrumb.Url;
 	}
 
 	public NavigationEvent(string uri, EventArgs? userInteractionEvent = null)
