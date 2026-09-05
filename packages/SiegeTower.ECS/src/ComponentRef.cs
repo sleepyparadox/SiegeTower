@@ -7,7 +7,7 @@
 	}
 */
 
-public struct ComponentRef<T> where T : Component
+public class ComponentRef<T> where T : Component
 {
 	public T? Value { get; set; }
 

@@ -1,0 +1,16 @@
+@namespace SiegeTower.Client.Views.Components
+
+<main class="grid-dock-region dock-layout">
+    @foreach (var child in Layout.Children.Values)
+    {
+        <DockNodeTreeView Node="@child" Session="@Session" />
+    }
+</main>
+
+@code {
+    [Parameter, EditorRequired]
+    public DockingLayout Layout { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

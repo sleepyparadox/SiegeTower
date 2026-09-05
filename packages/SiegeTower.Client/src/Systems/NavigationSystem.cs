@@ -93,6 +93,11 @@ public static class NavigationSystem
 
 	static Screen NewExampleScreen(Session session, bool legacyScreenRenderer = true)
 	{
+		if (!legacyScreenRenderer)
+		{
+			return NewTypedExampleScreen(session, "Example", "README.md\n\n# SiegeTower\n\nExample file content aligned to the grid.", "Ready | Example screen");
+		}
+
 		var routePrefix = legacyScreenRenderer ? "/example-old" : "/example";
 		var screen = new Screen(session, "Example", legacyScreenRenderer);
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
@@ -142,6 +147,11 @@ public static class NavigationSystem
 
 	static Screen NewExampleFilesScreen(Session session, bool legacyScreenRenderer = true)
 	{
+		if (!legacyScreenRenderer)
+		{
+			return NewTypedExampleScreen(session, "Example Files", "README.md\n\n# Files\n\nBrowse files in the workspace tree.", "Ready | Example files screen");
+		}
+
 		var routePrefix = legacyScreenRenderer ? "/example-old" : "/example";
 		var screen = new Screen(session, "Example Files", legacyScreenRenderer);
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
@@ -190,6 +200,11 @@ public static class NavigationSystem
 
 	static Screen NewExampleSqlScreen(Session session, bool legacyScreenRenderer = true)
 	{
+		if (!legacyScreenRenderer)
+		{
+			return NewTypedExampleScreen(session, "Example SQL", "select *\nfrom users\nwhere active = true;", "Ready | Example SQL screen");
+		}
+
 		var routePrefix = legacyScreenRenderer ? "/example-old" : "/example";
 		var screen = new Screen(session, "Example SQL", legacyScreenRenderer);
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
@@ -238,6 +253,56 @@ public static class NavigationSystem
 		var statusBar = AddElement<StatusBar>(screen, "status-bar");
 		statusBar.WithChildren(AddElement<StatusItem>(screen, "status", "Ready | Example SQL screen"));
 		return screen;
+	}
+
+	static Screen NewTypedExampleScreen(Session session, string title, string documentContent, string status)
+	{
+		var screen = new Screen(session, title);
+		var screenLayout = screen.NewEntity().AddComponent<ScreenLayout>();
+		var titleLayout = screen.NewEntity().AddComponent(e => new TitleLayout(e, title));
+		var toolbarLayout = screen.NewEntity().AddComponent<ToolbarLayout>();
+		var dockingLayout = screen.NewEntity().AddComponent<DockingLayout>();
+
+		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, titleLayout);
+		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, toolbarLayout);
+		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, dockingLayout);
+
+		var root = screen.NewEntity().AddComponent<DockWindowRow>();
+		ParentingSystem.AttachParentChild<DockingLayout, DockNode>(dockingLayout, root);
+
+		var leftStack = screen.NewEntity().AddComponent<DockWindowStack>();
+		var documentGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
+		var rightStack = screen.NewEntity().AddComponent<DockWindowStack>();
+		rightStack.IsFixedWidth = true;
+		rightStack.WidthInGridUnits = 10;
+		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, leftStack);
+		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, documentGroup);
+		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, rightStack);
+
+		var filesGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
+		var outlineGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
+		ParentingSystem.AttachParentChild<DockContainer, DockNode>(leftStack, filesGroup);
+		ParentingSystem.AttachParentChild<DockContainer, DockNode>(leftStack, outlineGroup);
+
+		AddDockWindow(screen, filesGroup, "Files", "src\n  App\n    Program.cs\n    SQL\n      Query.sql\n  Dist\nREADME.md");
+		AddDockWindow(screen, outlineGroup, "Outline", "README.md\nFiles");
+		AddDockWindow(screen, documentGroup, title, documentContent);
+		AddDockWindow(screen, rightStack, "Properties", "Name: README.md\nType: Markdown\nStatus: " + status);
+		return screen;
+	}
+
+	static void AddDockWindow(Screen screen, DockWindowGroup group, string title, string content)
+	{
+		var window = screen.NewEntity().AddComponent(e => new DockWindow(e, title, content));
+		group.AttachChild(window);
+		group.ActiveWindow = window;
+	}
+
+	static void AddDockWindow(Screen screen, DockContainer container, string title, string content)
+	{
+		var group = screen.NewEntity().AddComponent<DockWindowGroup>();
+		ParentingSystem.AttachParentChild<DockContainer, DockNode>(container, group);
+		AddDockWindow(screen, group, title, content);
 	}
 
 	static T AddElement<T>(Screen screen, string id) where T : Component, IRequires<Element>

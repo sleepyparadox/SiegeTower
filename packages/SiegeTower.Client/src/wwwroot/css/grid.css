@@ -81,6 +81,62 @@ body {
     overflow: hidden;
 }
 
+.dock-window-group {
+    position: relative;
+}
+
+.dock-drop-zone {
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.dock-window-group.is-dragging .dock-drop-zone {
+    pointer-events: auto;
+}
+
+.dock-drop-zone.is-active {
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    outline: 1px solid currentColor;
+}
+
+.dock-drop-zone-top,
+.dock-drop-zone-bottom {
+    height: max(calc(var(--grid-unit) / 2), 24px);
+    left: 0;
+    right: 0;
+}
+
+.dock-drop-zone-top {
+    top: 0;
+}
+
+.dock-drop-zone-bottom {
+    bottom: 0;
+}
+
+.dock-drop-zone-left,
+.dock-drop-zone-right {
+    bottom: 0;
+    top: 0;
+    width: max(calc(var(--grid-unit) / 2), 24px);
+}
+
+.dock-drop-zone-left {
+    left: 0;
+}
+
+.dock-drop-zone-right {
+    right: 0;
+}
+
+.dock-drop-zone-center {
+    bottom: max(calc(var(--grid-unit) / 2), 24px);
+    left: max(calc(var(--grid-unit) / 2), 24px);
+    right: max(calc(var(--grid-unit) / 2), 24px);
+    top: max(calc(var(--grid-unit) / 2), 24px);
+}
+
 .dock-fill-width {
     flex: 1 1 0;
     min-width: 0;
@@ -122,6 +178,13 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
+}
+
+.toolbar-layout {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .grid-tab {
