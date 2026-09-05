@@ -267,12 +267,12 @@ public static class NavigationSystem
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, toolbarLayout);
 		ParentingSystem.AttachParentChild<ScreenLayout, ScreenLayoutChild>(screenLayout, dockingLayout);
 
-		var root = screen.NewEntity().AddComponent<DockWindowRow>();
+		var root = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Horizontal));
 		ParentingSystem.AttachParentChild<DockingLayout, DockNode>(dockingLayout, root);
 
-		var leftStack = screen.NewEntity().AddComponent<DockWindowStack>();
+		var leftStack = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Vertical));
 		var documentGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
-		var rightStack = screen.NewEntity().AddComponent<DockWindowStack>();
+		var rightStack = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Vertical));
 		rightStack.IsFixedWidth = true;
 		rightStack.WidthInGridUnits = 10;
 		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, leftStack);

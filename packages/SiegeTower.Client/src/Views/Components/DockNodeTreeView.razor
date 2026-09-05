@@ -1,18 +1,9 @@
 @namespace SiegeTower.Client.Views.Components
 
-@if (Node is DockWindowRow row)
+@if (Node is DockContainer container)
 {
-    <div class="dock-row grid-width-fill grid-height-fill">
-        @foreach (var child in row.Children.Values)
-        {
-            <DockNodeTreeView Node="@child" Session="@Session" />
-        }
-    </div>
-}
-else if (Node is DockWindowStack stack)
-{
-    <div class="dock-stack grid-height-fill @WidthClass(stack)">
-        @foreach (var child in stack.Children.Values)
+    <div class="@ContainerClass(container)">
+        @foreach (var child in container.Children.Values)
         {
             <DockNodeTreeView Node="@child" Session="@Session" />
         }
@@ -88,8 +79,13 @@ else if (Node is DockWindowGroup group)
     private void CancelDrag(DragEventArgs eventArgs)
         => Session.HandleEvent(new DockWindowDragCanceled(eventArgs));
 
-    private static string WidthClass(DockWindowStack stack)
-        => stack.IsFixedWidth && stack.WidthInGridUnits is int width
+    private static string ContainerClass(DockContainer container)
+        => container.Orientation == DockOrientation.Horizontal
+            ? "dock-row grid-width-fill grid-height-fill"
+            : $"dock-stack grid-height-fill {WidthClass(container)}";
+
+    private static string WidthClass(DockContainer container)
+        => container.IsFixedWidth && container.WidthInGridUnits is int width
             ? $"dock-width-{width}"
             : "dock-fill-width";
 }

@@ -123,15 +123,12 @@ public static class DockingSystem
 		}
 
 		var isHorizontal = position is DockWindowDropPosition.Left or DockWindowDropPosition.Right;
-		DockContainer? split = isHorizontal
-			? targetParent as DockWindowRow
-			: targetParent as DockWindowStack;
+		var orientation = isHorizontal ? DockOrientation.Horizontal : DockOrientation.Vertical;
+		DockContainer? split = targetParent?.Orientation == orientation ? targetParent : null;
 
 		if (split is null)
 		{
-			split = isHorizontal
-				? screen.NewEntity().AddComponent<DockWindowRow>()
-				: screen.NewEntity().AddComponent<DockWindowStack>();
+			split = screen.NewEntity().AddComponent(entity => new DockContainer(entity, orientation));
 			if (targetParent is not null)
 			{
 				ReplaceNode(screen, targetParent, targetGroup, split);
@@ -285,9 +282,7 @@ public static class DockingSystem
 		=> screen.SelectComponents<DockingLayout>().SingleOrDefault(layout => layout.Children.Values.Contains(node));
 
 	static IEnumerable<DockContainer> DockContainers(Screen screen)
-		=> screen.SelectComponents<DockWindowRow>()
-			.Cast<DockContainer>()
-			.Concat(screen.SelectComponents<DockWindowStack>());
+		=> screen.SelectComponents<DockContainer>();
 
 	static void ClearActiveWindow(DockWindowGroup group)
 	{

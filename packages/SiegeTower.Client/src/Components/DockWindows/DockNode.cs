@@ -8,13 +8,21 @@ public abstract class DockNode : Component, IChildOf<DockingLayout>, IChildOf<Do
 	}
 }
 
-public abstract class DockContainer : DockNode, IParentOf<DockNode>
+public enum DockOrientation
+{
+	Horizontal,
+	Vertical
+}
+
+public sealed class DockContainer : DockNode, IParentOf<DockNode>
 {
 	public ComponentRefList<DockNode> Children { get; set; } = new();
+	public DockOrientation Orientation { get; }
 	public bool IsFixedWidth { get; set; }
 	public int? WidthInGridUnits { get; set; }
 
-	protected DockContainer(Entity entity) : base(entity)
+	public DockContainer(Entity entity, DockOrientation orientation) : base(entity)
 	{
+		Orientation = orientation;
 	}
 }
