@@ -1,0 +1,21 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="toolbar-layout">
+    @foreach (var toolbarRow in Layout.Children.Values.GroupBy(toolbar => toolbar.RowIndex))
+    {
+        <div class="toolbar-row grid-line grid-row-layout grid-width-fill">
+            @foreach (var toolbar in toolbarRow)
+            {
+                <ToolbarView Toolbar="@toolbar" Session="@Session" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ToolbarLayout Layout { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

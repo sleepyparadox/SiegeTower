@@ -183,8 +183,57 @@ body {
 .toolbar-layout {
     display: flex;
     flex: 0 0 auto;
-    flex-wrap: wrap;
+    flex-direction: column;
     min-width: 0;
+}
+
+.toolbar-drop-target {
+    position: relative;
+}
+
+.toolbar-drop-zone {
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.toolbar-drop-target.is-dragging .toolbar-drop-zone {
+    pointer-events: auto;
+}
+
+.toolbar-drop-zone.is-active {
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    outline: 1px solid currentColor;
+}
+
+.toolbar-drop-zone-top,
+.toolbar-drop-zone-bottom {
+    height: 50%;
+    left: 0;
+    right: 0;
+}
+
+.toolbar-drop-zone-top {
+    top: 0;
+}
+
+.toolbar-drop-zone-bottom {
+    bottom: 0;
+}
+
+.toolbar-drop-zone-left,
+.toolbar-drop-zone-right {
+    bottom: 0;
+    top: 0;
+    width: 25%;
+}
+
+.toolbar-drop-zone-left {
+    left: 0;
+}
+
+.toolbar-drop-zone-right {
+    right: 0;
 }
 
 .grid-tab {

@@ -1,17 +1,11 @@
-public class Toolbar : Component, IRequires<Element>, IChildOf<ToolbarLayout>
+public sealed class Toolbar : Component, IChildOf<ToolbarLayout>
 {
-	public string Title { get; set; }
+	public int RowIndex { get; set; }
 	public ComponentRef<ToolbarLayout> Parent { get; set; } = new();
 
-	public Toolbar(Entity entity)
+	public Toolbar(Entity entity, int rowIndex)
 		: base(entity)
 	{
-		Title = "Toolbar";
-	}
-
-	public Toolbar(Entity entity, string title)
-		: base(entity)
-	{
-		Title = title;
+		RowIndex = rowIndex;
 	}
 }

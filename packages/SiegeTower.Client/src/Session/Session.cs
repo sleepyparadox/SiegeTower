@@ -22,6 +22,7 @@ public sealed class Session // 1 session per tab
 		NavigationSystem.HandleEvent(this, sessionEvent);
 		TreeSystem.HandleEvent(this, sessionEvent);
 		DockingSystem.HandleEvent(this, sessionEvent);
+		ToolbarSystem.HandleEvent(this, sessionEvent);
 		
 		// Assume something changed
 		Redraw();

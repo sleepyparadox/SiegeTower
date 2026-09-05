@@ -12,16 +12,7 @@
             }
             else if (child is ToolbarLayout toolbarLayout)
             {
-                @* Temporary inline toolbar layout while toolbar features migrate. *@
-                <div class="toolbar-layout">
-                    @foreach (var toolbarName in new[] { "File", "Edit", "View" })
-                    {
-                        <div class="toolbar grid-line grid-width-fit">
-                            <span class="grid-padded">@toolbarName</span>
-                            <button class="toolbar-button button grid-padded" type="button">Action</button>
-                        </div>
-                    }
-                </div>
+                <ToolbarLayoutView Layout="@toolbarLayout" Session="@Screen.Session" />
             }
             else if (child is DockingLayout dockingLayout)
             {
