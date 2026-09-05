@@ -48,7 +48,5 @@
         _ => "fa-regular fa-file"
     };
 
-    IEnumerable<TreeNode> Children => Node.GetComponent<Element>().Children.Values
-        .Select(child => child.Entity.TryGetComponent(out TreeNode? node) ? node : null)
-        .Where(node => node is not null)!;
+    IEnumerable<TreeNode> Children => ((IParentOf<TreeNode>)Node).Children.Values;
 }

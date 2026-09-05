@@ -22,10 +22,17 @@ else if (Entity.TryGetComponent(out SeparatorControl? separator))
 }
 else if (Entity.TryGetComponent(out GridControl? grid))
 {
-    <GridControlView Control="@grid" />
+    <GridControlView Control="@grid" Session="@Session" />
+}
+else if (Entity.TryGetComponent(out TreeControl? tree))
+{
+    <TreeView Tree="@tree" Session="@Session" />
 }
 
 @code {
     [Parameter, EditorRequired]
     public Entity Entity { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
 }

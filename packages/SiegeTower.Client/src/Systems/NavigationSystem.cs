@@ -122,7 +122,8 @@ public static class NavigationSystem
 		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(leftStack, filesGroup);
 		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(leftStack, outlineGroup);
 
-		AddDockWindow(screen, filesGroup, "Files", "src\n  App\n    Program.cs\n    SQL\n      Query.sql\n  Dist\nREADME.md");
+		var filesWindow = AddDockWindow(screen, filesGroup, "Files", "src\n  App\n    Program.cs\n    SQL\n      Query.sql\n  Dist\nREADME.md");
+		AddFileTreeControlLayout(screen, filesWindow);
 		AddDockWindow(screen, outlineGroup, "Outline", "README.md\nFiles");
 		AddDockWindow(screen, documentGroup, title, documentContent);
 		var propertiesWindow = AddDockWindow(screen, rightStack, "Properties", "Name: README.md\nType: Markdown\nStatus: " + status);
@@ -171,6 +172,43 @@ public static class NavigationSystem
 		var control = entity.AddComponent(createControl);
 		ParentingSystem.AttachParentChild<GridControl, GridCellControl>(grid, cell);
 		return control;
+	}
+
+	static void AddFileTreeControlLayout(Screen screen, DockWindow window)
+	{
+		var layout = window.AddComponent<ControlLayout>();
+		window.AddComponent<DockWindowControlLayout>();
+		var root = screen.NewEntity().AddComponent(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
+		ParentingSystem.AttachParentChild<ControlLayout, ControlLayoutNode>(layout, root);
+
+		var treeEntity = screen.NewEntity();
+		var treePlacement = treeEntity.AddComponent<ControlLayoutControl>();
+		var tree = treeEntity.AddComponent<TreeControl>();
+		ParentingSystem.AttachParentChild<ControlLayoutNode, ControlLayoutControl>(root, treePlacement);
+
+		var src = AddTreeNode(screen, "src", TreeNodeIcon.Folder);
+		var app = AddTreeNode(screen, "App", TreeNodeIcon.Folder);
+		var program = AddTreeNode(screen, "Program.cs");
+		var sql = AddTreeNode(screen, "SQL", TreeNodeIcon.Folder);
+		var query = AddTreeNode(screen, "Query.sql");
+		var dist = AddTreeNode(screen, "Dist", TreeNodeIcon.Folder);
+		var output = AddTreeNode(screen, "output.txt");
+		var readme = AddTreeNode(screen, "README.md");
+
+		ParentingSystem.AttachParentChild<TreeControl, TreeNode>(tree, src);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(src, app);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(src, dist);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(src, readme);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(app, program);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(app, sql);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(sql, query);
+		ParentingSystem.AttachParentChild<TreeNode, TreeNode>(dist, output);
+
+		src.IsExpanded = true;
+		app.IsExpanded = true;
+		sql.IsExpanded = true;
+		dist.IsExpanded = true;
+		readme.IsSelected = true;
 	}
 
 	static T AddElement<T>(Screen screen, string id) where T : Component, IRequires<Element>
@@ -257,36 +295,9 @@ public static class NavigationSystem
 		return dock;
 	}
 
-	static Tree AddFileNodes(Screen screen)
-	{
-		var tree = AddElement<Tree>(screen, "file-tree");
-		var src = AddTreeNode(screen, "node-src", "src", TreeNodeIcon.Folder);
-		var app = AddTreeNode(screen, "node-app", "App", TreeNodeIcon.Folder);
-		var program = AddTreeNode(screen, "node-program", "Program.cs");
-		var sql = AddTreeNode(screen, "node-sql", "SQL", TreeNodeIcon.Folder);
-		var query = AddTreeNode(screen, "node-query", "Query.sql");
-		var dist = AddTreeNode(screen, "node-dist", "Dist", TreeNodeIcon.Folder);
-		var output = AddTreeNode(screen, "node-output", "output.txt");
-		var readme = AddTreeNode(screen, "node-readme", "README.md");
-
-		tree.WithChildren(src);
-		src.WithChildren(app, dist, readme);
-		app.WithChildren(program, sql);
-		sql.WithChildren(query);
-		dist.WithChildren(output);
-
-		src.IsExpanded = true;
-		app.IsExpanded = true;
-		sql.IsExpanded = true;
-		dist.IsExpanded = true;
-		readme.IsSelected = true;
-		return tree;
-	}
-
-	static TreeNode AddTreeNode(Screen screen, string id, string text, TreeNodeIcon icon = TreeNodeIcon.File)
+	static TreeNode AddTreeNode(Screen screen, string text, TreeNodeIcon icon = TreeNodeIcon.File)
 	{
 		var entity = screen.NewEntity();
-		entity.AddComponent(e => new Element(e, id));
 		return entity.AddComponent(e => new TreeNode(e, text, icon));
 	}
 

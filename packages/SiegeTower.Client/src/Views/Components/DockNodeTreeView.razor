@@ -48,7 +48,7 @@ else if (Node is DockWindowGroup group)
             @if (activeWindow.Entity.TryGetComponent(out DockWindowControlLayout? dockWindowControlLayout))
             {
                 <div class="grid-dock-content grid-overflow-y grid-padded">
-                    <ControlLayoutView Layout="@(dockWindowControlLayout!.GetComponent<ControlLayout>())" />
+                    <ControlLayoutView Layout="@(dockWindowControlLayout!.GetComponent<ControlLayout>())" Session="@Session" />
                 </div>
             }
             else

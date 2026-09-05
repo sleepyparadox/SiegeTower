@@ -4,13 +4,13 @@
     @foreach (var cell in ((IParentOf<GridCellControl>)Control).Children.Values)
     {
         <div style="grid-area: @(cell.Row + 1) / @(cell.Column + 1) / span @cell.RowSpan / span @cell.ColumnSpan">
-            <ControlView Entity="@cell.Entity" />
+            <ControlView Entity="@cell.Entity" Session="@Session" />
         </div>
     }
     @foreach (var cell in ((IParentOf<GridCellLayoutControl>)Control).Children.Values)
     {
         <div style="grid-area: @(cell.Row + 1) / @(cell.Column + 1) / span @cell.RowSpan / span @cell.ColumnSpan">
-            <ControlLayoutView Layout="@(cell.GetComponent<ControlLayout>())" />
+            <ControlLayoutView Layout="@(cell.GetComponent<ControlLayout>())" Session="@Session" />
         </div>
     }
 </div>
@@ -18,4 +18,7 @@
 @code {
     [Parameter, EditorRequired]
     public GridControl Control { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
 }
