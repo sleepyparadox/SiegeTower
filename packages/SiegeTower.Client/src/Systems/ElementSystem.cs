@@ -34,7 +34,7 @@ public static class ElementSystem
 
 		if (child.Parent.Get() == parent)
 		{
-			child.Parent = new ComponentRef<Element>();
+			child.Parent.Clear();
 		}
 	}
 

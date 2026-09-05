@@ -18,6 +18,8 @@ public struct ComponentRef<T> where T : Component
 		Value = value;
 	}
 
+	public void Clear() => Value = null;
+
 	public T? Get() => Value;
 
 	public static implicit operator ComponentRef<T>(T value) => new(value);
