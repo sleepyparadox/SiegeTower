@@ -206,21 +206,6 @@ body {
     outline: 1px solid currentColor;
 }
 
-.toolbar-drop-zone-top,
-.toolbar-drop-zone-bottom {
-    height: 50%;
-    left: 0;
-    right: 0;
-}
-
-.toolbar-drop-zone-top {
-    top: 0;
-}
-
-.toolbar-drop-zone-bottom {
-    bottom: 0;
-}
-
 .toolbar-drop-zone-left,
 .toolbar-drop-zone-right {
     bottom: 0;
@@ -234,6 +219,20 @@ body {
 
 .toolbar-drop-zone-right {
     right: 0;
+}
+
+.toolbar-row-drop-zone {
+    height: calc(var(--grid-unit) / 2);
+    pointer-events: none;
+}
+
+.toolbar-layout:has(.toolbar-drop-target.is-dragging) .toolbar-row-drop-zone {
+    pointer-events: auto;
+}
+
+.toolbar-row-drop-zone.is-active {
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    outline: 1px solid currentColor;
 }
 
 .grid-tab {

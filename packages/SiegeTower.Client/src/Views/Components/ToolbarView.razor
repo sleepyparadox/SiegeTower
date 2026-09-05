@@ -1,12 +1,8 @@
 @namespace SiegeTower.Client.Views.Components
 
 <div class="toolbar grid-line grid-width-fit toolbar-drop-target @(IsDragging ? "is-dragging" : "")">
-    <div class="toolbar-drop-zone toolbar-drop-zone-top @DropZoneClass(ToolbarDropPosition.Top)"
-        @ondragenter="eventArgs => SetTarget(ToolbarDropPosition.Top, eventArgs)" @ondragover:preventDefault="true" @ondrop="eventArgs => Drop(ToolbarDropPosition.Top, eventArgs)"></div>
     <div class="toolbar-drop-zone toolbar-drop-zone-right @DropZoneClass(ToolbarDropPosition.Right)"
         @ondragenter="eventArgs => SetTarget(ToolbarDropPosition.Right, eventArgs)" @ondragover:preventDefault="true" @ondrop="eventArgs => Drop(ToolbarDropPosition.Right, eventArgs)"></div>
-    <div class="toolbar-drop-zone toolbar-drop-zone-bottom @DropZoneClass(ToolbarDropPosition.Bottom)"
-        @ondragenter="eventArgs => SetTarget(ToolbarDropPosition.Bottom, eventArgs)" @ondragover:preventDefault="true" @ondrop="eventArgs => Drop(ToolbarDropPosition.Bottom, eventArgs)"></div>
     <div class="toolbar-drop-zone toolbar-drop-zone-left @DropZoneClass(ToolbarDropPosition.Left)"
         @ondragenter="eventArgs => SetTarget(ToolbarDropPosition.Left, eventArgs)" @ondragover:preventDefault="true" @ondrop="eventArgs => Drop(ToolbarDropPosition.Left, eventArgs)"></div>
     <span class="grid-line grid-width-fit grid-center-vertically grid-i-draggable toolbar-grip"

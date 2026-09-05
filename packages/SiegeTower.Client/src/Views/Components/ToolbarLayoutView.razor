@@ -3,12 +3,16 @@
 <div class="toolbar-layout">
     @foreach (var toolbarRow in Layout.Children.Values.GroupBy(toolbar => toolbar.RowIndex))
     {
+        <div class="toolbar-row-drop-zone toolbar-row-drop-zone-top @RowDropZoneClass(toolbarRow.Key, ToolbarDropPosition.Top)"
+             @ondragenter="eventArgs => SetRowTarget(toolbarRow.Key, ToolbarDropPosition.Top, eventArgs)" @ondragover:preventDefault="true" @ondrop="eventArgs => DropOnRow(toolbarRow.Key, ToolbarDropPosition.Top, eventArgs)"></div>
         <div class="toolbar-row grid-line grid-row-layout grid-width-fill">
             @foreach (var toolbar in toolbarRow)
             {
                 <ToolbarView Toolbar="@toolbar" Session="@Session" />
             }
         </div>
+        <div class="toolbar-row-drop-zone toolbar-row-drop-zone-bottom @RowDropZoneClass(toolbarRow.Key, ToolbarDropPosition.Bottom)"
+             @ondragenter="eventArgs => SetRowTarget(toolbarRow.Key, ToolbarDropPosition.Bottom, eventArgs)" @ondragover:preventDefault="true" @ondrop="eventArgs => DropOnRow(toolbarRow.Key, ToolbarDropPosition.Bottom, eventArgs)"></div>
     }
 </div>
 
@@ -18,4 +22,15 @@
 
     [Parameter, EditorRequired]
     public Session Session { get; set; } = default!;
+
+    private ToolbarDragOperation? DragOperation => Session.ActiveScreen.SelectComponents<ToolbarDragOperation>().SingleOrDefault();
+
+    private string RowDropZoneClass(int rowIndex, ToolbarDropPosition position)
+        => DragOperation?.TargetRowIndex == rowIndex && DragOperation.TargetPosition == position ? "is-active" : string.Empty;
+
+    private void SetRowTarget(int rowIndex, ToolbarDropPosition position, DragEventArgs eventArgs)
+        => Session.HandleEvent(new ToolbarRowDragTargetChanged(Layout, rowIndex, position, eventArgs));
+
+    private void DropOnRow(int rowIndex, ToolbarDropPosition position, DragEventArgs eventArgs)
+        => Session.HandleEvent(new ToolbarRowDragStopped(Layout, rowIndex, position, eventArgs));
 }
