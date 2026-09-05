@@ -31,14 +31,18 @@ The interface uses a monospace font to reinforce the grid. Text and Font Awesome
 
 ## Component and View Rules
 
-- Treat `Element` as the common UI component. It owns the parent/child hierarchy, grid placement intent, and semantic visual state for its entity.
-- Keep UI component data and relationships in ECS components. Use `IRequires<Element>` for components that must be rendered as elements and use additional `IRequires<>` relationships to enforce required data.
+- Treat every ECS component type as a table keyed by `Entity`. A view or system query is a join across the component tables needed for its behavior; an entity can have one of each joined component type.
+- Use `Control` as the common typed UI primitive. Compose controls with typed relationship components rather than creating alternate control hierarchies. For example, `ToolbarControl` joins a standard `Control` to a toolbar without replacing its control behavior.
+- Keep UI component data and relationships in ECS components. Use `IRequires<Control>` for components that require a standard control, and use additional `IRequires<>` relationships to enforce other required data.
+- Use typed `Layout` components and their relationships to express layout membership, placement, grouping, and ordering. Do not encode component relationships in CSS selectors or view-local collections.
+- `ToolbarLayout` and `Toolbar` own toolbar placement and ordering. `ToolbarControl` joins controls to that model. Keep toolbar drag-and-drop ordering bespoke to the toolbar systems and components.
+- `DockWindows` own dock-window layout, grouping, and drag-and-drop behavior. Keep dock-window interaction separate from toolbar ordering; do not force both domains through a generic drag-and-drop relationship.
+- `Element`, `ElementSystem`, `MenuComponent`, and `MenuItemComponent` are legacy migration surfaces. Do not use them for new UI or extend their behavior; migrate touched UI toward typed `Controls` and `Layouts` when practical. Remove the `Element` system and its remaining usages once its typed replacements cover the affected UI.
 - Use reusable `{Component}View.razor` files to render ECS components. Views should receive components as parameters, compose their markup from shared CSS classes, and avoid owning persistent UI state.
-- Name reusable component Razor files with the `View` postfix, such as `BreadcrumbView.razor`, `MenuView.razor`, and `ToolbarView.razor`. Reserve other Razor names for application roots, pages, and layouts.
-- Store persistent UI state on ECS components, not in views. Menu open state, selected tabs, expanded nodes, inactive state, and drag state belong to components or `Session`.
+- Name reusable component Razor files with the `View` postfix, such as `BreadcrumbView.razor`, `ControlView.razor`, and `ToolbarView.razor`. Reserve other Razor names for application roots, pages, and layouts.
+- Store persistent UI state on ECS components, not in views. Selected tabs, expanded nodes, inactive state, and toolbar or dock-window drag state belong to components or `Session`.
 - Use `Session` for global interactions such as navigation, dragging, resizing, selection coordination, and context menus. Views render the resulting state.
-- Reuse the same view for the same component in different contexts. Use role classes such as `menu-burger`, `menu-dropdown`, `menu-context`, `tabs-top`, and `tabs-subwindow` to describe placement without duplicating the component view.
-- Keep hierarchy and ordering in `Element` and `ElementSystem`. Do not encode component relationships in CSS selectors or view-local collections.
+- Reuse the same view for the same component in different contexts. Use role classes such as `tabs-top` and `tabs-subwindow` to describe visual placement without duplicating the component view.
 
 ## CSS Composition Rules
 
@@ -47,42 +51,10 @@ The interface uses a monospace font to reinforce the grid. Text and Font Awesome
 - Use `color-*` classes for semantic surfaces: `color-primary`, `color-secondary`, `color-success`, and `color-danger`.
 - Use `is-*` classes for visual state: `is-hoverable`, `is-selected`, `is-inactive`, `is-disabled`, `is-open`, `is-expanded`, `is-draggable`, `is-dragging`, and `is-drop-target`.
 - Keep color and state classes independent from component classes so the same color or state can be used by menus, buttons, tabs, toolbars, trees, docks, and status items.
-- Prefer semantic style values on `Element` that render to classes. Do not put raw CSS declarations, arbitrary colors, margins, gaps, or dimensions in ECS components.
+- Prefer semantic style values on `Control` and related typed components that render to classes. Do not put raw CSS declarations, arbitrary colors, margins, gaps, or dimensions in ECS components.
 - Use hover styling only for elements that are explicitly interactive or marked as hoverable. Selected and inactive styling must remain available even when hover is not present.
 - Use `:focus-visible` and the shared focus treatment for keyboard interaction. Do not use hover as the only indication of an available action.
 - Keep component CSS small. If a rule describes reusable geometry, add or extend a grid primitive instead of adding it to the component stylesheet.
-
-## Planned UI Elements
-
-| ECS component | Reusable view | Grid composition | Role or state composition |
-| --- | --- | --- | --- |
-| `Screen` | `ScreenView.razor` | `grid-shell` | `layer-screen` |
-| `ScreenTitleBar` | `ScreenTitleBarView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `color-primary` |
-| `TowerIcon` | `TowerIconView.razor` | `grid-line`, `grid-center-vertically` | `icon-*` |
-| `Breadcrumbs` | `BreadcrumbsView.razor` | `grid-row-layout`, `grid-center-vertically` | `breadcrumbs` |
-| `Breadcrumb` | `BreadcrumbView.razor` | `grid-tab`, `grid-center-vertically` | `is-hoverable`, `is-selected`, `is-inactive` |
-| `MenuComponent` | `MenuView.razor` | `grid-dock`, `grid-overflow-y` | `menu-burger`, `menu-dropdown`, `menu-context`, `layer-menu`, `color-*` |
-| `MenuItemComponent` | `MenuItemView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `is-hoverable`, `is-selected`, `is-inactive`, `is-disabled` |
-| `Toolbar` | `ToolbarView.razor` | `grid-dock`, `grid-width-fill` | `color-*`, `is-dragging`, `is-drop-target` |
-| `ToolbarRow` | `ToolbarRowView.razor` | `grid-line`, `grid-center-vertically`, `grid-wrap-x` | `is-draggable` |
-| `ToolbarGrip` | `ToolbarGripView.razor` | `grid-line`, `grid-center-vertically`, `grid-i-draggable` | `is-dragging` |
-| `Button` | `ButtonView.razor` | `grid-line`, `grid-center-vertically`, `grid-padded` | `button-*`, `color-*`, `is-selected`, `is-disabled` |
-| `Dropdown` | `DropdownView.razor` | `grid-line`, `grid-center-vertically` | `is-open`, `is-selected`, `is-disabled` |
-| `DockLayout` | `DockLayoutView.razor` | `grid-dock-region`, `grid-width-fill`, `grid-height-fill` | `layer-screen` |
-| `Dock` | `DockView.razor` | `grid-dock`, `grid-overflow-y` | `dock-left`, `dock-middle`, `dock-right`, `is-resizing` |
-| `Subwindow` | `SubwindowView.razor` | `grid-dock`, `grid-height-fill` | `is-selected`, `is-inactive`, `is-collapsed` |
-| `Tabs` | `TabsView.razor` | `grid-tabs`, `grid-overflow-x` | `tabs-top`, `tabs-subwindow` |
-| `Tab` | `TabView.razor` | `grid-tab`, `grid-center-vertically`, `grid-padded` | `is-selected`, `is-inactive`, `is-disabled` |
-| `TabContent` | `TabContentView.razor` | `grid-dock-content`, `grid-overflow-x`, `grid-overflow-y` | `is-selected` |
-| `Tree` | `TreeView.razor` | `grid-dock-content`, `grid-overflow-y`, `grid-width-fill` | `grid-fill` |
-| `TreeNode` | `TreeNodeView.razor` | `grid-width-fill` | `is-expanded`, `is-collapsed`, `is-selected`, `is-inactive` |
-| `TreeNodeRow` | `TreeNodeRowView.razor` | `grid-line`, `grid-center-vertically`, `grid-width-fill` | `is-drop-target`, `--tree-depth` |
-| `StatusBar` | `StatusBarView.razor` | `grid-status-bar`, `grid-overflow-x` | `layer-status`, `color-*` |
-| `StatusItem` | `StatusItemView.razor` | `grid-center-vertically`, `grid-wrap-x` | `is-inactive` |
-| `Text` | `TextView.razor` | `grid-wrap-x` | `text-*` |
-| `Label` | `LabelView.razor` | `grid-center-vertically`, `grid-wrap-x` | `label-interactive`, `is-hoverable`, `is-inactive` |
-
-The table is a component vocabulary, not a requirement that every element must have every listed class. Select only the classes that express the element's actual layout, role, and state.
 
 ## Unit Rules
 
@@ -94,22 +66,6 @@ The table is a component vocabulary, not a requirement that every element must h
 - Allow content to overflow or grow by whole grid units when it cannot fit; do not compress the grid to remove remainder pixels.
 - Use `grid-padded` for internal space around text, icons, and other content that needs breathing room. Padding must not create space between structural siblings.
 - Use dividers only between components within one toolbar. Do not use them to divide whole toolbars; each toolbar begins with its grip icon.
-
-## Dock Rules
-
-- Each dock has a `2rem` tab strip above its active content. Tabs do not shrink; `grid-tabs` owns horizontal scrolling when they do not fit.
-- Changing tabs replaces only the active dock content. It must not change the dock region's outer size or the height of the tab strip.
-- The dock region owns the remaining application height. Dock content must not use a hardcoded viewport height.
-- Content decides how it responds to limited space. Use `grid-overflow-x` or `grid-overflow-y` for scrollable content and `grid-wrap-x` when text should wrap.
-- Leave content underflow unfilled when its intrinsic size is smaller than the dock. Do not add spacer gaps to make it appear full.
-- Keep overflow and wrapping policies on the content view, not on the shell or dock, so editable text, chat logs, and other content can behave differently.
-
-## Status Bar Rules
-
-- Use `grid-status-bar` as the final child of `grid-shell` for application-wide loading state, connection state, and recent actions.
-- Treat the status bar as the intentional half-unit exception: it is `1rem` high, uses `.5rem` typography, and uses `.25rem` padding.
-- Keep the status bar on one non-wrapping row. It may scroll horizontally when its messages do not fit.
-- The dock region fills the space above the status bar; the status bar must not overlap dock content or scroll with it.
 
 ## Space Ownership
 
