@@ -1,7 +1,7 @@
 @namespace SiegeTower.Client.Views
 @using SiegeTower.Client.Views.Components
 
-@if (Screen.SelectComponents<ScreenTitleBar>().Any())
+@if (Screen.LegacyScreenRenderer)
 {
     <ExampleScreenView Screen="@Screen" />
 }

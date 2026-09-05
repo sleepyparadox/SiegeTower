@@ -4,11 +4,13 @@ public sealed class Screen : EntityStorage
 {
 	public Session Session { get; set; }
 	public string Title { get; set; }
+	public bool LegacyScreenRenderer { get; set; }
 	
-	public Screen(Session session, string title)
+	public Screen(Session session, string title, bool legacyScreenRenderer = false)
 	{
 		Session = session;
 		Title = title;
+		LegacyScreenRenderer = legacyScreenRenderer;
 
 		var menu = this.NewEntity().AddComponent<Element>(e => new Element(e, "menu")).AddComponent<MenuComponent>();
 		AddMenuItem(menu, "Home", "/", "fa-solid fa-house");
@@ -17,6 +19,9 @@ public sealed class Screen : EntityStorage
 		var example = AddMenuItem(menu, "Example", "/example", "fa-solid fa-flask");
 		AddMenuItem(example, "Files", "/example/files", "fa-solid fa-file");
 		AddMenuItem(example, "SQL", "/example/sql", "fa-solid fa-database");
+		var legacyExample = AddMenuItem(menu, "Example (Old)", "/example-old", "fa-solid fa-flask");
+		AddMenuItem(legacyExample, "Files", "/example-old/files", "fa-solid fa-file");
+		AddMenuItem(legacyExample, "SQL", "/example-old/sql", "fa-solid fa-database");
 	}
 
 	private MenuItemComponent AddMenuItem(MenuComponent menu, string text, string uri, string icon)

@@ -45,13 +45,14 @@ public static class NavigationSystem
 		{
 			session.ActiveScreen = NewOllamaScreen(session);
 		}
-		else if (pathParts.Length >= 1 && pathParts[0].Equals("example", StringComparison.OrdinalIgnoreCase))
+		else if (pathParts.Length >= 1 && (pathParts[0].Equals("example", StringComparison.OrdinalIgnoreCase) || pathParts[0].Equals("example-old", StringComparison.OrdinalIgnoreCase)))
 		{
+			var legacyScreenRenderer = pathParts[0].Equals("example-old", StringComparison.OrdinalIgnoreCase);
 			session.ActiveScreen = pathParts.Length == 2 && pathParts[1].Equals("files", StringComparison.OrdinalIgnoreCase)
-				? NewExampleFilesScreen(session)
+				? NewExampleFilesScreen(session, legacyScreenRenderer)
 				: pathParts.Length == 2 && pathParts[1].Equals("sql", StringComparison.OrdinalIgnoreCase)
-					? NewExampleSqlScreen(session)
-					: NewExampleScreen(session);
+					? NewExampleSqlScreen(session, legacyScreenRenderer)
+					: NewExampleScreen(session, legacyScreenRenderer);
 		}
 		else if (pathParts.Length >= 2 && pathParts[0].Equals("workspace", StringComparison.OrdinalIgnoreCase))
 		{
@@ -90,12 +91,13 @@ public static class NavigationSystem
 		return screen;
 	}
 
-	static Screen NewExampleScreen(Session session)
+	static Screen NewExampleScreen(Session session, bool legacyScreenRenderer = true)
 	{
-		var screen = new Screen(session, "Example");
+		var routePrefix = legacyScreenRenderer ? "/example-old" : "/example";
+		var screen = new Screen(session, "Example", legacyScreenRenderer);
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity("Example", "/example", true, 1);
-		screen.AddNewBreadCrumbEntity("Home", "/example", true, 2);
+		screen.AddNewBreadCrumbEntity("Example", routePrefix, true, 1);
+		screen.AddNewBreadCrumbEntity("Home", routePrefix, true, 2);
 
 		AddElement<ScreenTitleBar>(screen, "title-bar").WithChildren(titleBar =>
 		{
@@ -103,9 +105,9 @@ public static class NavigationSystem
 			var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
 			breadcrumbs.WithChildren(screen.SelectComponents<BreadCrumb>().OrderBy(breadcrumb => breadcrumb.Index).ToArray());
 			titleBar.WithChildren(AddElement<TowerIcon>(screen, "tower-icon"), breadcrumbs, tabs);
-			AttachTab(screen, tabs, "Home", "/example", true);
-			AttachTab(screen, tabs, "Files", "/example/files", false);
-			AttachTab(screen, tabs, "SQL", "/example/sql", false);
+			AttachTab(screen, tabs, "Home", routePrefix, true);
+			AttachTab(screen, tabs, "Files", $"{routePrefix}/files", false);
+			AttachTab(screen, tabs, "SQL", $"{routePrefix}/sql", false);
 		});
 
 		var toolbars = AddElement<ToolbarRows>(screen, "toolbars");
@@ -138,12 +140,13 @@ public static class NavigationSystem
 		return screen;
 	}
 
-	static Screen NewExampleFilesScreen(Session session)
+	static Screen NewExampleFilesScreen(Session session, bool legacyScreenRenderer = true)
 	{
-		var screen = new Screen(session, "Example Files");
+		var routePrefix = legacyScreenRenderer ? "/example-old" : "/example";
+		var screen = new Screen(session, "Example Files", legacyScreenRenderer);
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity("Example", "/example", true, 1);
-		screen.AddNewBreadCrumbEntity("Files", "/example/files", true, 2);
+		screen.AddNewBreadCrumbEntity("Example", routePrefix, true, 1);
+		screen.AddNewBreadCrumbEntity("Files", $"{routePrefix}/files", true, 2);
 
 		AddElement<ScreenTitleBar>(screen, "title-bar").WithChildren(titleBar =>
 		{
@@ -151,9 +154,9 @@ public static class NavigationSystem
 			var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
 			breadcrumbs.WithChildren(screen.SelectComponents<BreadCrumb>().OrderBy(breadcrumb => breadcrumb.Index).ToArray());
 			titleBar.WithChildren(AddElement<TowerIcon>(screen, "tower-icon"), breadcrumbs, tabs);
-			AttachTab(screen, tabs, "Home", "/example", false);
-			AttachTab(screen, tabs, "Files", "/example/files", true);
-			AttachTab(screen, tabs, "SQL", "/example/sql", false);
+			AttachTab(screen, tabs, "Home", routePrefix, false);
+			AttachTab(screen, tabs, "Files", $"{routePrefix}/files", true);
+			AttachTab(screen, tabs, "SQL", $"{routePrefix}/sql", false);
 		});
 
 		var toolbars = AddElement<ToolbarRows>(screen, "toolbars");
@@ -185,12 +188,13 @@ public static class NavigationSystem
 		return screen;
 	}
 
-	static Screen NewExampleSqlScreen(Session session)
+	static Screen NewExampleSqlScreen(Session session, bool legacyScreenRenderer = true)
 	{
-		var screen = new Screen(session, "Example SQL");
+		var routePrefix = legacyScreenRenderer ? "/example-old" : "/example";
+		var screen = new Screen(session, "Example SQL", legacyScreenRenderer);
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
-		screen.AddNewBreadCrumbEntity("Example", "/example", true, 1);
-		screen.AddNewBreadCrumbEntity("SQL", "/example/sql", true, 2);
+		screen.AddNewBreadCrumbEntity("Example", routePrefix, true, 1);
+		screen.AddNewBreadCrumbEntity("SQL", $"{routePrefix}/sql", true, 2);
 
 		AddElement<ScreenTitleBar>(screen, "title-bar").WithChildren(titleBar =>
 		{
@@ -198,9 +202,9 @@ public static class NavigationSystem
 			var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
 			breadcrumbs.WithChildren(screen.SelectComponents<BreadCrumb>().OrderBy(breadcrumb => breadcrumb.Index).ToArray());
 			titleBar.WithChildren(AddElement<TowerIcon>(screen, "tower-icon"), breadcrumbs, tabs);
-			AttachTab(screen, tabs, "Home", "/example", false);
-			AttachTab(screen, tabs, "Files", "/example/files", false);
-			AttachTab(screen, tabs, "SQL", "/example/sql", true);
+			AttachTab(screen, tabs, "Home", routePrefix, false);
+			AttachTab(screen, tabs, "Files", $"{routePrefix}/files", false);
+			AttachTab(screen, tabs, "SQL", $"{routePrefix}/sql", true);
 		});
 
 		var toolbars = AddElement<ToolbarRows>(screen, "toolbars");
