@@ -228,33 +228,6 @@ public static class NavigationSystem
 		readme.IsSelected = true;
 	}
 
-	static T AddElement<T>(Screen screen, string id) where T : Component, IRequires<Element>
-	{
-		var entity = screen.NewEntity();
-		entity.AddComponent(e => new Element(e, id));
-		return entity.AddComponent<T>();
-	}
-
-	static T AddElement<T>(Screen screen, string id, string value) where T : Component, IRequires<Element>
-	{
-		var entity = screen.NewEntity();
-		entity.AddComponent(e => new Element(e, id));
-		return entity.AddComponent(e => (T)Activator.CreateInstance(typeof(T), e, value)!);
-	}
-
-	static void AttachTab(Screen screen, Tabs tabs, string text, string uri, bool selected)
-	{
-		var entity = screen.NewEntity();
-		entity.AddComponent(e => new Element(e, $"tab-{text.ToLowerInvariant()}"));
-		entity.AddComponent(e => new Hyperlink(e, uri, true));
-		var tab = entity.AddComponent(e => new Tab(e, text));
-		if (selected)
-		{
-			tab.GetComponent<Element>().State |= ElementState.Selected;
-		}
-		tabs.WithChildren(tab);
-	}
-
 	static Toolbar AddFileToolbar(Screen screen, ToolbarLayout layout)
 	{
 		var toolbar = AddToolbar(screen, layout, 0);
@@ -300,16 +273,6 @@ public static class NavigationSystem
 		var control = entity.AddComponent(createControl);
 		ParentingSystem.AttachParentChild<Toolbar, ToolbarControl>(toolbar, toolbarControl);
 		return control;
-	}
-
-	static Dock AddDock(Screen screen, string region, string title)
-	{
-		var entity = screen.NewEntity();
-		entity.AddComponent(e => new Element(e, $"dock-{region}"));
-		var dock = entity.AddComponent(e => new Dock(e, region, title));
-		var subwindow = AddElement<Subwindow>(screen, $"subwindow-{region}", title);
-		dock.WithChildren(subwindow);
-		return dock;
 	}
 
 	static TreeNode AddTreeNode(Screen screen, string text, TreeNodeIcon icon = TreeNodeIcon.File)
