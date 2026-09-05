@@ -47,12 +47,11 @@ public static class NavigationSystem
 		}
 		else if (pathParts.Length >= 1 && pathParts[0].Equals("example", StringComparison.OrdinalIgnoreCase))
 		{
-			var mode = pathParts.Length == 2 && pathParts[1].Equals("files", StringComparison.OrdinalIgnoreCase)
-				? ExampleScreenMode.Files
+			session.ActiveScreen = pathParts.Length == 2 && pathParts[1].Equals("files", StringComparison.OrdinalIgnoreCase)
+				? NewExampleFilesScreen(session)
 				: pathParts.Length == 2 && pathParts[1].Equals("sql", StringComparison.OrdinalIgnoreCase)
-					? ExampleScreenMode.Sql
-					: ExampleScreenMode.Home;
-			session.ActiveScreen = NewExampleScreen(session, mode);
+					? NewExampleSqlScreen(session)
+					: NewExampleScreen(session);
 		}
 		else if (pathParts.Length >= 2 && pathParts[0].Equals("workspace", StringComparison.OrdinalIgnoreCase))
 		{
@@ -91,92 +90,149 @@ public static class NavigationSystem
 		return screen;
 	}
 
-	static Screen NewExampleScreen(Session session, ExampleScreenMode mode)
+	static Screen NewExampleScreen(Session session)
 	{
-		var title = mode switch
-		{
-			ExampleScreenMode.Files => "Example Files",
-			ExampleScreenMode.Sql => "Example SQL",
-			_ => "Example"
-		};
-		var screen = new Screen(session, title);
+		var screen = new Screen(session, "Example");
 		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
 		screen.AddNewBreadCrumbEntity("Example", "/example", true, 1);
-		screen.AddNewBreadCrumbEntity(mode switch
-		{
-			ExampleScreenMode.Files => "Files",
-			ExampleScreenMode.Sql => "SQL",
-			_ => "Home"
-		}, mode switch
-		{
-			ExampleScreenMode.Files => "/example/files",
-			ExampleScreenMode.Sql => "/example/sql",
-			_ => "/example"
-		}, true, 2);
-	screen.NewEntity().AddComponent(e => new ExampleScreenComponent(e, mode));
+		screen.AddNewBreadCrumbEntity("Home", "/example", true, 2);
 
-		var titleBar = AddElement<ScreenTitleBar>(screen, "title-bar");
-		var tower = AddElement<TowerIcon>(screen, "tower-icon");
-		var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
-		ElementSystem.Attach(titleBar, tower);
-		ElementSystem.Attach(titleBar, breadcrumbs);
-
-		var tabs = AddElement<Tabs>(screen, "tabs");
-		ElementSystem.Attach(titleBar, tabs);
-		AttachTab(screen, tabs, "Home", "/example", mode == ExampleScreenMode.Home);
-		AttachTab(screen, tabs, "Files", "/example/files", mode == ExampleScreenMode.Files);
-		AttachTab(screen, tabs, "SQL", "/example/sql", mode == ExampleScreenMode.Sql);
+		AddElement<ScreenTitleBar>(screen, "title-bar").WithChildren(titleBar =>
+		{
+			var tabs = AddElement<Tabs>(screen, "tabs");
+			var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
+			breadcrumbs.WithChildren(screen.SelectComponents<BreadCrumb>().OrderBy(breadcrumb => breadcrumb.Index).ToArray());
+			titleBar.WithChildren(AddElement<TowerIcon>(screen, "tower-icon"), breadcrumbs, tabs);
+			AttachTab(screen, tabs, "Home", "/example", true);
+			AttachTab(screen, tabs, "Files", "/example/files", false);
+			AttachTab(screen, tabs, "SQL", "/example/sql", false);
+		});
 
 		var toolbars = AddElement<ToolbarRows>(screen, "toolbars");
 		var primaryToolbar = AddToolbar(screen, "toolbar-1");
-		ElementSystem.Attach(toolbars, primaryToolbar);
-		if (mode == ExampleScreenMode.Sql)
-		{
-			var connection = AddElement<ToolbarDropdown>(screen, "sql-connection");
-			var primaryRow = screen.SelectComponents<ToolbarRow>().Single(row => row.GetComponent<Element>().Id == "toolbar-1-row");
-			ElementSystem.Attach(primaryRow, connection);
-		}
-		ElementSystem.Attach(toolbars, AddToolbar(screen, "toolbar-2"));
-		ElementSystem.Attach(toolbars, AddToolbar(screen, "toolbar-3"));
+		toolbars.WithChildren(primaryToolbar, AddToolbar(screen, "toolbar-2"), AddToolbar(screen, "toolbar-3"));
 
 		var dockLayout = AddElement<DockLayout>(screen, "dock-layout");
-		var dockRow = AddElement<DockRow>(screen, "dock-row");
-		var leftStack = AddElement<DockStack>(screen, "dock-left-stack");
-		ElementSystem.Attach(dockLayout, dockRow);
-		ElementSystem.Attach(dockRow, leftStack);
-
-		var leftDock = AddDock(screen, leftStack, "left", "Files");
-		var barDock = AddDock(screen, leftStack, "bar", "Outline");
-		var middleDock = AddDock(screen, dockRow, "middle", "File");
-		var rightDock = AddDock(screen, dockRow, "right", "Properties");
-
-		var tree = AddElement<Tree>(screen, "file-tree");
-		ElementSystem.Attach(leftDock, tree);
-		AddFileNodes(screen, tree);
-
-		var middleContent = AddElement<SubwindowContent>(screen, "file-content-window");
-		var middleText = mode == ExampleScreenMode.Sql
-			? "select *\nfrom users\nwhere active = true;"
-			: mode == ExampleScreenMode.Files
-				? "README.md\n\n# Files\n\nBrowse files in the workspace tree."
-				: "README.md\n\n# SiegeTower\n\nExample file content aligned to the grid.";
-		var fileContent = AddElement<Text>(screen, "middle-content", middleText);
-		ElementSystem.Attach(middleDock, middleContent);
-		ElementSystem.Attach(middleContent, fileContent);
-
-		var properties = AddElement<Subwindow>(screen, "file-properties", "Properties");
-		ElementSystem.Attach(rightDock, properties);
-		ElementSystem.Attach(properties, AddElement<Label>(screen, "property-name", "Name: README.md"));
-		ElementSystem.Attach(properties, AddElement<Label>(screen, "property-type", "Type: Markdown"));
-		ElementSystem.Attach(properties, AddElement<Label>(screen, "property-size", "Size: 1.2 KB"));
-
-		var outline = AddElement<Subwindow>(screen, "file-outline", "Outline");
-		ElementSystem.Attach(barDock, outline);
-		ElementSystem.Attach(outline, AddElement<Label>(screen, "outline-heading", "README.md"));
-		ElementSystem.Attach(outline, AddElement<Label>(screen, "outline-section", "Files"));
+		dockLayout.WithChildren(layout =>
+		{
+			layout.WithChildren(
+				AddElement<DockRow>(screen, "dock-row").WithChildren(
+					AddElement<DockStack>(screen, "dock-left-stack").WithChildren(
+						AddDock(screen, "left", "Files").WithChildren(AddFileNodes(screen)),
+						AddDock(screen, "bar", "Outline").WithChildren(
+							AddElement<Subwindow>(screen, "file-outline", "Outline").WithChildren(
+								AddElement<Label>(screen, "outline-heading", "README.md"),
+								AddElement<Label>(screen, "outline-section", "Files")))),
+					AddDock(screen, "middle", "File").WithChildren(
+						AddElement<SubwindowContent>(screen, "file-content-window").WithChildren(
+							AddElement<Text>(screen, "middle-content", "README.md\n\n# SiegeTower\n\nExample file content aligned to the grid."))),
+					AddDock(screen, "right", "Properties").WithChildren(
+						AddElement<Subwindow>(screen, "file-properties", "Properties").WithChildren(
+							AddElement<Label>(screen, "property-name", "Name: README.md"),
+							AddElement<Label>(screen, "property-type", "Type: Markdown"),
+							AddElement<Label>(screen, "property-size", "Size: 1.2 KB")))));
+		});
 
 		var statusBar = AddElement<StatusBar>(screen, "status-bar");
-		ElementSystem.Attach(statusBar, AddElement<StatusItem>(screen, "status", "Ready | Example screen"));
+		statusBar.WithChildren(AddElement<StatusItem>(screen, "status", "Ready | Example screen"));
+		return screen;
+	}
+
+	static Screen NewExampleFilesScreen(Session session)
+	{
+		var screen = new Screen(session, "Example Files");
+		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity("Example", "/example", true, 1);
+		screen.AddNewBreadCrumbEntity("Files", "/example/files", true, 2);
+
+		AddElement<ScreenTitleBar>(screen, "title-bar").WithChildren(titleBar =>
+		{
+			var tabs = AddElement<Tabs>(screen, "tabs");
+			var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
+			breadcrumbs.WithChildren(screen.SelectComponents<BreadCrumb>().OrderBy(breadcrumb => breadcrumb.Index).ToArray());
+			titleBar.WithChildren(AddElement<TowerIcon>(screen, "tower-icon"), breadcrumbs, tabs);
+			AttachTab(screen, tabs, "Home", "/example", false);
+			AttachTab(screen, tabs, "Files", "/example/files", true);
+			AttachTab(screen, tabs, "SQL", "/example/sql", false);
+		});
+
+		var toolbars = AddElement<ToolbarRows>(screen, "toolbars");
+		toolbars.WithChildren(AddToolbar(screen, "toolbar-1"), AddToolbar(screen, "toolbar-2"), AddToolbar(screen, "toolbar-3"));
+
+		var dockLayout = AddElement<DockLayout>(screen, "dock-layout");
+		dockLayout.WithChildren(layout =>
+		{
+			layout.WithChildren(
+				AddElement<DockRow>(screen, "dock-row").WithChildren(
+					AddElement<DockStack>(screen, "dock-left-stack").WithChildren(
+						AddDock(screen, "left", "Files").WithChildren(AddFileNodes(screen)),
+						AddDock(screen, "bar", "Outline").WithChildren(
+							AddElement<Subwindow>(screen, "file-outline", "Outline").WithChildren(
+								AddElement<Label>(screen, "outline-heading", "README.md"),
+								AddElement<Label>(screen, "outline-section", "Files")))),
+					AddDock(screen, "middle", "File").WithChildren(
+						AddElement<SubwindowContent>(screen, "file-content-window").WithChildren(
+							AddElement<Text>(screen, "middle-content", "README.md\n\n# Files\n\nBrowse files in the workspace tree."))),
+					AddDock(screen, "right", "Properties").WithChildren(
+						AddElement<Subwindow>(screen, "file-properties", "Properties").WithChildren(
+							AddElement<Label>(screen, "property-name", "Name: README.md"),
+							AddElement<Label>(screen, "property-type", "Type: Markdown"),
+							AddElement<Label>(screen, "property-size", "Size: 1.2 KB")))));
+		});
+
+		var statusBar = AddElement<StatusBar>(screen, "status-bar");
+		statusBar.WithChildren(AddElement<StatusItem>(screen, "status", "Ready | Example files screen"));
+		return screen;
+	}
+
+	static Screen NewExampleSqlScreen(Session session)
+	{
+		var screen = new Screen(session, "Example SQL");
+		screen.AddNewBreadCrumbEntity("Home", "/", true, 0);
+		screen.AddNewBreadCrumbEntity("Example", "/example", true, 1);
+		screen.AddNewBreadCrumbEntity("SQL", "/example/sql", true, 2);
+
+		AddElement<ScreenTitleBar>(screen, "title-bar").WithChildren(titleBar =>
+		{
+			var tabs = AddElement<Tabs>(screen, "tabs");
+			var breadcrumbs = AddElement<Breadcrumbs>(screen, "breadcrumbs");
+			breadcrumbs.WithChildren(screen.SelectComponents<BreadCrumb>().OrderBy(breadcrumb => breadcrumb.Index).ToArray());
+			titleBar.WithChildren(AddElement<TowerIcon>(screen, "tower-icon"), breadcrumbs, tabs);
+			AttachTab(screen, tabs, "Home", "/example", false);
+			AttachTab(screen, tabs, "Files", "/example/files", false);
+			AttachTab(screen, tabs, "SQL", "/example/sql", true);
+		});
+
+		var toolbars = AddElement<ToolbarRows>(screen, "toolbars");
+		var primaryToolbar = AddToolbar(screen, "toolbar-1");
+		var connection = AddElement<ToolbarDropdown>(screen, "sql-connection");
+		var primaryRow = screen.SelectComponents<ToolbarRow>().Single(row => row.GetComponent<Element>().Id == "toolbar-1-row");
+		toolbars.WithChildren(primaryToolbar, AddToolbar(screen, "toolbar-2"), AddToolbar(screen, "toolbar-3"));
+		primaryRow.WithChildren(connection);
+
+		var dockLayout = AddElement<DockLayout>(screen, "dock-layout");
+		dockLayout.WithChildren(layout =>
+		{
+			layout.WithChildren(
+				AddElement<DockRow>(screen, "dock-row").WithChildren(
+					AddElement<DockStack>(screen, "dock-left-stack").WithChildren(
+						AddDock(screen, "left", "Files").WithChildren(AddFileNodes(screen)),
+						AddDock(screen, "bar", "Outline").WithChildren(
+							AddElement<Subwindow>(screen, "file-outline", "Outline").WithChildren(
+								AddElement<Label>(screen, "outline-heading", "Query.sql"),
+								AddElement<Label>(screen, "outline-section", "Query")))),
+					AddDock(screen, "middle", "File").WithChildren(
+						AddElement<SubwindowContent>(screen, "file-content-window").WithChildren(
+							AddElement<Text>(screen, "middle-content", "select *\nfrom users\nwhere active = true;"))),
+					AddDock(screen, "right", "Properties").WithChildren(
+						AddElement<Subwindow>(screen, "file-properties", "Properties").WithChildren(
+							AddElement<Label>(screen, "property-name", "Name: Query.sql"),
+							AddElement<Label>(screen, "property-type", "Type: SQL"),
+							AddElement<Label>(screen, "property-size", "Size: 0.1 KB")))));
+		});
+
+		var statusBar = AddElement<StatusBar>(screen, "status-bar");
+		statusBar.WithChildren(AddElement<StatusItem>(screen, "status", "Ready | Example SQL screen"));
 		return screen;
 	}
 
@@ -204,7 +260,7 @@ public static class NavigationSystem
 		{
 			tab.GetComponent<Element>().State |= ElementState.Selected;
 		}
-		ElementSystem.Attach(tabs, tab);
+		tabs.WithChildren(tab);
 	}
 
 	static Toolbar AddToolbar(Screen screen, string id)
@@ -213,24 +269,24 @@ public static class NavigationSystem
 		entity.AddComponent(e => new Element(e, id));
 		var toolbar = entity.AddComponent<Toolbar>();
 		var row = AddElement<ToolbarRow>(screen, $"{id}-row");
-		ElementSystem.Attach(toolbar, row);
-		ElementSystem.Attach(row, AddElement<ToolbarButton>(screen, $"{id}-button", "Action"));
+		toolbar.WithChildren(row);
+		row.WithChildren(AddElement<ToolbarButton>(screen, $"{id}-button", "Action"));
 		return toolbar;
 	}
 
-	static Dock AddDock(Screen screen, IRequires<Element> parent, string region, string title)
+	static Dock AddDock(Screen screen, string region, string title)
 	{
 		var entity = screen.NewEntity();
 		entity.AddComponent(e => new Element(e, $"dock-{region}"));
 		var dock = entity.AddComponent(e => new Dock(e, region, title));
 		var subwindow = AddElement<Subwindow>(screen, $"subwindow-{region}", title);
-		ElementSystem.Attach(dock, subwindow);
-		ElementSystem.Attach(parent, dock);
+		dock.WithChildren(subwindow);
 		return dock;
 	}
 
-	static void AddFileNodes(Screen screen, Tree tree)
+	static Tree AddFileNodes(Screen screen)
 	{
+		var tree = AddElement<Tree>(screen, "file-tree");
 		var src = AddTreeNode(screen, "node-src", "src", TreeNodeIcon.Folder);
 		var app = AddTreeNode(screen, "node-app", "App", TreeNodeIcon.Folder);
 		var program = AddTreeNode(screen, "node-program", "Program.cs");
@@ -240,20 +296,18 @@ public static class NavigationSystem
 		var output = AddTreeNode(screen, "node-output", "output.txt");
 		var readme = AddTreeNode(screen, "node-readme", "README.md");
 
-		ElementSystem.Attach(tree, src);
-		ElementSystem.Attach(src, app);
-		ElementSystem.Attach(app, program);
-		ElementSystem.Attach(app, sql);
-		ElementSystem.Attach(sql, query);
-		ElementSystem.Attach(src, dist);
-		ElementSystem.Attach(dist, output);
-		ElementSystem.Attach(src, readme);
+		tree.WithChildren(src);
+		src.WithChildren(app, dist, readme);
+		app.WithChildren(program, sql);
+		sql.WithChildren(query);
+		dist.WithChildren(output);
 
 		src.IsExpanded = true;
 		app.IsExpanded = true;
 		sql.IsExpanded = true;
 		dist.IsExpanded = true;
 		readme.IsSelected = true;
+		return tree;
 	}
 
 	static TreeNode AddTreeNode(Screen screen, string id, string text, TreeNodeIcon icon = TreeNodeIcon.File)
@@ -283,8 +337,8 @@ public static class NavigationSystem
 		var toolbarRow = screen.NewEntity().AddComponent<Element>().AddComponent<ToolbarRow>();
 		var toolbar = screen.NewEntity().AddComponent<Element>().AddComponent<Toolbar>();
 
-		ElementSystem.Attach(toolbarRows, toolbarRow);
-		ElementSystem.Attach(toolbarRow, toolbar);
+		toolbarRows.WithChildren(toolbarRow);
+		toolbarRow.WithChildren(toolbar);
 		return screen;
 	}
 }

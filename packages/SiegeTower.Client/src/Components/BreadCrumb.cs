@@ -1,4 +1,4 @@
-public class BreadCrumb : Component
+public class BreadCrumb : Component, IRequires<Element>
 {
 	public string Text { get; set; }
 
@@ -17,7 +17,9 @@ public static class BreadCrumbEntity
 {
 	public static BreadCrumb AddNewBreadCrumbEntity(this EntityStorage storage, string text, string uri, bool uriIsInternal, int index)
 	{
-		var breadCrumb = storage.NewEntity().AddComponent(e => new BreadCrumb(e, text, index));
+		var entity = storage.NewEntity();
+		entity.AddComponent(e => new Element(e, $"breadcrumb-{index}"));
+		var breadCrumb = entity.AddComponent(e => new BreadCrumb(e, text, index));
 		breadCrumb.Entity.AddComponent(e => new Hyperlink(e, uri, uriIsInternal));
 		return breadCrumb;
 	}

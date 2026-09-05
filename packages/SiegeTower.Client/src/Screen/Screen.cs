@@ -24,7 +24,7 @@ public sealed class Screen : EntityStorage
 		var item = this.NewEntity().AddComponent<Element>(e => new Element(e, $"menu-{text.ToLowerInvariant()}"));
 		item.Entity.AddComponent(e => new Hyperlink(e, uri, true));
 		var menuItem = item.Entity.AddComponent(e => new MenuItemComponent(e, text, icon));
-		ElementSystem.Attach(menu, menuItem);
+		menu.WithChildren(menuItem);
 		return menuItem;
 	}
 
@@ -33,7 +33,7 @@ public sealed class Screen : EntityStorage
 		var item = this.NewEntity().AddComponent<Element>(e => new Element(e, $"menu-{text.ToLowerInvariant()}"));
 		item.Entity.AddComponent(e => new Hyperlink(e, uri, true));
 		var menuItem = item.Entity.AddComponent(e => new MenuItemComponent(e, text, icon));
-		ElementSystem.Attach(parent, menuItem);
+		parent.WithChildren(menuItem);
 		return menuItem;
 	}
 }
