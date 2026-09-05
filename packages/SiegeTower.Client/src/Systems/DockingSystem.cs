@@ -137,7 +137,7 @@ public static class DockingSystem
 			{
 				ReplaceNode(screen, targetLayout!, targetGroup, split);
 			}
-			ParentingSystem.AttachParentChild<DockContainer, DockNode>(split, targetGroup);
+			ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(split, targetGroup);
 		}
 
 		var newGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
@@ -150,7 +150,7 @@ public static class DockingSystem
 		((IChildOf<DockContainer>)newGroup).Parent = split;
 	}
 
-	static void ReplaceNode(Screen screen, DockContainer parent, DockNode existing, DockContainer replacement)
+	static void ReplaceNode(Screen screen, DockContainer parent, DockLayoutNode existing, DockContainer replacement)
 	{
 		var index = parent.Children.IndexOf(existing);
 		parent.DetachChild(existing);
@@ -158,10 +158,10 @@ public static class DockingSystem
 		((IChildOf<DockContainer>)replacement).Parent = parent;
 	}
 
-	static void ReplaceNode(Screen screen, DockingLayout parent, DockNode existing, DockContainer replacement)
+	static void ReplaceNode(Screen screen, DockingLayout parent, DockLayoutNode existing, DockContainer replacement)
 	{
 		var index = parent.Children.IndexOf(existing);
-		ParentingSystem.DetachParentChild<DockingLayout, DockNode>(parent, existing);
+		ParentingSystem.DetachParentChild<DockingLayout, DockLayoutNode>(parent, existing);
 		parent.Children.Insert(index, replacement);
 		((IChildOf<DockingLayout>)replacement).Parent = parent;
 	}
@@ -202,7 +202,7 @@ public static class DockingSystem
 			return false;
 		}
 
-		ParentingSystem.DetachParentChild<DockContainer, DockNode>(parent, group);
+			ParentingSystem.DetachParentChild<DockContainer, DockLayoutNode>(parent, group);
 		ClearActiveWindow(group);
 		group.Entity.TryDeleteEntity();
 		return true;
@@ -228,7 +228,7 @@ public static class DockingSystem
 		var parent = FindNodeParent(screen, container);
 		if (parent is not null)
 		{
-			ParentingSystem.DetachParentChild<DockContainer, DockNode>(parent, container);
+			ParentingSystem.DetachParentChild<DockContainer, DockLayoutNode>(parent, container);
 			container.Entity.TryDeleteEntity();
 			return true;
 		}
@@ -239,18 +239,18 @@ public static class DockingSystem
 			return false;
 		}
 
-		ParentingSystem.DetachParentChild<DockingLayout, DockNode>(layout, container);
+		ParentingSystem.DetachParentChild<DockingLayout, DockLayoutNode>(layout, container);
 		container.Entity.TryDeleteEntity();
 		return true;
 	}
 
-	static bool ReplaceContainerWithChild(Screen screen, DockContainer container, DockNode child)
+	static bool ReplaceContainerWithChild(Screen screen, DockContainer container, DockLayoutNode child)
 	{
 		var parent = FindNodeParent(screen, container);
 		if (parent is not null)
 		{
 			var index = parent.Children.IndexOf(container);
-			ParentingSystem.DetachParentChild<DockContainer, DockNode>(parent, container);
+			ParentingSystem.DetachParentChild<DockContainer, DockLayoutNode>(parent, container);
 			parent.Children.Insert(index, child);
 			((IChildOf<DockContainer>)child).Parent = parent;
 			container.Entity.TryDeleteEntity();
@@ -264,7 +264,7 @@ public static class DockingSystem
 		}
 
 		var layoutIndex = layout.Children.IndexOf(container);
-		ParentingSystem.DetachParentChild<DockingLayout, DockNode>(layout, container);
+		ParentingSystem.DetachParentChild<DockingLayout, DockLayoutNode>(layout, container);
 		layout.Children.Insert(layoutIndex, child);
 		((IChildOf<DockingLayout>)child).Parent = layout;
 		container.Entity.TryDeleteEntity();
@@ -274,11 +274,11 @@ public static class DockingSystem
 	static DockWindowGroup? FindParentGroup(Screen screen, DockWindow window)
 		=> screen.SelectComponents<DockWindowGroup>().SingleOrDefault(group => group.Children.Values.Contains(window));
 
-	static DockContainer? FindNodeParent(Screen screen, DockNode node)
+	static DockContainer? FindNodeParent(Screen screen, DockLayoutNode node)
 		=> DockContainers(screen)
 			.SingleOrDefault(container => container.Children.Values.Contains(node));
 
-	static DockingLayout? FindDockingLayoutParent(Screen screen, DockNode node)
+	static DockingLayout? FindDockingLayoutParent(Screen screen, DockLayoutNode node)
 		=> screen.SelectComponents<DockingLayout>().SingleOrDefault(layout => layout.Children.Values.Contains(node));
 
 	static IEnumerable<DockContainer> DockContainers(Screen screen)

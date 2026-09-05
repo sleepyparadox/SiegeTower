@@ -106,21 +106,21 @@ public static class NavigationSystem
 		AddWorkspaceToolbar(screen, toolbarLayout);
 
 		var root = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Horizontal));
-		ParentingSystem.AttachParentChild<DockingLayout, DockNode>(dockingLayout, root);
+		ParentingSystem.AttachParentChild<DockingLayout, DockLayoutNode>(dockingLayout, root);
 
 		var leftStack = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Vertical));
 		var documentGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
 		var rightStack = screen.NewEntity().AddComponent(entity => new DockContainer(entity, DockOrientation.Vertical));
 		rightStack.IsFixedWidth = true;
 		rightStack.WidthInGridUnits = 10;
-		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, leftStack);
-		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, documentGroup);
-		ParentingSystem.AttachParentChild<DockContainer, DockNode>(root, rightStack);
+		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(root, leftStack);
+		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(root, documentGroup);
+		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(root, rightStack);
 
 		var filesGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
 		var outlineGroup = screen.NewEntity().AddComponent<DockWindowGroup>();
-		ParentingSystem.AttachParentChild<DockContainer, DockNode>(leftStack, filesGroup);
-		ParentingSystem.AttachParentChild<DockContainer, DockNode>(leftStack, outlineGroup);
+		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(leftStack, filesGroup);
+		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(leftStack, outlineGroup);
 
 		AddDockWindow(screen, filesGroup, "Files", "src\n  App\n    Program.cs\n    SQL\n      Query.sql\n  Dist\nREADME.md");
 		AddDockWindow(screen, outlineGroup, "Outline", "README.md\nFiles");
@@ -139,7 +139,7 @@ public static class NavigationSystem
 	static void AddDockWindow(Screen screen, DockContainer container, string title, string content)
 	{
 		var group = screen.NewEntity().AddComponent<DockWindowGroup>();
-		ParentingSystem.AttachParentChild<DockContainer, DockNode>(container, group);
+		ParentingSystem.AttachParentChild<DockContainer, DockLayoutNode>(container, group);
 		AddDockWindow(screen, group, title, content);
 	}
 

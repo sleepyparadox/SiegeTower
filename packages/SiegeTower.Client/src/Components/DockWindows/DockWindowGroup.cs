@@ -1,4 +1,4 @@
-public sealed class DockWindowGroup : DockNode, IParentOf<DockWindow>
+public sealed class DockWindowGroup : DockLayoutNode, IParentOf<DockWindow>
 {
 	public ComponentRefList<DockWindow> Children { get; set; } = new();
 	public ComponentRef<DockWindow> ActiveWindow { get; set; } = new();
