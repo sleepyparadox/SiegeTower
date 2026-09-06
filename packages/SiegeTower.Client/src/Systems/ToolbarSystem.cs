@@ -2,6 +2,29 @@ namespace SiegeTower.Client;
 
 public static class ToolbarSystem
 {
+	public static Toolbar AddToolbar(this ToolbarLayout layout, int rowIndex)
+	{
+		ArgumentNullException.ThrowIfNull(layout);
+
+		var entity = layout.Entity.EntityStorage.NewEntity();
+		var toolbar = entity.AddComponent(e => new Toolbar(e, rowIndex));
+		layout.AttachChildren(toolbar);
+		return toolbar;
+	}
+
+	public static ToolbarControl AddToolbarControl<TControl>(this Toolbar toolbar, Func<Entity, TControl> createControl)
+		where TControl : Component
+	{
+		ArgumentNullException.ThrowIfNull(toolbar);
+		ArgumentNullException.ThrowIfNull(createControl);
+
+		var entity = toolbar.Entity.EntityStorage.NewEntity();
+		var toolbarControl = entity.AddComponent<ToolbarControl>();
+		var control = entity.AddComponent(createControl);
+		toolbar.AttachChildren(toolbarControl);
+		return toolbarControl;
+	}
+
 	public static void HandleEvent(Session session, SessionEvent sessionEvent)
 	{
 		if (sessionEvent.IsCanceled)

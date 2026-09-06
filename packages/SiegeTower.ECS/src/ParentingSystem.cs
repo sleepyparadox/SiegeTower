@@ -76,6 +76,30 @@ public static class ParentingSystem
 		return parent;
 	}
 
+	public static TParent AttachChildren<TParent, TChild>(this TParent parent, Func<TParent, TChild[]> getChildren)
+		where TParent : Component, IParentOf<TChild>
+		where TChild : Component, IChildOf<TParent>
+	{
+		ArgumentNullException.ThrowIfNull(parent);
+		ArgumentNullException.ThrowIfNull(getChildren);
+		return parent.AttachChildren(getChildren(parent));
+	}
+
+	public static TParent AttachChildren<TParent, TChild>(this TParent parent, params TChild[] children)
+		where TParent : Component, IParentOf<TChild>
+		where TChild : Component, IChildOf<TParent>
+	{
+		ArgumentNullException.ThrowIfNull(parent);
+		ArgumentNullException.ThrowIfNull(children);
+
+		foreach (var child in children)
+		{
+			AttachParentChild(parent, child);
+		}
+
+		return parent;
+	}
+
 	public static TParent DetachChild<TParent, TChild>(this TParent parent, TChild child)
 		where TParent : Component, IParentOf<TChild>
 		where TChild : Component, IChildOf<TParent>

@@ -12,6 +12,188 @@ public static class EntitySystem
 		return result;
 	}
 
+	public static TComponent1 NewEntity<TComponent1>(this EntityStorage storage)
+		where TComponent1 : Component
+	{
+		var entity = storage.NewEntity();
+		return entity.AddComponent<TComponent1>();
+	}
+
+	public static TComponent1 NewEntity<TComponent1>(this EntityStorage storage, Func<Entity, TComponent1> constructor)
+		where TComponent1 : Component
+	{
+		var entity = storage.NewEntity();
+		return entity.AddComponent(constructor);
+	}
+
+	public static TComponent2 NewEntity<TComponent1, TComponent2>(this EntityStorage storage)
+		where TComponent1 : Component
+		where TComponent2 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		return entity.AddComponent<TComponent2>();
+	}
+
+	public static TComponent2 NewEntity<TComponent1, TComponent2>(this EntityStorage storage, Func<Entity, TComponent2> constructor)
+		where TComponent1 : Component
+		where TComponent2 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		return entity.AddComponent(constructor);
+	}
+
+	public static TComponent3 NewEntity<TComponent1, TComponent2, TComponent3>(this EntityStorage storage)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		return entity.AddComponent<TComponent3>();
+	}
+
+	public static TComponent3 NewEntity<TComponent1, TComponent2, TComponent3>(this EntityStorage storage, Func<Entity, TComponent3> constructor)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		return entity.AddComponent(constructor);
+	}
+
+	public static TComponent4 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4>(this EntityStorage storage)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		return entity.AddComponent<TComponent4>();
+	}
+
+	public static TComponent4 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4>(this EntityStorage storage, Func<Entity, TComponent4> constructor)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		return entity.AddComponent(constructor);
+	}
+
+	public static TComponent5 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4, TComponent5>(this EntityStorage storage)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+		where TComponent5 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		entity.AddComponent<TComponent4>();
+		return entity.AddComponent<TComponent5>();
+	}
+
+	public static TComponent5 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4, TComponent5>(this EntityStorage storage, Func<Entity, TComponent5> constructor)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+		where TComponent5 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		entity.AddComponent<TComponent4>();
+		return entity.AddComponent(constructor);
+	}
+
+	public static TComponent6 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4, TComponent5, TComponent6>(this EntityStorage storage)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+		where TComponent5 : Component
+		where TComponent6 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		entity.AddComponent<TComponent4>();
+		entity.AddComponent<TComponent5>();
+		return entity.AddComponent<TComponent6>();
+	}
+
+	public static TComponent6 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4, TComponent5, TComponent6>(this EntityStorage storage, Func<Entity, TComponent6> constructor)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+		where TComponent5 : Component
+		where TComponent6 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		entity.AddComponent<TComponent4>();
+		entity.AddComponent<TComponent5>();
+		return entity.AddComponent(constructor);
+	}
+
+	public static TComponent7 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4, TComponent5, TComponent6, TComponent7>(this EntityStorage storage)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+		where TComponent5 : Component
+		where TComponent6 : Component
+		where TComponent7 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		entity.AddComponent<TComponent4>();
+		entity.AddComponent<TComponent5>();
+		entity.AddComponent<TComponent6>();
+		return entity.AddComponent<TComponent7>();
+	}
+
+	public static TComponent7 NewEntity<TComponent1, TComponent2, TComponent3, TComponent4, TComponent5, TComponent6, TComponent7>(this EntityStorage storage, Func<Entity, TComponent7> constructor)
+		where TComponent1 : Component
+		where TComponent2 : Component
+		where TComponent3 : Component
+		where TComponent4 : Component
+		where TComponent5 : Component
+		where TComponent6 : Component
+		where TComponent7 : Component
+	{
+		var entity = storage.NewEntity();
+		entity.AddComponent<TComponent1>();
+		entity.AddComponent<TComponent2>();
+		entity.AddComponent<TComponent3>();
+		entity.AddComponent<TComponent4>();
+		entity.AddComponent<TComponent5>();
+		entity.AddComponent<TComponent6>();
+		return entity.AddComponent(constructor);
+	}
+
 	#endregion
 
 

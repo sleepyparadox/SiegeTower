@@ -1,4 +1,4 @@
-public sealed class ComboBoxControl : Component
+public sealed class ComboBoxControl : Component, IControlComponent
 {
 	public string Value { get; set; }
 

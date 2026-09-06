@@ -1,4 +1,4 @@
-public sealed class ButtonControl : Component
+public sealed class ButtonControl : Component, IControlComponent
 {
 	public string Text { get; set; }
 

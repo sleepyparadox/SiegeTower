@@ -1,4 +1,4 @@
-public sealed class ControlLayoutControl : Component, IChildOf<ControlLayoutNode>
+public sealed class ControlLayoutControl : Component, IControlComponent, IChildOf<ControlLayoutNode>
 {
 	public ComponentRef<ControlLayoutNode> Parent { get; set; } = new();
 

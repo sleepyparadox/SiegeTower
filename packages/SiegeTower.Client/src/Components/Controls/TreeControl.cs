@@ -1,4 +1,4 @@
-public sealed class TreeControl : Component, IParentOf<TreeNode>
+public sealed class TreeControl : Component, IControlComponent, IParentOf<TreeNode>
 {
 	public ComponentRefList<TreeNode> Children { get; set; } = new();
 

@@ -1,4 +1,4 @@
-public sealed class GridCellLayoutControl : Component, IChildOf<GridControl>, IRequires<ControlLayout>
+public sealed class GridCellLayoutControl : Component, IControlComponent, IChildOf<GridControl>, IRequires<ControlLayout>
 {
 	public int Row { get; }
 	public int Column { get; }

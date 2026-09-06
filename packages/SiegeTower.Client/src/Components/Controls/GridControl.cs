@@ -1,4 +1,4 @@
-public sealed class GridControl : Component, IParentOf<GridCellControl>, IParentOf<GridCellLayoutControl>
+public sealed class GridControl : Component, IControlComponent, IParentOf<GridCellControl>, IParentOf<GridCellLayoutControl>
 {
 	ComponentRefList<GridCellControl> IParentOf<GridCellControl>.Children { get; set; } = new();
 	ComponentRefList<GridCellLayoutControl> IParentOf<GridCellLayoutControl>.Children { get; set; } = new();

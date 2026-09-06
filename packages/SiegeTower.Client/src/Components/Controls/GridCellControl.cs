@@ -1,4 +1,4 @@
-public sealed class GridCellControl : Component, IChildOf<GridControl>
+public sealed class GridCellControl : Component, IControlComponent, IChildOf<GridControl>
 {
 	public int Row { get; }
 	public int Column { get; }
