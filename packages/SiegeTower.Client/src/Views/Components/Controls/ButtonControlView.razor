@@ -1,8 +1,19 @@
 @namespace SiegeTower.Client.Views.Components
 
-<button class="toolbar-button button grid-padded" type="button">@Control.Text</button>
+<button class="toolbar-button button grid-padded" type="button" @onclick="Navigate">@Control.Text</button>
 
 @code {
     [Parameter, EditorRequired]
     public ButtonControl Control { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+
+    void Navigate()
+    {
+        if (!string.IsNullOrEmpty(Control.Uri))
+        {
+            Session.HandleEvent(new NavigationEvent(Control.Uri));
+        }
+    }
 }

@@ -39,7 +39,7 @@ public static class NavigationSystem
 		}
 		else if (pathParts.Length == 1 && pathParts[0].Equals("workspace", StringComparison.OrdinalIgnoreCase))
 		{
-			session.ActiveScreen = NewWorkspaceListScreen(session);
+			session.ActiveScreen = CommonScreenFactory.CreateWorkspaceListScreen(session);
 		}
 		else if (pathParts.Length == 1 && pathParts[0].Equals("ollama", StringComparison.OrdinalIgnoreCase))
 		{
@@ -57,7 +57,7 @@ public static class NavigationSystem
 		{
 			var workspacePath = $"/workspace/{pathParts[1]}";
 			var isFilesScreen = pathParts.Length == 3 && pathParts[2].Equals("files", StringComparison.OrdinalIgnoreCase);
-			session.ActiveScreen = NewWorkspaceScreen(session, workspacePath, isFilesScreen);
+			session.ActiveScreen = WorkspaceScreenFactory.CreateWorkspaceScreen(session, workspacePath, isFilesScreen);
 		}
 		else
 		{
@@ -72,15 +72,6 @@ public static class NavigationSystem
 		var screen = new Screen(session, "Home");
 		var titleLayout = AddTitleLayout(screen, "Home");
 		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
-		return screen;
-	}
-
-	static Screen NewWorkspaceListScreen(Session session)
-	{
-		var screen = new Screen(session, "Workspaces");
-		var titleLayout = AddTitleLayout(screen, "Workspaces");
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", 1);
 		return screen;
 	}
 
@@ -230,20 +221,6 @@ public static class NavigationSystem
 				screen.NewEntity<TreeNode>(entity => new TreeNode(entity, "README.md"))
 			])
 		]);
-	}
-
-	static Screen NewWorkspaceScreen(Session session, string workspacePath, bool isFilesScreen)
-	{
-		var screen = new Screen(session, isFilesScreen ? "Workspace Files" : "Workspace");
-		var titleLayout = AddTitleLayout(screen, screen.Title);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", 1);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspace", workspacePath, 2);
-		if (isFilesScreen)
-		{
-			screen.AddNewBreadCrumbEntity(titleLayout, "Files", $"{workspacePath}/files", 3);
-		}
-		return screen;
 	}
 
 	static Screen NewFallbackScreen(Session session)

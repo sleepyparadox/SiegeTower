@@ -7,11 +7,13 @@ namespace SiegeTower.Client;
 public sealed class Session // 1 session per tab
 {	
 	internal NavigationManager NavigationManager { get; }
+	internal HttpClient HttpClient { get; }
 	public event Action? RedrawRequested;
 	public Screen ActiveScreen { get; set; } = null!;
 	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient)
 	{
 		NavigationManager = injectedNavigationManager;
+		HttpClient = injectedHttpClient;
 		var currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
 		HandleEvent(new NavigationEvent($"/{currentUrl}"));
 	}

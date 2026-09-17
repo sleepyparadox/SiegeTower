@@ -16,7 +16,7 @@
     {
         @if (toolbarControl.Entity.TryGetComponent(out ButtonControl? button))
         {
-            <ButtonControlView Control="@button" />
+            <ButtonControlView Control="@button" Session="@Session" />
         }
         else if (toolbarControl.Entity.TryGetComponent(out ComboBoxControl? comboBox))
         {
