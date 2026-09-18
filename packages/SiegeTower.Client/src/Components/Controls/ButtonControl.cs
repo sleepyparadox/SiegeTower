@@ -1,11 +1,13 @@
+using SiegeTower.Client;
+
 public sealed class ButtonControl : Component, IControlComponent
 {
 	public string Text { get; set; }
-	public string? Uri { get; set; }
+	public Action<Session>? Action { get; set; }
 
-	public ButtonControl(Entity entity, string text, string? uri = null) : base(entity)
+	public ButtonControl(Entity entity, string text, Action<Session>? action = null) : base(entity)
 	{
 		Text = text;
-		Uri = uri;
+		Action = action;
 	}
 }

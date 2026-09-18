@@ -44,7 +44,8 @@ public static class CommonScreenFactory
 		foreach (var workspaceRow in workspaceRows)
 		{
 			var workspaceControl = screen.NewEntity<ControlLayoutControl>();
-			workspaceControl.AddComponent(entity => new ButtonControl(entity, workspaceRow.Name, $"/workspace/{workspaceRow.Name}"));
+			workspaceControl.AddComponent(entity => new ButtonControl(entity, workspaceRow.Name,
+				session => session.HandleEvent(new NavigationEvent($"/workspace/{workspaceRow.Name}"))));
 			workspaceList.AttachChild(workspaceControl);
 		}
 

@@ -90,11 +90,16 @@ else if (Node is DockWindowGroup group)
 
     private static string ContainerClass(DockContainer container)
         => container.Orientation == DockOrientation.Horizontal
-            ? "dock-row grid-width-fill grid-height-fill"
+            ? $"dock-row grid-width-fill {HeightClass(container)}"
             : $"dock-stack grid-height-fill {WidthClass(container)}";
 
     private static string WidthClass(DockContainer container)
         => container.IsFixedWidth && container.WidthInGridUnits is int width
             ? $"dock-width-{width}"
             : "dock-fill-width";
+
+    private static string HeightClass(DockContainer container)
+        => container.IsFixedHeight && container.HeightInGridUnits is int height
+            ? $"dock-height-{height}"
+            : "grid-height-fill";
 }

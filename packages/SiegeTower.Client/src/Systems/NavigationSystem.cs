@@ -56,8 +56,13 @@ public static class NavigationSystem
 		else if (pathParts.Length >= 2 && pathParts[0].Equals("workspace", StringComparison.OrdinalIgnoreCase))
 		{
 			var workspacePath = $"/workspace/{pathParts[1]}";
-			var isFilesScreen = pathParts.Length == 3 && pathParts[2].Equals("files", StringComparison.OrdinalIgnoreCase);
-			session.ActiveScreen = WorkspaceScreenFactory.CreateWorkspaceScreen(session, workspacePath, isFilesScreen);
+			session.ActiveScreen = pathParts.Length == 2
+				? WorkspaceScreenFactory.CreateWorkspaceHomeScreen(session, workspacePath)
+				: pathParts[2].Equals("files", StringComparison.OrdinalIgnoreCase)
+					? WorkspaceScreenFactory.CreateWorkspaceFilesScreen(session, workspacePath)
+					: pathParts[2].Equals("git", StringComparison.OrdinalIgnoreCase)
+						? WorkspaceScreenFactory.CreateWorkspaceGitScreen(session, workspacePath)
+						: NewFallbackScreen(session);
 		}
 		else
 		{

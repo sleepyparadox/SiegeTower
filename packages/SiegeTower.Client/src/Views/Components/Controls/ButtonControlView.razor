@@ -11,9 +11,6 @@
 
     void Navigate()
     {
-        if (!string.IsNullOrEmpty(Control.Uri))
-        {
-            Session.HandleEvent(new NavigationEvent(Control.Uri));
-        }
+        Control.Action?.Invoke(Session);
     }
 }
