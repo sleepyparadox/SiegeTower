@@ -45,7 +45,11 @@ else if (Node is DockWindowGroup group)
         </div>
         @if (group.ActiveWindow.Get() is DockWindow activeWindow)
         {
-            @if (activeWindow.Entity.TryGetComponent(out DockWindowControlLayout? dockWindowControlLayout))
+            @if (activeWindow.Entity.TryGetComponent(out FilePreviewComponent? filePreview))
+            {
+                <FilePreviewView Preview="@filePreview" />
+            }
+            else if (activeWindow.Entity.TryGetComponent(out DockWindowControlLayout? dockWindowControlLayout))
             {
                 <div class="grid-dock-content grid-overflow-y grid-padded">
                     <ControlLayoutView Layout="@(dockWindowControlLayout!.GetComponent<ControlLayout>())" Session="@Session" />

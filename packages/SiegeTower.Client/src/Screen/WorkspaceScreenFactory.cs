@@ -1,4 +1,5 @@
 using SiegeTower.Data;
+using SiegeTower.Data.Graph.File;
 
 namespace SiegeTower.Client;
 
@@ -14,8 +15,9 @@ public static class WorkspaceScreenFactory
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
-		var chatHistoryWindow = AddDockWindow(screen, root, "Chat History", "Loading chat history...");
-		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadChatHistory(session, workspacePath, chatHistoryWindow)));
+		var chatHistoryWindow = AddDockWindow(screen, root, "Chat History", string.Empty);
+		var chatHistoryLayout = AddChatHistoryLayout(screen, chatHistoryWindow);
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadChatHistory(session, workspacePath, chatHistoryLayout)));
 
 		var inputContainer = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
 		inputContainer.IsFixedHeight = true;
@@ -26,19 +28,55 @@ public static class WorkspaceScreenFactory
 		return screen;
 	}
 
-	static async Task LoadChatHistory(Session session, string workspacePath, DockWindow chatHistoryWindow)
+	static async Task LoadChatHistory(Session session, string workspacePath, ControlLayoutNode chatHistoryLayout)
 	{
 		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
 		var operations = await WorkspaceAPISystem.Get<OperationRow[]>(session, workspaceId, "operation");
-		if (operations is null)
+		var logs = await WorkspaceAPISystem.Get<OperationLogRow[]>(session, workspaceId, "operation/all/log");
+		if (operations is null || logs is null)
 		{
 			return;
 		}
 
-		chatHistoryWindow.Contents = string.Join(
-			$"{Environment.NewLine}{Environment.NewLine}",
-			operations.Select(operation => operation.Operation.Prompt?.Prompt ?? "Operation without a prompt."));
+		ClearChatHistory(chatHistoryLayout);
+		foreach (var operation in operations.OrderBy(operation => operation.CreatedAt))
+		{
+			AddHistoryLabel(chatHistoryLayout, $"User: {operation.Operation.Prompt?.Prompt ?? "Operation without a prompt."}");
+			foreach (var log in logs
+				.Where(log => log.Operation_ID == operation.ID)
+				.OrderBy(log => log.CreatedAt))
+			{
+				AddHistoryLabel(chatHistoryLayout, $"Assistant: {log.Message}");
+			}
+		}
+
 		session.Redraw();
+	}
+
+	static ControlLayoutNode AddChatHistoryLayout(Screen screen, DockWindow window)
+	{
+		var layout = window.AddComponent<ControlLayout>();
+		window.AddComponent<DockWindowControlLayout>();
+		var root = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
+		layout.AttachChild(root);
+		return root;
+	}
+
+	static void AddHistoryLabel(ControlLayoutNode historyLayout, string value)
+	{
+		var control = historyLayout.Entity.EntityStorage.NewEntity<ControlLayoutControl>();
+		control.AddComponent(entity => new LabelControl(entity, value));
+		historyLayout.AttachChild(control);
+	}
+
+	static void ClearChatHistory(ControlLayoutNode historyLayout)
+	{
+		foreach (var control in ((IParentOf<ControlLayoutControl>)historyLayout).Children.Values.ToArray())
+		{
+			control.Entity.TryDeleteEntity();
+		}
+
+		((IParentOf<ControlLayoutControl>)historyLayout).Children.Values.Clear();
 	}
 
 	public static Screen CreateWorkspaceFilesScreen(Session session, string workspacePath)
@@ -59,8 +97,8 @@ public static class WorkspaceScreenFactory
 		var filesWindow = AddDockWindow(screen, filesContainer, "Files", string.Empty);
 		filesWindow.AddComponent<ControlLayout>();
 		filesWindow.AddComponent<DockWindowControlLayout>();
-		AddFileTreeControlLayout(screen, filesWindow);
-		AddDockWindow(screen, root, "README.md", "Select a file to open it here.");
+		var fileTree = AddFileTreeControlLayout(screen, filesWindow);
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadFiles(session, screen, workspacePath, root, fileTree)));
 		return screen;
 	}
 
@@ -167,19 +205,118 @@ public static class WorkspaceScreenFactory
 		}
 	}
 
-	static void AddFileTreeControlLayout(Screen screen, DockWindow window)
+	static async Task LoadFiles(Session session, Screen screen, string workspacePath, DockContainer root, TreeControl fileTree)
+	{
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var files = await WorkspaceAPISystem.Get<FileRow[]>(session, workspaceId, "file");
+		if (files is null)
+		{
+			return;
+		}
+
+		fileTree.Children.Values.Clear();
+		foreach (var file in files.OrderBy(file => file.Path, StringComparer.Ordinal))
+		{
+			AddFileTreePath(fileTree.Entity.EntityStorage, fileTree, file.Path,
+				session => screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity,
+					() => OpenFilePreview(session, screen, root, workspaceId, file.Path))));
+		}
+
+		session.Redraw();
+	}
+
+	static void AddFileTreePath(EntityStorage storage, TreeControl fileTree, string path, Action<Session> onClick)
+	{
+		var segments = path.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+		TreeNode? parent = null;
+		var currentPath = string.Empty;
+
+		for (var index = 0; index < segments.Length; index++)
+		{
+			var segment = segments[index];
+			currentPath = string.IsNullOrEmpty(currentPath) ? segment : $"{currentPath}/{segment}";
+			var isFile = index == segments.Length - 1;
+			var node = parent is null
+				? fileTree.Children.Values.FirstOrDefault(child => child.Text == segment)
+				: ((IParentOf<TreeNode>)parent).Children.Values.FirstOrDefault(child => child.Text == segment);
+
+			if (node is null)
+			{
+				node = storage.NewEntity(entity => new TreeNode(entity, segment, isFile ? TreeNodeIcon.File : TreeNodeIcon.Folder));
+				node.Path = isFile ? path : null;
+				node.OnClick = isFile ? onClick : null;
+				if (parent is null)
+				{
+					fileTree.AttachChild(node);
+				}
+				else
+				{
+					parent.AttachChild(node);
+				}
+			}
+
+			if (!isFile)
+			{
+				node.IsExpanded = true;
+			}
+			parent = node;
+		}
+	}
+
+	static async Task OpenFilePreview(Session session, Screen screen, DockContainer root, string workspaceId, string path)
+	{
+		var files = await WorkspaceAPISystem.Get<FileRow[]>(session, workspaceId, "file?contents=true");
+		var file = files?.SingleOrDefault(file => string.Equals(file.Path, path, StringComparison.Ordinal));
+		if (file is null)
+		{
+			return;
+		}
+
+		var extension = Path.GetExtension(file.Path).ToLowerInvariant();
+		var mimeType = extension switch
+		{
+			".png" => "image/png",
+			".jpg" or ".jpeg" => "image/jpeg",
+			".gif" => "image/gif",
+			".webp" => "image/webp",
+			".bmp" => "image/bmp",
+			".svg" => "image/svg+xml",
+			_ => "text/plain"
+		};
+		var preview = screen.SelectComponents<FilePreviewComponent>().SingleOrDefault();
+		var isImage = mimeType.StartsWith("image/", StringComparison.Ordinal);
+		if (preview is null)
+		{
+			var window = AddDockWindow(screen, root, file.Path, string.Empty);
+			preview = window.AddComponent(entity => new FilePreviewComponent(entity, file.Path, file.Contents ?? string.Empty, isImage, mimeType));
+		}
+		else
+		{
+			preview.FilePath = file.Path;
+			preview.Contents = file.Contents ?? string.Empty;
+			preview.IsImage = isImage;
+			preview.MimeType = mimeType;
+		}
+
+		var previewWindow = preview.GetComponent<DockWindow>();
+		previewWindow.Name = file.Path;
+		if (previewWindow.Parent.Get() is DockWindowGroup previewGroup)
+		{
+			previewGroup.ActiveWindow = previewWindow;
+		}
+
+		session.Redraw();
+	}
+
+	static TreeControl AddFileTreeControlLayout(Screen screen, DockWindow window)
 	{
 		var layout = window.Entity.EntityStorage.SelectComponents<ControlLayout>().Single(layout => layout.Entity.ID == window.Entity.ID);
 		var root = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
 		layout.AttachChild(root);
-		var tree = screen.NewEntity<ControlLayoutControl, TreeControl>();
-		tree.AttachChildren<TreeControl, TreeNode>(parent => [
-			screen.NewEntity<TreeNode>(entity => new TreeNode(entity, "src", TreeNodeIcon.Folder)).AttachChildren<TreeNode, TreeNode>(parent => [
-				screen.NewEntity<TreeNode>(entity => new TreeNode(entity, "Program.cs")),
-				screen.NewEntity<TreeNode>(entity => new TreeNode(entity, "Services", TreeNodeIcon.Folder))
-			]),
-			screen.NewEntity<TreeNode>(entity => new TreeNode(entity, "README.md"))
-		]);
+		var treeControl = screen.NewEntity<ControlLayoutControl>();
+		var tree = treeControl.AddComponent<TreeControl>();
+		root.AttachChild(treeControl);
+		return tree;
 	}
 
 	static TitleLayout AddTitleLayout(Screen screen, string title)

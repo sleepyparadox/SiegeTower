@@ -27,7 +27,7 @@ public sealed class FileService
 			.Order(StringComparer.Ordinal)
 			.Select(path => new FileRow(
 				Path.GetRelativePath(rootPath, GetSafePath(path)),
-				includeContents ? File.ReadAllText(GetSafePath(path)) : null))
+				includeContents ? ReadContents(GetSafePath(path)) : null))
 			.ToArray();
 	}
 
@@ -41,8 +41,20 @@ public sealed class FileService
 				|| File.ReadLines(path).Any(line => line.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
 			.Select(path => new FileRow(
 				Path.GetRelativePath(rootPath, GetSafePath(path)),
-				includeContents ? File.ReadAllText(GetSafePath(path)) : null))
+				includeContents ? ReadContents(GetSafePath(path)) : null))
 			.ToArray();
+	}
+
+	private static string ReadContents(string path)
+	{
+		return IsImage(path)
+			? Convert.ToBase64String(File.ReadAllBytes(path))
+			: File.ReadAllText(path);
+	}
+
+	private static bool IsImage(string path)
+	{
+		return Path.GetExtension(path).ToLowerInvariant() is ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp" or ".bmp" or ".svg";
 	}
 
 	public FileRow WriteFile(string path, string contents)

@@ -17,6 +17,8 @@ public static class TreeSystem
 			{
 				node.IsSelected = node == clickedNode;
 			}
+
+			clickedNode.OnClick?.Invoke(session);
 		}
 	}
 }
