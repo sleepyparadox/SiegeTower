@@ -1,5 +1,9 @@
 using SiegeTower.Data;
 using SiegeTower.Api;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using k8s;
 using k8s.Models;
 using Npgsql;
@@ -11,6 +15,11 @@ builder.Services.AddSingleton<IKubernetes>(_ =>
 {
 	var config = KubernetesClientConfiguration.InClusterConfig();
 	return new Kubernetes(config);
+});
+builder.Services.AddHttpClient("GitHub", client =>
+{
+	client.BaseAddress = new Uri("https://api.github.com/");
+	client.Timeout = TimeSpan.FromMinutes(2);
 });
 
 await DatabaseInitializer.InitializeAsync(builder.Configuration);
@@ -52,6 +61,26 @@ app.MapPost("api/tasks", async (CreateTaskRequest request, IConfiguration config
 	await command.ExecuteNonQueryAsync(cancellationToken);
 
 	return Results.Created($"api/tasks/{task.Id}", task);
+});
+
+app.MapPost("api/github-access-token", async (GithubAccessTokenRequest request, IHttpClientFactory httpClientFactory, CancellationToken cancellationToken) =>
+{
+	if (string.IsNullOrWhiteSpace(request.AppId)
+		|| string.IsNullOrWhiteSpace(request.InstallationId)
+		|| string.IsNullOrWhiteSpace(request.PrivateKey))
+	{
+		return Results.BadRequest("GitHub App ID, installation ID, and private key are required.");
+	}
+
+	using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"app/installations/{Uri.EscapeDataString(request.InstallationId)}/access_tokens");
+	requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+	requestMessage.Headers.UserAgent.ParseAdd("SiegeTower");
+	requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateAppJwt(request.AppId, request.PrivateKey));
+
+	using var response = await httpClientFactory.CreateClient("GitHub").SendAsync(requestMessage, cancellationToken);
+	response.EnsureSuccessStatusCode();
+	return Results.Ok(await response.Content.ReadFromJsonAsync<GithubAccessToken>(cancellationToken: cancellationToken)
+		?? throw new InvalidOperationException("GitHub returned an empty access token response."));
 });
 
 app.MapGet("api/workspace", async (IKubernetes client, CancellationToken cancellationToken) =>
@@ -167,6 +196,22 @@ app.MapDelete("api/workspace-all", async (IKubernetes client, CancellationToken 
 });
 
 app.Run();
+
+static string CreateAppJwt(string appId, string privateKey)
+{
+	var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+	var header = Encode(new { alg = "RS256", typ = "JWT" });
+	var payload = Encode(new { iat = issuedAt - 60, exp = issuedAt + 540, iss = appId });
+	var unsignedToken = $"{header}.{payload}";
+	using var rsa = RSA.Create();
+	rsa.ImportFromPem(privateKey);
+	var signature = rsa.SignData(Encoding.UTF8.GetBytes(unsignedToken), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+	return $"{unsignedToken}.{Base64UrlEncode(signature)}";
+}
+
+static string Encode(object value) => Base64UrlEncode(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(value)));
+
+static string Base64UrlEncode(byte[] value) => Convert.ToBase64String(value).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
 public sealed record CreateWorkspaceRequest(string Name);
 public sealed record CreateTaskRequest(string Name, string? Description);

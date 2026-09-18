@@ -11,7 +11,8 @@
 		],
 		"DependsOn": [
 			"SiegeTower.Data",
-			"SiegeTower.GraphQuery"
+			"SiegeTower.GraphQuery",
+			"SiegeTower.ECS"
 		]
 	},
 	"SiegeTower.Client": {
@@ -35,7 +36,8 @@
 		"SrcPath": "packages/SiegeTower.Data/src",
 		"ReleasesFiles": [],
 		"DependsOn": [
-			"SiegeTower.GraphQuery"
+			"SiegeTower.GraphQuery",
+			"SiegeTower.ECS"
 		]
 	},
 	"SiegeTower.GraphQuery": {
@@ -45,6 +47,16 @@
 		"DistPath": "packages/SiegeTower.GraphQuery/dist",
 		"SlnPath": "packages/SiegeTower.GraphQuery/src/SiegeTower.GraphQuery.sln",
 		"SrcPath": "packages/SiegeTower.GraphQuery/src",
+		"ReleasesFiles": [],
+		"DependsOn": []
+	},
+	"SiegeTower.ECS": {
+		"GitLocal": ".",
+		"GitRepo": "https://github.com/sleepyparadox/SiegeTower",
+		"GitBranch": "main",
+		"DistPath": "packages/SiegeTower.ECS/dist",
+		"SlnPath": "packages/SiegeTower.ECS/src/SiegeTower.ECS.sln",
+		"SrcPath": "packages/SiegeTower.ECS/src",
 		"ReleasesFiles": [],
 		"DependsOn": []
 	},

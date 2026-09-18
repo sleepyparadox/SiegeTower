@@ -1,0 +1,20 @@
+@namespace SiegeTower.Client.Views.Components
+
+<div class="control-layout-@Node.Orientation.ToString().ToLowerInvariant()">
+    @foreach (var child in ((IParentOf<ControlLayoutNode>)Node).Children.Values)
+    {
+        <ControlLayoutNodeView Node="@child" Session="@Session" />
+    }
+    @foreach (var control in ((IParentOf<ControlLayoutControl>)Node).Children.Values)
+    {
+        <ControlLayoutControlView Control="@control" Session="@Session" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ControlLayoutNode Node { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

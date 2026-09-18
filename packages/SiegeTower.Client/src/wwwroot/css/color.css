@@ -1,0 +1,38 @@
+:root {
+    --color-background: #f3f5f2;
+    --color-text: #17201b;
+    --color-link: #0071c1;
+    --color-primary-background: #263238;
+    --color-secondary-background: #41445f;
+    --color-success-background: #28524b;
+    --color-danger-background: #713f46;
+    --color-on-dark: #fff;
+    --color-focus: #258cfb;
+    --color-validation-success: #26b050;
+    --color-loading-track: #e0e0e0;
+    --color-error-background: lightyellow;
+    --color-error-shadow: rgba(0, 0, 0, .2);
+}
+
+.color-primary,
+.color-secondary,
+.color-success,
+.color-danger {
+    color: var(--color-on-dark);
+}
+
+.color-primary {
+    background-color: var(--color-primary-background);
+}
+
+.color-secondary {
+    background-color: var(--color-secondary-background);
+}
+
+.color-success {
+    background-color: var(--color-success-background);
+}
+
+.color-danger {
+    background-color: var(--color-danger-background);
+}

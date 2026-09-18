@@ -1,0 +1,15 @@
+@namespace SiegeTower.Client.Views.Components
+
+@if (Preview.IsImage)
+{
+    <img class="grid-dock-content grid-overflow-y grid-padded" src="data:@Preview.MimeType;base64,@Preview.Contents" alt="@Preview.FilePath" />
+}
+else
+{
+    <textarea class="grid-dock-content grid-overflow-y grid-padded" readonly>@Preview.Contents</textarea>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public FilePreviewComponent Preview { get; set; } = default!;
+}

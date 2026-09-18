@@ -1,0 +1,490 @@
+/*
+ * Grid composition rules are intentional. Do not add bespoke margins, gaps,
+ * padding, or dimensions here or in components; extend the grid vocabulary.
+ */
+
+:root {
+    --grid-unit: 2rem;
+    --grid-status-unit: calc(var(--grid-unit) / 2);
+}
+
+html,
+body {
+    /* Monospace keeps content rhythmically legible inside the 2rem grid. */
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1rem;
+}
+
+.grid-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 0;
+}
+
+.grid-line {
+    display: flex;
+    height: var(--grid-unit);
+    flex: 0 0 var(--grid-unit);
+}
+
+.grid-height-line {
+    height: var(--grid-unit);
+}
+
+.grid-line-x2 {
+    display: flex;
+    flex: 0 0 calc(var(--grid-unit) * 2);
+    height: calc(var(--grid-unit) * 2);
+}
+
+.grid-dock-region {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.grid-dock {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+
+.grid-dock-fill {
+    flex: 1 1 0;
+}
+
+.dock-layout {
+    flex-direction: column;
+}
+
+.dock-row {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.dock-stack {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.dock-window-group {
+    position: relative;
+}
+
+.dock-drop-zone {
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.dock-window-group.is-dragging .dock-drop-zone {
+    pointer-events: auto;
+}
+
+.dock-drop-zone.is-active {
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    outline: 1px solid currentColor;
+}
+
+.dock-drop-zone-top,
+.dock-drop-zone-bottom {
+    height: max(calc(var(--grid-unit) / 2), 24px);
+    left: 0;
+    right: 0;
+}
+
+.dock-drop-zone-top {
+    top: 0;
+}
+
+.dock-drop-zone-bottom {
+    bottom: 0;
+}
+
+.dock-drop-zone-left,
+.dock-drop-zone-right {
+    bottom: 0;
+    top: 0;
+    width: max(calc(var(--grid-unit) / 2), 24px);
+}
+
+.dock-drop-zone-left {
+    left: 0;
+}
+
+.dock-drop-zone-right {
+    right: 0;
+}
+
+.dock-drop-zone-center {
+    bottom: max(calc(var(--grid-unit) / 2), 24px);
+    left: max(calc(var(--grid-unit) / 2), 24px);
+    right: max(calc(var(--grid-unit) / 2), 24px);
+    top: max(calc(var(--grid-unit) / 2), 24px);
+}
+
+.dock-fill-width {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.dock-fill-height {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.dock-width-8 {
+    flex-basis: calc(var(--grid-unit) * 8);
+    width: calc(var(--grid-unit) * 8);
+}
+
+.dock-width-10 {
+    flex-basis: calc(var(--grid-unit) * 10);
+    width: calc(var(--grid-unit) * 10);
+}
+
+.dock-height-6 {
+    flex: 0 0 calc(var(--grid-unit) * 6);
+    height: calc(var(--grid-unit) * 6);
+}
+
+.grid-tabs {
+    display: flex;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.grid-row-layout {
+    display: flex;
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
+
+.control-layout-row {
+    display: flex;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.control-layout-stack {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.grid-control {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-control-columns), minmax(0, 1fr));
+    min-width: 0;
+}
+
+.toolbar-layout {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.toolbar-drop-target {
+    position: relative;
+}
+
+.toolbar-drop-zone {
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.toolbar-drop-target.is-dragging .toolbar-drop-zone {
+    pointer-events: auto;
+}
+
+.toolbar-drop-zone.is-active {
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    outline: 1px solid currentColor;
+}
+
+.toolbar-drop-zone-left,
+.toolbar-drop-zone-right {
+    bottom: 0;
+    top: 0;
+    width: 25%;
+}
+
+.toolbar-drop-zone-left {
+    left: 0;
+}
+
+.toolbar-drop-zone-right {
+    right: 0;
+}
+
+.toolbar-row-drop-zone {
+    height: calc(var(--grid-unit) / 2);
+    pointer-events: none;
+}
+
+.toolbar-layout:has(.toolbar-drop-target.is-dragging) .toolbar-row-drop-zone {
+    pointer-events: auto;
+}
+
+.toolbar-row-drop-zone.is-active {
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    outline: 1px solid currentColor;
+}
+
+.grid-tab {
+    flex: 0 0 auto;
+    height: var(--grid-unit);
+    white-space: nowrap;
+}
+
+.grid-dock-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+}
+
+.grid-status-bar {
+    align-items: center;
+    display: flex;
+    flex: 0 0 var(--grid-status-unit);
+    font-size: .5rem;
+    height: var(--grid-status-unit);
+    line-height: var(--grid-status-unit);
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: calc(var(--grid-unit) / 8);
+    white-space: nowrap;
+}
+
+.grid-overflow-x {
+    overflow-x: auto;
+}
+
+.grid-overflow-y {
+    overflow-y: auto;
+}
+
+.grid-wrap-x {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.grid-divider {
+    align-items: center;
+    display: flex;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    justify-content: center;
+}
+
+.grid-divider::before {
+    content: "|";
+}
+
+.grid-center-vertically {
+    align-items: center;
+}
+
+.grid-box {
+    box-sizing: border-box;
+    margin: 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.grid-padded {
+    padding: calc(var(--grid-unit) / 4);
+}
+
+.grid-height-fill {
+    height: 100%;
+    min-height: 0;
+}
+
+.grid-width-fill {
+    min-width: 0;
+    width: 100%;
+}
+
+.grid-width-fit {
+    flex: 0 0 auto;
+    width: max-content;
+}
+
+.grid-indent {
+    padding-left: calc(var(--grid-unit) * var(--grid-indent-depth, 0));
+}
+
+.tree {
+    min-width: 100%;
+    width: max-content;
+}
+
+.tree-node,
+.tree-node-children {
+    min-width: 100%;
+    width: max-content;
+}
+
+.grid-i-draggable {
+    cursor: grab;
+}
+
+.screen-view {
+    position: relative;
+}
+
+.screen-layer,
+.menu-space {
+    min-height: 0;
+    min-width: 0;
+}
+
+.screen-layer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    z-index: 0;
+}
+
+.menu-space {
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.screen-title-bar {
+    align-items: center;
+    flex: 0 0 var(--grid-unit);
+    min-width: 0;
+}
+
+.screen-tower-mark {
+    align-items: center;
+    display: flex;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    justify-content: center;
+}
+
+.nav-burger-menu {
+    height: var(--grid-unit);
+    position: relative;
+    width: var(--grid-unit);
+}
+
+.nav-burger-button {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    height: var(--grid-unit);
+    padding: 0;
+    width: var(--grid-unit);
+}
+
+.nav-burger-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+.nav-burger-popup {
+    border: 1px solid currentColor;
+    box-shadow: 2px 2px 0 currentColor;
+    left: var(--grid-unit);
+    min-width: calc(var(--grid-unit) * 6);
+    pointer-events: auto;
+    position: absolute;
+    top: var(--grid-unit);
+}
+
+.nav-burger-popup ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-burger-item a {
+    align-items: center;
+    color: inherit;
+    display: flex;
+    gap: calc(var(--grid-unit) / 4);
+    min-height: var(--grid-unit);
+    padding: calc(var(--grid-unit) / 4);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.nav-burger-item a:hover,
+.nav-burger-item a:focus-visible {
+    background-color: var(--color-success-background);
+}
+
+.screen-title-bar .breadcrumb {
+    align-items: center;
+    display: flex;
+    height: var(--grid-unit);
+    list-style: none;
+    margin: 0;
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.breadcrumbs ol {
+    display: flex;
+    flex: 0 0 auto;
+    list-style: none;
+    margin: 0;
+    min-width: max-content;
+    padding: 0;
+}
+
+.breadcrumbs {
+    flex: 1 1 0;
+}
+
+.toolbar-rows {
+    flex: 0 0 var(--grid-unit);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.toolbar-button {
+    flex: 0 0 auto;
+    height: var(--grid-unit);
+    min-width: max-content;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.screen-content {
+    flex-direction: column;
+    overflow: auto;
+}

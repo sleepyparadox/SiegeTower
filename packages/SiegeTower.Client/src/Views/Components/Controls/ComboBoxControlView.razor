@@ -1,0 +1,10 @@
+@namespace SiegeTower.Client.Views.Components
+
+<select class="grid-padded" value="@Control.Value">
+    <option>@Control.Value</option>
+</select>
+
+@code {
+    [Parameter, EditorRequired]
+    public ComboBoxControl Control { get; set; } = default!;
+}
