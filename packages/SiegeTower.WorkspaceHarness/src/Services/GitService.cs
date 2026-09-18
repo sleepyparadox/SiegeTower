@@ -18,7 +18,7 @@ public sealed class GitService
 		ArgumentException.ThrowIfNullOrWhiteSpace(operation.Repo);
 		ArgumentException.ThrowIfNullOrWhiteSpace(operation.LocalPath);
 
-		var localPath = fileService.GetSafePath(operation.LocalPath);
+		var localPath = fileService.GetGitPath(operation.LocalPath);
 		var arguments = new List<string>();
 		AddAuthentication(arguments, accessToken);
 		arguments.Add("clone");
@@ -36,14 +36,14 @@ public sealed class GitService
 	{
 		ArgumentNullException.ThrowIfNull(operation);
 		ArgumentException.ThrowIfNullOrWhiteSpace(operation.Branch);
-		return RunGitAsync(["switch", "-c", operation.Branch], accessToken, fileService.RootPath, cancellationToken);
+		return RunGitAsync(["switch", "-c", operation.Branch], accessToken, fileService.GetGitPath(operation.LocalPath), cancellationToken);
 	}
 
 	public Task<GitCommandResult> PushAsync(GitPushOperation operation, string? accessToken, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(operation);
 		ArgumentException.ThrowIfNullOrWhiteSpace(operation.Branch);
-		return RunGitAsync(["push", "origin", operation.Branch], accessToken, fileService.RootPath, cancellationToken);
+		return RunGitAsync(["push", "origin", operation.Branch], accessToken, fileService.GetGitPath(operation.LocalPath), cancellationToken);
 	}
 
 	public Task<GitCommandResult> CommitAsync(GitCommitOperation operation, string? accessToken, CancellationToken cancellationToken = default)
@@ -79,7 +79,8 @@ public sealed class GitService
 			RedirectStandardError = true,
 			RedirectStandardOutput = true,
 			UseShellExecute = false,
-			CreateNoWindow = true
+			CreateNoWindow = true,
+			Environment = { ["GIT_TERMINAL_PROMPT"] = "0" }
 		};
 		foreach (var argument in arguments)
 		{

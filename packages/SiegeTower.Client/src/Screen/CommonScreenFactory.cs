@@ -7,7 +7,8 @@ public static class CommonScreenFactory
 			layout.AddToolbar(0).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
 				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Home", session => session.HandleEvent(new NavigationEvent("/")))),
 				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Workspaces", session => session.HandleEvent(new NavigationEvent("/workspace")))),
-				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Agents", session => session.HandleEvent(new NavigationEvent("/agent"))))
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Agents", session => session.HandleEvent(new NavigationEvent("/agent")))),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Tools", session => session.HandleEvent(new NavigationEvent("/tools"))))
 			])
 		]);
 

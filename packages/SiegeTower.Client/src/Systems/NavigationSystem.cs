@@ -45,6 +45,10 @@ public static class NavigationSystem
 		{
 			session.ActiveScreen = AgentScreenFactory.CreateAgentScreen(session);
 		}
+		else if (pathParts.Length >= 1 && pathParts[0].Equals("tools", StringComparison.OrdinalIgnoreCase))
+		{
+			session.ActiveScreen = ToolsScreenFactory.CreateToolsScreen(session);
+		}
 		else if (pathParts.Length == 1 && pathParts[0].Equals("ollama", StringComparison.OrdinalIgnoreCase))
 		{
 			session.ActiveScreen = AgentScreenFactory.CreateAgentScreen(session);

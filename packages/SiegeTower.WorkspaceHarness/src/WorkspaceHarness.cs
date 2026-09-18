@@ -41,6 +41,35 @@ public sealed class WorkspaceHarness
 		}
 	}
 
+	public IReadOnlyList<GitRepoRow> GetGitRepos()
+	{
+		return Directory
+			.EnumerateDirectories(WorkspaceContext.Services.FileService.RootPath, "*", SearchOption.AllDirectories)
+			.Where(path => Directory.Exists(Path.Combine(path, ".git")))
+			.Select(path => new GitRepoRow
+			{
+				LocalPath = Path.GetRelativePath(WorkspaceContext.Services.FileService.RootPath, path),
+				Repo = ReadGitRemote(path)
+			})
+			.OrderBy(repo => repo.LocalPath, StringComparer.Ordinal)
+			.ToArray();
+	}
+
+	private static string ReadGitRemote(string path)
+	{
+		var configPath = Path.Combine(path, ".git", "config");
+		if (!File.Exists(configPath))
+		{
+			return string.Empty;
+		}
+
+		return File.ReadLines(configPath)
+			.Select(line => line.Trim())
+			.Where(line => line.StartsWith("url = ", StringComparison.OrdinalIgnoreCase))
+			.Select(line => line[6..].Trim())
+			.FirstOrDefault() ?? string.Empty;
+	}
+
 	public bool TryStartOperation(OperationRow operation)
 	{
 		ArgumentNullException.ThrowIfNull(operation);

@@ -12,4 +12,7 @@ public static class APISystem
 
 	public static Task<bool> WorkspaceDelete(Session session, string name)
 		=> HttpSystem.Delete(session, $"/api/workspace/{Uri.EscapeDataString(name)}");
+
+	public static Task<GithubAccessToken?> GithubAccessTokenGenerate(Session session, GithubAccessTokenRequest request)
+		=> HttpSystem.Post<GithubAccessTokenRequest, GithubAccessToken>(session, "/api/github-access-token", request);
 }

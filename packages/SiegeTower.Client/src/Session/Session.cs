@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 
 namespace SiegeTower.Client;
 
@@ -8,12 +9,14 @@ public sealed class Session // 1 session per tab
 {	
 	internal NavigationManager NavigationManager { get; }
 	internal HttpClient HttpClient { get; }
+	internal IJSRuntime JSRuntime { get; }
 	public event Action? RedrawRequested;
 	public Screen ActiveScreen { get; set; } = null!;
-	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient)
+	public Session(NavigationManager injectedNavigationManager, HttpClient injectedHttpClient, IJSRuntime injectedJSRuntime)
 	{
 		NavigationManager = injectedNavigationManager;
 		HttpClient = injectedHttpClient;
+		JSRuntime = injectedJSRuntime;
 		var currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
 		HandleEvent(new NavigationEvent($"/{currentUrl}"));
 	}

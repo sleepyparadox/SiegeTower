@@ -1,10 +1,18 @@
 @namespace SiegeTower.Client.Views.Components
 
-<select class="grid-padded" value="@Control.Value">
-    <option>@Control.Value</option>
+<select class="grid-padded" value="@Control.Value" @onchange="ChangeValue">
+    @foreach (var item in Control.Items.DefaultIfEmpty(Control.Value))
+    {
+        <option value="@item">@item</option>
+    }
 </select>
 
 @code {
     [Parameter, EditorRequired]
     public ComboBoxControl Control { get; set; } = default!;
+
+    void ChangeValue(ChangeEventArgs args)
+    {
+        Control.Value = args.Value?.ToString() ?? string.Empty;
+    }
 }

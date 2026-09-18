@@ -102,4 +102,10 @@ public sealed class FileService
 
 		return resolvedPath;
 	}
+
+	public string GetGitPath(string path)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(path);
+		return Path.IsPathRooted(path) ? Path.GetFullPath(path) : GetSafePath(path);
+	}
 }

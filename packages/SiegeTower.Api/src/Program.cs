@@ -83,6 +83,34 @@ app.MapPost("api/github-access-token", async (GithubAccessTokenRequest request, 
 		?? throw new InvalidOperationException("GitHub returned an empty access token response."));
 });
 
+app.MapPost("api/github-access-token/browser", async (HttpRequest httpRequest, IHttpClientFactory httpClientFactory, CancellationToken cancellationToken) =>
+{
+	var form = await httpRequest.ReadFormAsync(cancellationToken);
+	var request = new GithubAccessTokenRequest
+	{
+		AppId = form["appId"].ToString(),
+		InstallationId = form["installationId"].ToString(),
+		PrivateKey = form["privateKey"].ToString()
+	};
+
+	if (string.IsNullOrWhiteSpace(request.AppId)
+		|| string.IsNullOrWhiteSpace(request.InstallationId)
+		|| string.IsNullOrWhiteSpace(request.PrivateKey))
+	{
+		return Results.BadRequest("GitHub App ID, installation ID, and private key are required.");
+	}
+
+	using var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"app/installations/{Uri.EscapeDataString(request.InstallationId)}/access_tokens");
+	requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+	requestMessage.Headers.UserAgent.ParseAdd("SiegeTower");
+	requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateAppJwt(request.AppId, request.PrivateKey));
+
+	using var response = await httpClientFactory.CreateClient("GitHub").SendAsync(requestMessage, cancellationToken);
+	response.EnsureSuccessStatusCode();
+	return Results.Ok(await response.Content.ReadFromJsonAsync<GithubAccessToken>(cancellationToken: cancellationToken)
+		?? throw new InvalidOperationException("GitHub returned an empty access token response."));
+});
+
 app.MapGet("api/workspace", async (IKubernetes client, CancellationToken cancellationToken) =>
 {
 	var pods = await client.CoreV1.ListNamespacedPodAsync(workspaceNamespace, cancellationToken: cancellationToken);

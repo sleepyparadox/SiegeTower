@@ -13,6 +13,7 @@ The load balancer is the public entry point for SiegeTower. Keep public route na
 | `/workspace/{id}/api/*` | `SiegeTower.WorkspaceHarness` | Proxy to `st-workspace-{id}:80/api/*`. |
 | `/workspace/{id}/api/file` | `SiegeTower.WorkspaceHarness` | Proxy `GET` to `st-workspace-{id}:80/api/file`. |
 | `/agent` | `SiegeTower.Client` / `AgentScreen` | Model list and model download controls. |
+| `/tools` | `SiegeTower.Client` / `ToolsScreen` | Tool collection and GitHub access-token generation form. |
 | `/api/github-access-token` | `SiegeTower.Api` | Generate a GitHub App installation token. |
 | `/api/*` | `SiegeTower.Api` | Proxy to `st-api:80/api/*`. |
 | `/ollama` | `SiegeTower.Client` / `AgentScreen` | Legacy alias for the Agent screen. |
@@ -26,6 +27,7 @@ The client serves the remaining non-API routes from its static files and falls b
 - Use the singular `/workspace` route for both the workspace list and an individual workspace.
 - Use `/workspace/{id}/api/*` for workspace-harness requests. The workspace ID is captured from the URL and used to construct the upstream service name.
 - Use `/agent` for model management in the client. Agent model requests use the Ollama proxy at `/ollama/api/*`.
+- Use `/tools` for client-side utility screens, including GitHub access-token generation.
 - Keep `/api/*` reserved for `SiegeTower.Api`.
 - Keep `/ollama/api/*` reserved for Ollama requests made by `OllamaScreen`.
 - UI labels such as `Workspaces` may remain plural when they describe a list; URL segments should follow the routes above.

@@ -6,10 +6,13 @@ namespace SiegeTower.Data;
 public class WorkspaceSettings
 {
 	public string? GitAccessToken { get; set; }
+}
 
-	public string? GitBranchName { get; set; }
+public sealed class GitRepoRow
+{
+	public string Repo { get; set; } = string.Empty;
 
-	public string? GitPR { get; set; }
+	public string LocalPath { get; set; } = string.Empty;
 }
 
 [OperationRowInfo]
@@ -49,11 +52,15 @@ public sealed class GitCloneOperation
 
 public sealed class GitCreateBranchOperation
 {
+	public string LocalPath { get; set; } = string.Empty;
+
 	public string Branch { get; set; } = string.Empty;
 }
 
 public sealed class GitPushOperation
 {
+	public string LocalPath { get; set; } = string.Empty;
+
 	public string Branch { get; set; } = string.Empty;
 }
 

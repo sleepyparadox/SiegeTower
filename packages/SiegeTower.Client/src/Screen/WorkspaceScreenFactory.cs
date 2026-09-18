@@ -1,3 +1,4 @@
+using System.Text.Json;
 using SiegeTower.Data;
 using SiegeTower.Data.Graph.File;
 
@@ -15,6 +16,8 @@ public static class WorkspaceScreenFactory
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
+		var settingsWindow = AddDockWindow(screen, root, "Workspace Settings", string.Empty);
+		AddWorkspaceSettingsLayout(screen, session, settingsWindow, workspacePath);
 		var chatHistoryWindow = AddDockWindow(screen, root, "Chat History", string.Empty);
 		var chatHistoryLayout = AddChatHistoryLayout(screen, chatHistoryWindow);
 		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadChatHistory(session, workspacePath, chatHistoryLayout)));
@@ -107,12 +110,20 @@ public static class WorkspaceScreenFactory
 		var screen = CreateScreen(session, "Workspace Git", workspacePath, "Git");
 		var screenLayout = screen.SelectComponents<ScreenLayout>().Single();
 		var workspaceNavToolbar = WorkspaceNavToolbar(screen, session, workspacePath);
-		var toolbarLayout = AddGitToolbar(screen);
+		var gitToolbar = AddGitToolbar(screen, workspacePath);
 		var dockingLayout = screen.NewEntity<DockingLayout>();
-		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, toolbarLayout, dockingLayout]);
+		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, gitToolbar, dockingLayout]);
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Horizontal));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
+		var gitContainer = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
+		root.AttachChild<DockContainer, DockLayoutNode>(gitContainer);
+		var reposWindow = AddDockWindow(screen, gitContainer, "Repositories", string.Empty);
+		var reposLayout = reposWindow.AddComponent<ControlLayout>();
+		reposWindow.AddComponent<DockWindowControlLayout>();
+		var repoList = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
+		reposLayout.AttachChild(repoList);
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadGitRepos(session, screen, workspacePath, repoList)));
 		AddDockWindow(screen, root, "Commits", "main\n  Initial commit\n  Add workspace files\n  Update agent prompt");
 		AddDockWindow(screen, root, "Git Details", "Select a commit or changed file to inspect it.");
 		return screen;
@@ -127,7 +138,8 @@ public static class WorkspaceScreenFactory
 		var titleLayout = AddTitleLayout(screen, title);
 		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
 		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", 1);
-		screen.AddNewBreadCrumbEntity(titleLayout, "Workspace", workspacePath, 2);
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		screen.AddNewBreadCrumbEntity(titleLayout, workspaceId, workspacePath, 2);
 		if (childBreadcrumb is not null)
 		{
 			screen.AddNewBreadCrumbEntity(titleLayout, childBreadcrumb, $"{workspacePath}/{childBreadcrumb.ToLowerInvariant().Replace(' ', '-')}", 3);
@@ -153,16 +165,165 @@ public static class WorkspaceScreenFactory
 			])
 		]);
 
-	static ToolbarLayout AddGitToolbar(Screen screen)
-		=> screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
+	static ToolbarLayout AddGitToolbar(Screen screen, string workspacePath)
+	{
+		TextInputControl? cloneRepo = null;
+		TextInputControl? clonePath = null;
+		ComboBoxControl? pushRepo = null;
+		TextInputControl? pushBranch = null;
+		ComboBoxControl? branchRepo = null;
+		TextInputControl? newBranch = null;
+		return screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
 			layout.AddToolbar(0).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Workspace")),
-				toolbar.AddToolbarControl<ComboBoxControl>(entity => new ComboBoxControl(entity, "Development")),
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Local name")),
-				toolbar.AddToolbarControl<TextInputControl>(entity => new TextInputControl(entity, "SiegeTower")),
-				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Pull"))
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git clone")),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
+				toolbar.AddToolbarControl<TextInputControl>(entity => { cloneRepo = new TextInputControl(entity, string.Empty); return cloneRepo; }),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Local path")),
+				toolbar.AddToolbarControl<TextInputControl>(entity => { clonePath = new TextInputControl(entity, string.Empty); return clonePath; }),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Clone", session =>
+				{
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitClone(session, workspacePath, cloneRepo!, clonePath!)));
+				}))
+			]),
+			layout.AddToolbar(1).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git push")),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
+				toolbar.AddToolbarControl<ComboBoxControl>(entity => { pushRepo = new ComboBoxControl(entity, string.Empty); return pushRepo; }),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Branch")),
+				toolbar.AddToolbarControl<TextInputControl>(entity => { pushBranch = new TextInputControl(entity, "main"); return pushBranch; }),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Push", session =>
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitPush(session, workspacePath, pushRepo!, pushBranch!)))))
+			]),
+			layout.AddToolbar(2).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git create branch")),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
+				toolbar.AddToolbarControl<ComboBoxControl>(entity => { branchRepo = new ComboBoxControl(entity, string.Empty); return branchRepo; }),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Branch")),
+				toolbar.AddToolbarControl<TextInputControl>(entity => { newBranch = new TextInputControl(entity, string.Empty); return newBranch; }),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Create", session =>
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitBranch(session, workspacePath, branchRepo!, newBranch!)))))
 			])
 		]);
+	}
+
+	static async Task LoadGitRepos(Session session, Screen screen, string workspacePath, ControlLayoutNode repoList)
+	{
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var repos = await WorkspaceAPISystem.Get<GitRepoRow[]>(session, workspaceId, "git/repo");
+		if (repos is null)
+		{
+			return;
+		}
+
+		foreach (var repo in repos)
+		{
+			var control = screen.NewEntity<ControlLayoutControl>();
+			control.AddComponent(entity => new LabelControl(entity, string.IsNullOrEmpty(repo.Repo) ? repo.LocalPath : $"{repo.LocalPath} ({repo.Repo})"));
+			repoList.AttachChild(control);
+		}
+
+		var combos = screen.SelectComponents<ComboBoxControl>().ToArray();
+		foreach (var combo in combos)
+		{
+			combo.Items = repos.Select(repo => repo.LocalPath).ToList();
+			combo.Value = combo.Items.FirstOrDefault() ?? string.Empty;
+		}
+		session.Redraw();
+	}
+
+	static async Task SubmitGitClone(Session session, string workspacePath, TextInputControl repo, TextInputControl localPath)
+	{
+		if (string.IsNullOrWhiteSpace(repo.Value) || string.IsNullOrWhiteSpace(localPath.Value)) return;
+		await SubmitOperation(session, workspacePath, new Operation { GitClone = new GitCloneOperation { Repo = repo.Value.Trim(), LocalPath = localPath.Value.Trim() } });
+	}
+
+	static async Task SubmitGitPush(Session session, string workspacePath, ComboBoxControl repo, TextInputControl branch)
+	{
+		if (string.IsNullOrWhiteSpace(repo.Value) || string.IsNullOrWhiteSpace(branch.Value)) return;
+		await SubmitOperation(session, workspacePath, new Operation { GitPushOperation = new GitPushOperation { LocalPath = repo.Value, Branch = branch.Value.Trim() } });
+	}
+
+	static async Task SubmitGitBranch(Session session, string workspacePath, ComboBoxControl repo, TextInputControl branch)
+	{
+		if (string.IsNullOrWhiteSpace(repo.Value) || string.IsNullOrWhiteSpace(branch.Value)) return;
+		await SubmitOperation(session, workspacePath, new Operation { GitCreateBranch = new GitCreateBranchOperation { LocalPath = repo.Value, Branch = branch.Value.Trim() } });
+	}
+
+	static async Task SubmitOperation(Session session, string workspacePath, Operation operation)
+	{
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		await WorkspaceAPISystem.Post<OperationRow, OperationRow>(session, workspaceId, "operation", new OperationRow
+		{
+			ID = Guid.NewGuid(), CreatedAt = DateTime.UtcNow, Operation = operation
+		});
+		session.Redraw();
+	}
+
+	static void AddWorkspaceSettingsLayout(Screen screen, Session session, DockWindow window, string workspacePath)
+	{
+		var layout = window.AddComponent<ControlLayout>();
+		window.AddComponent<DockWindowControlLayout>();
+		var root = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Row));
+		layout.AttachChild(root);
+		var tokenLabel = screen.NewEntity<ControlLayoutControl>();
+		tokenLabel.AddComponent(entity => new LabelControl(entity, "Git access token"));
+		root.AttachChild(tokenLabel);
+		var tokenControl = screen.NewEntity<ControlLayoutControl>();
+		var token = tokenControl.AddComponent(entity => new TextInputControl(entity, string.Empty));
+		root.AttachChild(tokenControl);
+		var save = screen.NewEntity<ControlLayoutControl>();
+		save.AddComponent(entity => new ButtonControl(entity, "Save", session => screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SaveWorkspaceSettings(session, workspacePath, token)))));
+		root.AttachChild(save);
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadWorkspaceSettings(session, workspacePath, token)));
+	}
+
+	static async Task LoadWorkspaceSettings(Session session, string workspacePath, TextInputControl token)
+	{
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var settings = await WorkspaceAPISystem.Get<WorkspaceSettings>(session, workspaceId, "workspace/settings");
+		if (settings is not null)
+		{
+			var accessToken = ParseGithubAccessToken(settings.GitAccessToken ?? string.Empty);
+			token.Value = accessToken;
+			if (!string.Equals(settings.GitAccessToken, accessToken, StringComparison.Ordinal))
+			{
+				await WorkspaceAPISystem.Post<WorkspaceSettings, WorkspaceSettings>(session, workspaceId, "workspace/settings", new WorkspaceSettings { GitAccessToken = accessToken });
+			}
+		}
+		session.Redraw();
+	}
+
+	static async Task SaveWorkspaceSettings(Session session, string workspacePath, TextInputControl token)
+	{
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var accessToken = ParseGithubAccessToken(token.Value);
+		token.Value = accessToken;
+		await WorkspaceAPISystem.Post<WorkspaceSettings, WorkspaceSettings>(session, workspaceId, "workspace/settings", new WorkspaceSettings { GitAccessToken = accessToken });
+		session.Redraw();
+	}
+
+	static string ParseGithubAccessToken(string value)
+	{
+		var trimmedValue = value.Trim();
+		if (trimmedValue.StartsWith('{'))
+		{
+			try
+			{
+				using var document = JsonDocument.Parse(trimmedValue);
+				if (document.RootElement.TryGetProperty("token", out var token)
+					&& token.ValueKind == JsonValueKind.String
+					&& !string.IsNullOrWhiteSpace(token.GetString()))
+				{
+					return token.GetString()!.Trim();
+				}
+			}
+			catch (JsonException)
+			{
+			}
+		}
+
+		return trimmedValue;
+	}
 
 	static void AddChatInputLayout(Screen screen, DockWindow window, string workspacePath)
 	{
