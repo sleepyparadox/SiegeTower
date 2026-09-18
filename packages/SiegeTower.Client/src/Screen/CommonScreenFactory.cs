@@ -2,6 +2,15 @@ namespace SiegeTower.Client;
 
 public static class CommonScreenFactory
 {
+	internal static ToolbarLayout AddTopLevelToolbar(Screen screen, Session session)
+		=> screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
+			layout.AddToolbar(0).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Home", session => session.HandleEvent(new NavigationEvent("/")))),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Workspaces", session => session.HandleEvent(new NavigationEvent("/workspace")))),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Agents", session => session.HandleEvent(new NavigationEvent("/agent"))))
+			])
+		]);
+
 	public static Screen CreateWorkspaceListScreen(Session session)
 	{
 		ArgumentNullException.ThrowIfNull(session);
@@ -12,8 +21,9 @@ public static class CommonScreenFactory
 		screen.AddNewBreadCrumbEntity(titleLayout, "Workspaces", "/workspace", 1);
 
 		var screenLayout = screen.SelectComponents<ScreenLayout>().Single();
+		var topLevelToolbar = AddTopLevelToolbar(screen, session);
 		var dockingLayout = screen.NewEntity<DockingLayout>();
-		screenLayout.AttachChild<ScreenLayout, ScreenLayoutChild>(dockingLayout);
+		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([topLevelToolbar, dockingLayout]);
 
 		var dockStack = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
 		var workspaceGroup = screen.NewEntity<DockWindowGroup>();

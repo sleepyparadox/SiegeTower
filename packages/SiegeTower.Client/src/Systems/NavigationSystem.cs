@@ -41,9 +41,13 @@ public static class NavigationSystem
 		{
 			session.ActiveScreen = CommonScreenFactory.CreateWorkspaceListScreen(session);
 		}
+		else if (pathParts.Length == 1 && pathParts[0].Equals("agent", StringComparison.OrdinalIgnoreCase))
+		{
+			session.ActiveScreen = AgentScreenFactory.CreateAgentScreen(session);
+		}
 		else if (pathParts.Length == 1 && pathParts[0].Equals("ollama", StringComparison.OrdinalIgnoreCase))
 		{
-			session.ActiveScreen = NewOllamaScreen(session);
+			session.ActiveScreen = AgentScreenFactory.CreateAgentScreen(session);
 		}
 		else if (pathParts.Length >= 1 && pathParts[0].Equals("example", StringComparison.OrdinalIgnoreCase))
 		{
@@ -77,6 +81,8 @@ public static class NavigationSystem
 		var screen = new Screen(session, "Home");
 		var titleLayout = AddTitleLayout(screen, "Home");
 		screen.AddNewBreadCrumbEntity(titleLayout, "Home", "/", 0);
+		var screenLayout = screen.SelectComponents<ScreenLayout>().Single();
+		screenLayout.AttachChild<ScreenLayout, ScreenLayoutChild>(CommonScreenFactory.AddTopLevelToolbar(screen, session));
 		return screen;
 	}
 
