@@ -1,3 +1,5 @@
+using SiegeTower.Data;
+
 namespace SiegeTower.Client;
 
 public static class WorkspaceScreenFactory
@@ -12,15 +14,31 @@ public static class WorkspaceScreenFactory
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
-		AddDockWindow(screen, root, "Chat History", "Chat history will appear here.");
+		var chatHistoryWindow = AddDockWindow(screen, root, "Chat History", "Loading chat history...");
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadChatHistory(session, workspacePath, chatHistoryWindow)));
 
 		var inputContainer = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
 		inputContainer.IsFixedHeight = true;
 		inputContainer.HeightInGridUnits = 6;
 		root.AttachChild<DockContainer, DockLayoutNode>(inputContainer);
 		var inputWindow = AddDockWindow(screen, inputContainer, "Chat Input", string.Empty);
-		AddChatInputLayout(screen, inputWindow);
+		AddChatInputLayout(screen, inputWindow, workspacePath);
 		return screen;
+	}
+
+	static async Task LoadChatHistory(Session session, string workspacePath, DockWindow chatHistoryWindow)
+	{
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var operations = await WorkspaceAPISystem.Get<OperationRow[]>(session, workspaceId, "operation");
+		if (operations is null)
+		{
+			return;
+		}
+
+		chatHistoryWindow.Contents = string.Join(
+			$"{Environment.NewLine}{Environment.NewLine}",
+			operations.Select(operation => operation.Operation.Prompt?.Prompt ?? "Operation without a prompt."));
+		session.Redraw();
 	}
 
 	public static Screen CreateWorkspaceFilesScreen(Session session, string workspacePath)
@@ -108,18 +126,45 @@ public static class WorkspaceScreenFactory
 			])
 		]);
 
-	static void AddChatInputLayout(Screen screen, DockWindow window)
+	static void AddChatInputLayout(Screen screen, DockWindow window, string workspacePath)
 	{
 		var layout = window.AddComponent<ControlLayout>();
 		window.AddComponent<DockWindowControlLayout>();
 		var root = screen.NewEntity<ControlLayoutNode>(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Row));
 		layout.AttachChild(root);
 		var input = screen.NewEntity<ControlLayoutControl>();
-		input.AddComponent(entity => new TextInputControl(entity, "Ask the agent..."));
+		var textInput = input.AddComponent(entity => new TextInputControl(entity, string.Empty));
 		root.AttachChild(input);
 		var send = screen.NewEntity<ControlLayoutControl>();
-		send.AddComponent(entity => new ButtonControl(entity, "Send"));
+		send.AddComponent(entity => new ButtonControl(entity, "Send", session =>
+			screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SendChat(session, workspacePath, textInput)))));
 		root.AttachChild(send);
+	}
+
+	static async Task SendChat(Session session, string workspacePath, TextInputControl textInput)
+	{
+		if (string.IsNullOrWhiteSpace(textInput.Value))
+		{
+			return;
+		}
+
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var operation = new OperationRow
+		{
+			ID = Guid.NewGuid(),
+			CreatedAt = DateTime.UtcNow,
+			Operation = new Operation
+			{
+				Prompt = new PromptOperation { Prompt = textInput.Value }
+			}
+		};
+
+		var response = await WorkspaceAPISystem.Post<OperationRow, OperationRow>(session, workspaceId, "operation", operation);
+		if (response is not null)
+		{
+			textInput.Value = string.Empty;
+			session.Redraw();
+		}
 	}
 
 	static void AddFileTreeControlLayout(Screen screen, DockWindow window)

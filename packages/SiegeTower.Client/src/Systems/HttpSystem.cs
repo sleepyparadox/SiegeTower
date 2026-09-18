@@ -54,4 +54,20 @@ public static class HttpSystem
 			return default;
 		}
 	}
+
+	public static async Task<bool> Delete(Session session, string url)
+	{
+		ArgumentNullException.ThrowIfNull(session);
+		ArgumentException.ThrowIfNullOrEmpty(url);
+
+		try
+		{
+			using var response = await session.HttpClient.DeleteAsync(url);
+			return response.IsSuccessStatusCode;
+		}
+		catch (HttpRequestException)
+		{
+			return false;
+		}
+	}
 }
