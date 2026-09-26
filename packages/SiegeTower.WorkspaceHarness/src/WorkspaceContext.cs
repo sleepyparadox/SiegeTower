@@ -25,6 +25,8 @@ public sealed class WorkspaceContext
 		lock (sync)
 		{
 			Settings.GitAccessToken = ParseGitAccessToken(settings.GitAccessToken);
+			Settings.GitUserName = settings.GitUserName?.Trim();
+			Settings.GitUserEmail = settings.GitUserEmail?.Trim();
 		}
 	}
 

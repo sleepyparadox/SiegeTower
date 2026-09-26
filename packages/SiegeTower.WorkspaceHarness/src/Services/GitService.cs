@@ -60,6 +60,14 @@ public sealed class GitService
 		return RunGitAsync(["push", "origin", operation.Branch], accessToken, fileService.GetGitPath(operation.LocalPath), cancellationToken);
 	}
 
+	public async Task ConfigureIdentityAsync(string name, string email, CancellationToken cancellationToken = default)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(name);
+		ArgumentException.ThrowIfNullOrWhiteSpace(email);
+		await RunGitAsync(["config", "--global", "user.name", name.Trim()], null, fileService.RootPath, cancellationToken);
+		await RunGitAsync(["config", "--global", "user.email", email.Trim()], null, fileService.RootPath, cancellationToken);
+	}
+
 	public Task<GitCommandResult> CommitAsync(GitCommitOperation operation, string? accessToken, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(operation);

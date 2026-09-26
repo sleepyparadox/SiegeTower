@@ -6,6 +6,10 @@ namespace SiegeTower.Data;
 public class WorkspaceSettings
 {
 	public string? GitAccessToken { get; set; }
+
+	public string? GitUserName { get; set; }
+
+	public string? GitUserEmail { get; set; }
 }
 
 public sealed class GitRepoRow

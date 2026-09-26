@@ -6,10 +6,17 @@
 }
 else
 {
-    <textarea class="grid-dock-content grid-overflow-y grid-padded" readonly>@Preview.Contents</textarea>
+    <textarea class="grid-dock-content grid-overflow-y grid-padded" value="@Preview.Contents" readonly="@(!Preview.IsEditable)" @oninput="UpdateContents"></textarea>
 }
 
 @code {
     [Parameter, EditorRequired]
     public FilePreviewComponent Preview { get; set; } = default!;
+
+    void UpdateContents(ChangeEventArgs args)
+    {
+        Preview.Contents = args.Value?.ToString() ?? string.Empty;
+        var window = Preview.GetComponent<DockWindow>();
+        window.Name = Preview.IsDirty ? $"{Preview.FilePath}*" : Preview.FilePath;
+    }
 }

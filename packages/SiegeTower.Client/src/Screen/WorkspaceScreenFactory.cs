@@ -87,8 +87,9 @@ public static class WorkspaceScreenFactory
 		var screen = CreateScreen(session, "Workspace Files", workspacePath, "Files");
 		var screenLayout = screen.SelectComponents<ScreenLayout>().Single();
 		var workspaceNavToolbar = WorkspaceNavToolbar(screen, session, workspacePath);
+		var fileToolbar = AddFileToolbar(screen, workspacePath);
 		var dockingLayout = screen.NewEntity<DockingLayout>();
-		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, dockingLayout]);
+		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, fileToolbar, dockingLayout]);
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Horizontal));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
@@ -154,6 +155,75 @@ public static class WorkspaceScreenFactory
 				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Git", session => session.HandleEvent(new NavigationEvent($"{workspacePath}/git"))))
 			])
 		]);
+
+	static ToolbarLayout AddFileToolbar(Screen screen, string workspacePath)
+		=> screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
+			layout.AddToolbar(0).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Edit", session => ToggleFileEditMode(session, screen))),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Revert", session => RevertFileChanges(session, screen))),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Save", session =>
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SaveFileChanges(session, screen, workspacePath)))))
+			])
+		]);
+
+	static FilePreviewComponent? GetFocusedFilePreview(Screen screen)
+	{
+		foreach (var group in screen.SelectComponents<DockWindowGroup>())
+		{
+			var activeWindow = group.ActiveWindow.Get();
+			if (activeWindow is not null && activeWindow.Entity.TryGetComponent(out FilePreviewComponent? preview))
+			{
+				return preview;
+			}
+		}
+
+		return null;
+	}
+
+	static void ToggleFileEditMode(Session session, Screen screen)
+	{
+		var preview = GetFocusedFilePreview(screen);
+		if (preview is not null && !preview.IsImage)
+		{
+			preview.IsEditable = !preview.IsEditable;
+			session.Redraw();
+		}
+	}
+
+	static void RevertFileChanges(Session session, Screen screen)
+	{
+		var preview = GetFocusedFilePreview(screen);
+		if (preview is null)
+		{
+			return;
+		}
+
+		preview.Contents = preview.SavedContents;
+		preview.IsEditable = false;
+		UpdateFilePreviewTabName(preview);
+		session.Redraw();
+	}
+
+	static async Task SaveFileChanges(Session session, Screen screen, string workspacePath)
+	{
+		var preview = GetFocusedFilePreview(screen);
+		if (preview is null || preview.IsImage || !preview.IsDirty)
+		{
+			return;
+		}
+
+		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+		var savedFile = await WorkspaceAPISystem.Post<FileRow, FileRow>(session, workspaceId, "file", new FileRow(preview.FilePath, preview.Contents));
+		if (savedFile is not null)
+		{
+			preview.SavedContents = savedFile.Contents ?? preview.Contents;
+			UpdateFilePreviewTabName(preview);
+			session.Redraw();
+		}
+	}
+
+	static void UpdateFilePreviewTabName(FilePreviewComponent preview)
+		=> preview.GetComponent<DockWindow>().Name = preview.IsDirty ? $"{preview.FilePath}*" : preview.FilePath;
 
 	static GitToolbarControls AddGitToolbar(Screen screen, string workspacePath, TreeControl repoTree)
 	{
@@ -353,21 +423,33 @@ public static class WorkspaceScreenFactory
 	{
 		var layout = window.AddComponent<ControlLayout>();
 		window.AddComponent<DockWindowControlLayout>();
-		var root = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Row));
+		var root = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
 		layout.AttachChild(root);
-		var tokenLabel = screen.NewEntity<ControlLayoutControl>();
-		tokenLabel.AddComponent(entity => new LabelControl(entity, "Git access token"));
-		root.AttachChild(tokenLabel);
-		var tokenControl = screen.NewEntity<ControlLayoutControl>();
-		var token = tokenControl.AddComponent(entity => new TextInputControl(entity, string.Empty));
-		root.AttachChild(tokenControl);
+		var token = AddWorkspaceSettingRow(screen, root, "Git access token");
+		var gitUserName = AddWorkspaceSettingRow(screen, root, "Git author name");
+		var gitUserEmail = AddWorkspaceSettingRow(screen, root, "Git author email");
+		var saveRow = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Row));
+		root.AttachChild(saveRow);
 		var save = screen.NewEntity<ControlLayoutControl>();
-		save.AddComponent(entity => new ButtonControl(entity, "Save", session => screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SaveWorkspaceSettings(session, workspacePath, token)))));
-		root.AttachChild(save);
-		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadWorkspaceSettings(session, workspacePath, token)));
+		save.AddComponent(entity => new ButtonControl(entity, "Save", session => screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SaveWorkspaceSettings(session, workspacePath, token, gitUserName, gitUserEmail)))));
+		saveRow.AttachChild(save);
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadWorkspaceSettings(session, workspacePath, token, gitUserName, gitUserEmail)));
 	}
 
-	static async Task LoadWorkspaceSettings(Session session, string workspacePath, TextInputControl token)
+	static TextInputControl AddWorkspaceSettingRow(Screen screen, ControlLayoutNode parent, string label)
+	{
+		var row = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Row));
+		parent.AttachChild(row);
+		var labelControl = screen.NewEntity<ControlLayoutControl>();
+		labelControl.AddComponent(entity => new LabelControl(entity, label));
+		row.AttachChild(labelControl);
+		var inputControl = screen.NewEntity<ControlLayoutControl>();
+		var input = inputControl.AddComponent(entity => new TextInputControl(entity, string.Empty));
+		row.AttachChild(inputControl);
+		return input;
+	}
+
+	static async Task LoadWorkspaceSettings(Session session, string workspacePath, TextInputControl token, TextInputControl gitUserName, TextInputControl gitUserEmail)
 	{
 		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
 		var settings = await WorkspaceAPISystem.Get<WorkspaceSettings>(session, workspaceId, "workspace/settings");
@@ -375,20 +457,32 @@ public static class WorkspaceScreenFactory
 		{
 			var accessToken = ParseGithubAccessToken(settings.GitAccessToken ?? string.Empty);
 			token.Value = accessToken;
+			gitUserName.Value = settings.GitUserName ?? string.Empty;
+			gitUserEmail.Value = settings.GitUserEmail ?? string.Empty;
 			if (!string.Equals(settings.GitAccessToken, accessToken, StringComparison.Ordinal))
 			{
-				await WorkspaceAPISystem.Post<WorkspaceSettings, WorkspaceSettings>(session, workspaceId, "workspace/settings", new WorkspaceSettings { GitAccessToken = accessToken });
+				await WorkspaceAPISystem.Post<WorkspaceSettings, WorkspaceSettings>(session, workspaceId, "workspace/settings", new WorkspaceSettings
+				{
+					GitAccessToken = accessToken,
+					GitUserName = gitUserName.Value,
+					GitUserEmail = gitUserEmail.Value
+				});
 			}
 		}
 		session.Redraw();
 	}
 
-	static async Task SaveWorkspaceSettings(Session session, string workspacePath, TextInputControl token)
+	static async Task SaveWorkspaceSettings(Session session, string workspacePath, TextInputControl token, TextInputControl gitUserName, TextInputControl gitUserEmail)
 	{
 		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
 		var accessToken = ParseGithubAccessToken(token.Value);
 		token.Value = accessToken;
-		await WorkspaceAPISystem.Post<WorkspaceSettings, WorkspaceSettings>(session, workspaceId, "workspace/settings", new WorkspaceSettings { GitAccessToken = accessToken });
+		await WorkspaceAPISystem.Post<WorkspaceSettings, WorkspaceSettings>(session, workspaceId, "workspace/settings", new WorkspaceSettings
+		{
+			GitAccessToken = accessToken,
+			GitUserName = gitUserName.Value,
+			GitUserEmail = gitUserEmail.Value
+		});
 		session.Redraw();
 	}
 
@@ -534,26 +628,38 @@ public static class WorkspaceScreenFactory
 			".svg" => "image/svg+xml",
 			_ => "text/plain"
 		};
-		var preview = screen.SelectComponents<FilePreviewComponent>().SingleOrDefault();
 		var isImage = mimeType.StartsWith("image/", StringComparison.Ordinal);
+		var preview = screen.SelectComponents<FilePreviewComponent>()
+			.SingleOrDefault(existing => string.Equals(existing.FilePath, file.Path, StringComparison.Ordinal));
 		if (preview is null)
 		{
-			var window = AddDockWindow(screen, root, file.Path, string.Empty);
+			var previewGroup = screen.SelectComponents<DockWindowGroup>()
+				.FirstOrDefault(group => group.Children.Values.Any(window => window.Entity.TryGetComponent(out FilePreviewComponent? _)));
+			DockWindow window;
+			if (previewGroup is null)
+			{
+				window = AddDockWindow(screen, root, file.Path, string.Empty);
+			}
+			else
+			{
+				window = screen.NewEntity(entity => new DockWindow(entity, file.Path, string.Empty));
+				previewGroup.AttachChild(window);
+				previewGroup.ActiveWindow = window;
+			}
+
 			preview = window.AddComponent(entity => new FilePreviewComponent(entity, file.Path, file.Contents ?? string.Empty, isImage, mimeType));
 		}
-		else
+		else if (!preview.IsDirty)
 		{
-			preview.FilePath = file.Path;
 			preview.Contents = file.Contents ?? string.Empty;
-			preview.IsImage = isImage;
-			preview.MimeType = mimeType;
+			preview.SavedContents = preview.Contents;
 		}
 
 		var previewWindow = preview.GetComponent<DockWindow>();
-		previewWindow.Name = file.Path;
-		if (previewWindow.Parent.Get() is DockWindowGroup previewGroup)
+		UpdateFilePreviewTabName(preview);
+		if (previewWindow.Parent.Get() is DockWindowGroup activePreviewGroup)
 		{
-			previewGroup.ActiveWindow = previewWindow;
+			activePreviewGroup.ActiveWindow = previewWindow;
 		}
 
 		session.Redraw();
