@@ -87,9 +87,8 @@ public static class WorkspaceScreenFactory
 		var screen = CreateScreen(session, "Workspace Files", workspacePath, "Files");
 		var screenLayout = screen.SelectComponents<ScreenLayout>().Single();
 		var workspaceNavToolbar = WorkspaceNavToolbar(screen, session, workspacePath);
-		var toolbarLayout = AddWorkspaceToolbar(screen);
 		var dockingLayout = screen.NewEntity<DockingLayout>();
-		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, toolbarLayout, dockingLayout]);
+		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, dockingLayout]);
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Horizontal));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
@@ -110,22 +109,21 @@ public static class WorkspaceScreenFactory
 		var screen = CreateScreen(session, "Workspace Git", workspacePath, "Git");
 		var screenLayout = screen.SelectComponents<ScreenLayout>().Single();
 		var workspaceNavToolbar = WorkspaceNavToolbar(screen, session, workspacePath);
-		var gitToolbar = AddGitToolbar(screen, workspacePath);
 		var dockingLayout = screen.NewEntity<DockingLayout>();
-		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, gitToolbar, dockingLayout]);
 
 		var root = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Horizontal));
 		dockingLayout.AttachChild<DockingLayout, DockLayoutNode>(root);
 		var gitContainer = screen.NewEntity<DockContainer>(entity => new DockContainer(entity, DockOrientation.Vertical));
+		gitContainer.IsFixedWidth = true;
+		gitContainer.WidthInGridUnits = 10;
 		root.AttachChild<DockContainer, DockLayoutNode>(gitContainer);
-		var reposWindow = AddDockWindow(screen, gitContainer, "Repositories", string.Empty);
-		var reposLayout = reposWindow.AddComponent<ControlLayout>();
+		var reposWindow = AddDockWindow(screen, gitContainer, "Repositories and Changes", string.Empty);
+		reposWindow.AddComponent<ControlLayout>();
 		reposWindow.AddComponent<DockWindowControlLayout>();
-		var repoList = screen.NewEntity(entity => new ControlLayoutNode(entity, ControlLayoutOrientation.Stack));
-		reposLayout.AttachChild(repoList);
-		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadGitRepos(session, screen, workspacePath, repoList)));
-		AddDockWindow(screen, root, "Commits", "main\n  Initial commit\n  Add workspace files\n  Update agent prompt");
-		AddDockWindow(screen, root, "Git Details", "Select a commit or changed file to inspect it.");
+		var repoTree = AddFileTreeControlLayout(screen, reposWindow);
+		var gitControls = AddGitToolbar(screen, workspacePath, repoTree);
+		screenLayout.AttachChildren<ScreenLayout, ScreenLayoutChild>([workspaceNavToolbar, gitControls.Toolbar, dockingLayout]);
+		screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadGitRepos(session, screen, workspacePath, repoTree, gitControls)));
 		return screen;
 	}
 
@@ -157,23 +155,19 @@ public static class WorkspaceScreenFactory
 			])
 		]);
 
-	static ToolbarLayout AddWorkspaceToolbar(Screen screen)
-		=> screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
-			layout.AddToolbar(0).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Workspace")),
-				toolbar.AddToolbarControl<ComboBoxControl>(entity => new ComboBoxControl(entity, "Development"))
-			])
-		]);
-
-	static ToolbarLayout AddGitToolbar(Screen screen, string workspacePath)
+	static GitToolbarControls AddGitToolbar(Screen screen, string workspacePath, TreeControl repoTree)
 	{
 		TextInputControl? cloneRepo = null;
 		TextInputControl? clonePath = null;
 		ComboBoxControl? pushRepo = null;
 		TextInputControl? pushBranch = null;
 		ComboBoxControl? branchRepo = null;
-		TextInputControl? newBranch = null;
-		return screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
+		ComboBoxControl? branchMode = null;
+		TextInputControl? branchName = null;
+		ComboBoxControl? commitRepo = null;
+		TextInputControl? commitMessage = null;
+		GitToolbarControls? controls = null;
+		var toolbar = screen.NewEntity<ToolbarLayout>().AttachChildren<ToolbarLayout, Toolbar>(layout => [
 			layout.AddToolbar(0).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
 				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git clone")),
 				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
@@ -186,27 +180,40 @@ public static class WorkspaceScreenFactory
 				}))
 			]),
 			layout.AddToolbar(1).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Branch")),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
+				toolbar.AddToolbarControl<ComboBoxControl>(entity => { branchRepo = new ComboBoxControl(entity, string.Empty); return branchRepo; }),
+				toolbar.AddToolbarControl<ComboBoxControl>(entity => { branchMode = new ComboBoxControl(entity, "Switch"); branchMode.Items = ["Switch", "Create and switch"]; return branchMode; }),
+				toolbar.AddToolbarControl<TextInputControl>(entity => { branchName = new TextInputControl(entity, string.Empty); return branchName; }),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Apply", session =>
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitBranch(session, workspacePath, branchRepo!, branchMode!, branchName!)))))
+			]),
+			layout.AddToolbar(2).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git commit")),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
+				toolbar.AddToolbarControl<ComboBoxControl>(entity => { commitRepo = new ComboBoxControl(entity, string.Empty); return commitRepo; }),
+				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Message")),
+				toolbar.AddToolbarControl<TextInputControl>(entity => { commitMessage = new TextInputControl(entity, string.Empty); return commitMessage; }),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Commit", session =>
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitCommit(session, workspacePath, commitRepo!, commitMessage!)))))
+			]),
+			layout.AddToolbar(3).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
 				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git push")),
 				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
 				toolbar.AddToolbarControl<ComboBoxControl>(entity => { pushRepo = new ComboBoxControl(entity, string.Empty); return pushRepo; }),
 				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Branch")),
 				toolbar.AddToolbarControl<TextInputControl>(entity => { pushBranch = new TextInputControl(entity, "main"); return pushBranch; }),
 				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Push", session =>
-					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitPush(session, workspacePath, pushRepo!, pushBranch!)))))
-			]),
-			layout.AddToolbar(2).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Git create branch")),
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Repository")),
-				toolbar.AddToolbarControl<ComboBoxControl>(entity => { branchRepo = new ComboBoxControl(entity, string.Empty); return branchRepo; }),
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Branch")),
-				toolbar.AddToolbarControl<TextInputControl>(entity => { newBranch = new TextInputControl(entity, string.Empty); return newBranch; }),
-				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Create", session =>
-					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitBranch(session, workspacePath, branchRepo!, newBranch!)))))
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => SubmitGitPush(session, workspacePath, pushRepo!, pushBranch!))))),
+				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Refresh changes", session =>
+					screen.NewEntity<AsyncTask>(entity => new AsyncTask(entity, () => LoadGitRepos(session, screen, workspacePath, repoTree, controls!)))))
 			])
 		]);
+		controls = new GitToolbarControls(cloneRepo!, clonePath!, pushRepo!, pushBranch!, branchRepo!, branchMode!, branchName!, commitRepo!, commitMessage!, repoTree, toolbar);
+		return controls;
 	}
 
-	static async Task LoadGitRepos(Session session, Screen screen, string workspacePath, ControlLayoutNode repoList)
+	static async Task LoadGitRepos(Session session, Screen screen, string workspacePath, TreeControl repoTree, GitToolbarControls controls)
 	{
 		var workspaceId = workspacePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
 		var repos = await WorkspaceAPISystem.Get<GitRepoRow[]>(session, workspaceId, "git/repo");
@@ -215,20 +222,72 @@ public static class WorkspaceScreenFactory
 			return;
 		}
 
+		ClearGitTree(repoTree);
 		foreach (var repo in repos)
 		{
-			var control = screen.NewEntity<ControlLayoutControl>();
-			control.AddComponent(entity => new LabelControl(entity, string.IsNullOrEmpty(repo.Repo) ? repo.LocalPath : $"{repo.LocalPath} ({repo.Repo})"));
-			repoList.AttachChild(control);
+			var root = screen.NewEntity(entity => new TreeNode(entity,
+				$"{repo.LocalPath} ({repo.CurrentBranch}) [{repo.Changes.Count}]", TreeNodeIcon.Folder));
+			root.IsExpanded = true;
+			repoTree.AttachChild(root);
+			foreach (var change in repo.Changes)
+			{
+				AddGitChangePath(screen, root, change.Path, change.Status);
+			}
 		}
 
-		var combos = screen.SelectComponents<ComboBoxControl>().ToArray();
-		foreach (var combo in combos)
+		var repoPaths = repos.Select(repo => repo.LocalPath).ToList();
+		foreach (var combo in new[] { controls.PushRepo, controls.BranchRepo, controls.CommitRepo })
 		{
-			combo.Items = repos.Select(repo => repo.LocalPath).ToList();
-			combo.Value = combo.Items.FirstOrDefault() ?? string.Empty;
+			combo.Items = repoPaths;
+			if (!combo.Items.Contains(combo.Value, StringComparer.Ordinal))
+			{
+				combo.Value = combo.Items.FirstOrDefault() ?? string.Empty;
+			}
 		}
+		controls.BranchMode.Items = ["Switch", "Create and switch"];
+		controls.BranchMode.Value = controls.BranchMode.Items[0];
+		var selectedRepo = repos.FirstOrDefault(repo => repo.LocalPath == controls.BranchRepo.Value);
+		controls.BranchName.Value = selectedRepo?.CurrentBranch ?? string.Empty;
+		controls.PushBranch.Value = selectedRepo?.CurrentBranch ?? "main";
 		session.Redraw();
+	}
+
+	static void ClearGitTree(TreeControl tree)
+	{
+		foreach (var node in tree.Children.Values.ToArray())
+		{
+			DeleteGitTreeNode(node);
+		}
+		tree.Children.Values.Clear();
+	}
+
+	static void DeleteGitTreeNode(TreeNode node)
+	{
+		foreach (var child in ((IParentOf<TreeNode>)node).Children.Values.ToArray())
+		{
+			DeleteGitTreeNode(child);
+		}
+		((IParentOf<TreeNode>)node).Children.Values.Clear();
+		node.Entity.TryDeleteEntity();
+	}
+
+	static void AddGitChangePath(Screen screen, TreeNode root, string path, string status)
+	{
+		var segments = path.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+		TreeNode parent = root;
+		for (var index = 0; index < segments.Length; index++)
+		{
+			var isFile = index == segments.Length - 1;
+			var text = isFile ? $"{segments[index]} [{status}]" : segments[index];
+			var node = ((IParentOf<TreeNode>)parent).Children.Values.FirstOrDefault(child => child.Text == text);
+			if (node is null)
+			{
+				node = screen.NewEntity(entity => new TreeNode(entity, text, isFile ? TreeNodeIcon.File : TreeNodeIcon.Folder));
+				parent.AttachChild(node);
+			}
+			node.IsExpanded = !isFile;
+			parent = node;
+		}
 	}
 
 	static async Task SubmitGitClone(Session session, string workspacePath, TextInputControl repo, TextInputControl localPath)
@@ -243,10 +302,28 @@ public static class WorkspaceScreenFactory
 		await SubmitOperation(session, workspacePath, new Operation { GitPushOperation = new GitPushOperation { LocalPath = repo.Value, Branch = branch.Value.Trim() } });
 	}
 
-	static async Task SubmitGitBranch(Session session, string workspacePath, ComboBoxControl repo, TextInputControl branch)
+	static async Task SubmitGitBranch(Session session, string workspacePath, ComboBoxControl repo, ComboBoxControl mode, TextInputControl branch)
 	{
 		if (string.IsNullOrWhiteSpace(repo.Value) || string.IsNullOrWhiteSpace(branch.Value)) return;
-		await SubmitOperation(session, workspacePath, new Operation { GitCreateBranch = new GitCreateBranchOperation { LocalPath = repo.Value, Branch = branch.Value.Trim() } });
+		await SubmitOperation(session, workspacePath, new Operation
+		{
+			GitSwitchBranch = new GitSwitchBranchOperation
+			{
+				LocalPath = repo.Value,
+				Branch = branch.Value.Trim(),
+				Create = mode.Value == "Create and switch"
+			}
+		});
+	}
+
+	static async Task SubmitGitCommit(Session session, string workspacePath, ComboBoxControl repo, TextInputControl message)
+	{
+		if (string.IsNullOrWhiteSpace(repo.Value) || string.IsNullOrWhiteSpace(message.Value)) return;
+		await SubmitOperation(session, workspacePath, new Operation
+		{
+			GitCommitOperation = new GitCommitOperation { LocalPath = repo.Value, Message = message.Value.Trim() }
+		});
+		message.Value = string.Empty;
 	}
 
 	static async Task SubmitOperation(Session session, string workspacePath, Operation operation)
@@ -258,6 +335,19 @@ public static class WorkspaceScreenFactory
 		});
 		session.Redraw();
 	}
+
+	sealed record GitToolbarControls(
+		TextInputControl CloneRepo,
+		TextInputControl ClonePath,
+		ComboBoxControl PushRepo,
+		TextInputControl PushBranch,
+		ComboBoxControl BranchRepo,
+		ComboBoxControl BranchMode,
+		TextInputControl BranchName,
+		ComboBoxControl CommitRepo,
+		TextInputControl CommitMessage,
+		TreeControl RepoTree,
+		ToolbarLayout Toolbar);
 
 	static void AddWorkspaceSettingsLayout(Screen screen, Session session, DockWindow window, string workspacePath)
 	{

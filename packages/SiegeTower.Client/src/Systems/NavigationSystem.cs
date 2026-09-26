@@ -121,9 +121,6 @@ public static class NavigationSystem
 				toolbar.AddToolbarControl<ComboBoxControl>(entity => new ComboBoxControl(entity, "Current file"))
 			]),
 			layout.AddToolbar(1).AttachChildren<Toolbar, ToolbarControl>(toolbar => [
-				toolbar.AddToolbarControl<LabelControl>(entity => new LabelControl(entity, "Workspace")),
-				toolbar.AddToolbarControl<ComboBoxControl>(entity => new ComboBoxControl(entity, "Development")),
-				toolbar.AddToolbarControl<SeparatorControl>(entity => new SeparatorControl(entity)),
 				toolbar.AddToolbarControl<ButtonControl>(entity => new ButtonControl(entity, "Run"))
 			])
 		]);

@@ -13,6 +13,19 @@ public sealed class GitRepoRow
 	public string Repo { get; set; } = string.Empty;
 
 	public string LocalPath { get; set; } = string.Empty;
+
+	public string CurrentBranch { get; set; } = string.Empty;
+
+	public List<string> Branches { get; set; } = [];
+
+	public List<GitChangeRow> Changes { get; set; } = [];
+}
+
+public sealed class GitChangeRow
+{
+	public string Path { get; set; } = string.Empty;
+
+	public string Status { get; set; } = string.Empty;
 }
 
 [OperationRowInfo]
@@ -33,6 +46,8 @@ public sealed class Operation
 	public GitCloneOperation? GitClone { get; set; }
 
 	public GitCreateBranchOperation? GitCreateBranch { get; set; }
+
+	public GitSwitchBranchOperation? GitSwitchBranch { get; set; }
 
 	public GitPushOperation? GitPushOperation { get; set; }
 
@@ -57,6 +72,15 @@ public sealed class GitCreateBranchOperation
 	public string Branch { get; set; } = string.Empty;
 }
 
+public sealed class GitSwitchBranchOperation
+{
+	public string LocalPath { get; set; } = string.Empty;
+
+	public string Branch { get; set; } = string.Empty;
+
+	public bool Create { get; set; }
+}
+
 public sealed class GitPushOperation
 {
 	public string LocalPath { get; set; } = string.Empty;
@@ -66,6 +90,8 @@ public sealed class GitPushOperation
 
 public sealed class GitCommitOperation
 {
+	public string LocalPath { get; set; } = string.Empty;
+
 	public string Message { get; set; } = string.Empty;
 }
 

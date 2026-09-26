@@ -41,18 +41,29 @@ public sealed class WorkspaceHarness
 		}
 	}
 
-	public IReadOnlyList<GitRepoRow> GetGitRepos()
+	public async Task<IReadOnlyList<GitRepoRow>> GetGitReposAsync()
 	{
-		return Directory
+		var paths = Directory
 			.EnumerateDirectories(WorkspaceContext.Services.FileService.RootPath, "*", SearchOption.AllDirectories)
 			.Where(path => Directory.Exists(Path.Combine(path, ".git")))
-			.Select(path => new GitRepoRow
-			{
-				LocalPath = Path.GetRelativePath(WorkspaceContext.Services.FileService.RootPath, path),
-				Repo = ReadGitRemote(path)
-			})
-			.OrderBy(repo => repo.LocalPath, StringComparer.Ordinal)
+			.OrderBy(path => path, StringComparer.Ordinal)
 			.ToArray();
+		var repos = new List<GitRepoRow>(paths.Length);
+		foreach (var path in paths)
+			{
+			var localPath = Path.GetRelativePath(WorkspaceContext.Services.FileService.RootPath, path);
+			var status = await WorkspaceContext.Services.GitService.GetRepositoryStatusAsync(localPath);
+			repos.Add(new GitRepoRow
+			{
+				LocalPath = localPath,
+				Repo = ReadGitRemote(path),
+				CurrentBranch = status.CurrentBranch,
+				Branches = status.Branches,
+				Changes = status.Changes
+			});
+		}
+
+		return repos;
 	}
 
 	private static string ReadGitRemote(string path)
@@ -105,6 +116,10 @@ public sealed class WorkspaceHarness
 			{
 				await PerformGitCreateBranchOperationAsync(operation, operation.Operation.GitCreateBranch);
 			}
+			else if (operation.Operation.GitSwitchBranch is not null)
+			{
+				await PerformGitSwitchBranchOperationAsync(operation, operation.Operation.GitSwitchBranch);
+			}
 			else if (operation.Operation.GitPushOperation is not null)
 			{
 				await PerformGitPushOperationAsync(operation, operation.Operation.GitPushOperation);
@@ -149,6 +164,13 @@ public sealed class WorkspaceHarness
 	{
 		AddLog(operation, "Git branch creation started.");
 		var result = await WorkspaceContext.Services.GitService.CreateBranchAsync(gitCreateBranch, WorkspaceContext.GetGitAccessToken());
+		AddLog(operation, result.Output);
+	}
+
+	private async Task PerformGitSwitchBranchOperationAsync(OperationRow operation, GitSwitchBranchOperation gitSwitchBranch)
+	{
+		AddLog(operation, gitSwitchBranch.Create ? "Git branch creation started." : "Git branch switch started.");
+		var result = await WorkspaceContext.Services.GitService.SwitchBranchAsync(gitSwitchBranch, WorkspaceContext.GetGitAccessToken());
 		AddLog(operation, result.Output);
 	}
 

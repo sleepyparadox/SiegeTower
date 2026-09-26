@@ -35,8 +35,22 @@ public sealed class GitService
 	public Task<GitCommandResult> CreateBranchAsync(GitCreateBranchOperation operation, string? accessToken, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(operation);
+		return SwitchBranchAsync(new GitSwitchBranchOperation
+		{
+			LocalPath = operation.LocalPath,
+			Branch = operation.Branch,
+			Create = true
+		}, accessToken, cancellationToken);
+	}
+
+	public Task<GitCommandResult> SwitchBranchAsync(GitSwitchBranchOperation operation, string? accessToken, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(operation);
 		ArgumentException.ThrowIfNullOrWhiteSpace(operation.Branch);
-		return RunGitAsync(["switch", "-c", operation.Branch], accessToken, fileService.GetGitPath(operation.LocalPath), cancellationToken);
+		var gitArguments = operation.Create
+			? new[] { "switch", "-c", operation.Branch }
+			: new[] { "switch", operation.Branch };
+		return RunGitAsync(gitArguments, accessToken, fileService.GetGitPath(operation.LocalPath), cancellationToken);
 	}
 
 	public Task<GitCommandResult> PushAsync(GitPushOperation operation, string? accessToken, CancellationToken cancellationToken = default)
@@ -50,7 +64,31 @@ public sealed class GitService
 	{
 		ArgumentNullException.ThrowIfNull(operation);
 		ArgumentException.ThrowIfNullOrWhiteSpace(operation.Message);
-		return RunGitAsync(["commit", "-am", operation.Message], accessToken, fileService.RootPath, cancellationToken);
+		var repositoryPath = fileService.GetGitPath(operation.LocalPath);
+		return CommitRepositoryAsync(repositoryPath, operation.Message, accessToken, cancellationToken);
+	}
+
+	public async Task<GitRepositoryStatus> GetRepositoryStatusAsync(string localPath, CancellationToken cancellationToken = default)
+	{
+		var repositoryPath = fileService.GetGitPath(localPath);
+		var branchResult = await RunGitAsync(["branch", "--show-current"], null, repositoryPath, cancellationToken);
+		var branchesResult = await RunGitAsync(["branch", "--format=%(refname:short)"], null, repositoryPath, cancellationToken);
+		var statusResult = await RunGitAsync(["status", "--short"], null, repositoryPath, cancellationToken);
+		var changes = statusResult.Output
+			.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+			.Where(line => line.Length >= 4)
+			.Select(line => new GitChangeRow { Status = line[..2].Trim(), Path = line[3..] })
+			.ToList();
+		return new GitRepositoryStatus(
+			branchResult.Output,
+			branchesResult.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList(),
+			changes);
+	}
+
+	private async Task<GitCommandResult> CommitRepositoryAsync(string repositoryPath, string message, string? accessToken, CancellationToken cancellationToken)
+	{
+		await RunGitAsync(["add", "-A"], accessToken, repositoryPath, cancellationToken);
+		return await RunGitAsync(["commit", "-m", message], accessToken, repositoryPath, cancellationToken);
 	}
 
 	private Task<GitCommandResult> RunGitAsync(IReadOnlyList<string> gitArguments, string? accessToken, string workingDirectory, CancellationToken cancellationToken)
@@ -103,3 +141,5 @@ public sealed class GitService
 }
 
 public sealed record GitCommandResult(string Output, string Error);
+
+public sealed record GitRepositoryStatus(string CurrentBranch, List<string> Branches, List<GitChangeRow> Changes);
