@@ -1,0 +1,14 @@
+@namespace SiegeTower.Client.Views.Components
+
+@foreach (var node in Layout.Children.Values)
+{
+    <ControlLayoutNodeView Node="@node" Session="@Session" />
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public ControlLayout Layout { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

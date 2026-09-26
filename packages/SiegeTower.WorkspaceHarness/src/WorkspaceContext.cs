@@ -1,139 +1,72 @@
+using System.Text.Json;
 using SiegeTower.Data.Ollama;
+using SiegeTower.Data;
 
 namespace SiegeTower.WorkspaceHarness;
 
 public sealed class WorkspaceContext
 {
 	private readonly object sync = new();
-	private readonly List<OllamaChatMessage> chatHistory = [];
+
+	public WorkspaceContext(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+	{
+		Services = new WorkspaceServices(configuration, httpClientFactory);
+	}
+
+	public WorkspaceServices Services { get; }
 
 	public TimeSpan PromptTimeout { get; } = TimeSpan.FromMinutes(5);
 
-	public TaskLoop? CurrentLoop { get; private set; }
+	public WorkspaceSettings Settings { get; } = new();
 
-	public IReadOnlyList<OllamaChatMessage> GetChatHistory()
+	public void UpdateSettings(WorkspaceSettings settings)
 	{
+		ArgumentNullException.ThrowIfNull(settings);
 		lock (sync)
 		{
-			var history = chatHistory.ToList();
-			if (CurrentLoop is not null)
-			{
-				var seconds = (DateTime.UtcNow - CurrentLoop.StartedAtUtc).TotalSeconds;
-				history.Add(new OllamaChatMessage("Harness", $"Loop {CurrentLoop.Loops} (for {seconds:0} seconds)"));
-			}
-
-			return history;
+			Settings.GitAccessToken = ParseGitAccessToken(settings.GitAccessToken);
+			Settings.GitUserName = settings.GitUserName?.Trim();
+			Settings.GitUserEmail = settings.GitUserEmail?.Trim();
 		}
 	}
 
-	public bool TryStartLoop(OllamaChatMessage message, out TaskLoop loop)
+	private static string? ParseGitAccessToken(string? value)
 	{
-		lock (sync)
+		if (string.IsNullOrWhiteSpace(value))
 		{
-			if (CurrentLoop is not null)
-			{
-				loop = null!;
-				return false;
-			}
-
-			loop = new TaskLoop();
-			CurrentLoop = loop;
-			return true;
-		}
-	}
-
-	public IReadOnlyList<OllamaChatMessage> GetChatSnapshot()
-	{
-		lock (sync)
-		{
-			return chatHistory.ToList();
-		}
-	}
-
-	public void CompleteLoop(TaskLoop loop, IReadOnlyList<OllamaChatMessage> messages)
-	{
-		lock (sync)
-		{
-			if (!ReferenceEquals(CurrentLoop, loop) || !loop.TryComplete())
-			{
-				return;
-			}
-
-			chatHistory.AddRange(messages);
-			CurrentLoop = null;
-		}
-	}
-
-	public void TimeoutLoop(TaskLoop loop)
-	{
-		lock (sync)
-		{
-			if (!ReferenceEquals(CurrentLoop, loop) || !loop.TryComplete())
-			{
-				return;
-			}
-
-			loop.Cancel();
-			chatHistory.Add(new OllamaChatMessage("Harness", "Loop timed out after 120 seconds."));
-			CurrentLoop = null;
-		}
-	}
-}
-
-public sealed class TaskLoop
-{
-	private readonly CancellationTokenSource cancellationSource = new();
-	private readonly CancellationTokenSource timeoutCancellationSource = new();
-	private int loops;
-	private int completedState;
-
-	public DateTime StartedAtUtc { get; } = DateTime.UtcNow;
-
-	public int Loops => Volatile.Read(ref loops);
-
-	public CancellationToken CancellationToken => cancellationSource.Token;
-
-	public Task TimeoutTask { get; private set; } = Task.CompletedTask;
-
-	public int Increment()
-	{
-		return Interlocked.Increment(ref loops);
-	}
-
-	public void StartTimeout(TimeSpan timeout, Func<Task> onTimeout)
-	{
-		if (timeout <= TimeSpan.Zero)
-		{
-			throw new ArgumentOutOfRangeException(nameof(timeout));
+			return value;
 		}
 
-		ArgumentNullException.ThrowIfNull(onTimeout);
-		TimeoutTask = Task.Run(async () =>
+		var trimmedValue = value.Trim();
+		if (trimmedValue.StartsWith('{'))
 		{
 			try
 			{
-				await Task.Delay(timeout, timeoutCancellationSource.Token);
-				await onTimeout();
+				using var document = JsonDocument.Parse(trimmedValue);
+				if (document.RootElement.TryGetProperty("token", out var token)
+					&& token.ValueKind == JsonValueKind.String
+					&& !string.IsNullOrWhiteSpace(token.GetString()))
+				{
+					return token.GetString()!.Trim();
+				}
 			}
-			catch (OperationCanceledException) when (timeoutCancellationSource.IsCancellationRequested)
+			catch (JsonException)
 			{
 			}
-		});
-	}
-
-	public bool TryComplete()
-	{
-		if (Interlocked.Exchange(ref completedState, 1) != 0)
-		{
-			return false;
 		}
 
-		timeoutCancellationSource.Cancel();
-		return true;
+		return trimmedValue;
 	}
 
-	public void Cancel()
+	public string? GetGitAccessToken()
 	{
-		cancellationSource.Cancel();
+		lock (sync)
+		{
+			return Settings.GitAccessToken;
+		}
 	}
+
+		public sealed class WorkspaceSettings : Data.WorkspaceSettings
+		{
+		}
 }

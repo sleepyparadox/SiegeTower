@@ -1,0 +1,109 @@
+.grid-align-start {
+    justify-content: flex-start;
+}
+
+.grid-align-center {
+    justify-content: center;
+}
+
+.grid-align-end {
+    justify-content: flex-end;
+}
+
+.is-hoverable:hover,
+.is-hovered {
+    filter: brightness(1.12);
+}
+
+.is-selected {
+    outline: 1px solid currentColor;
+    outline-offset: -1px;
+}
+
+.is-inactive {
+    opacity: .6;
+}
+
+.is-disabled,
+.is-disabled[disabled] {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+.is-draggable,
+.grid-i-draggable {
+    cursor: grab;
+}
+
+.is-dragging {
+    cursor: grabbing;
+    opacity: .7;
+}
+
+.is-drop-target {
+    outline: 2px dashed currentColor;
+    outline-offset: -2px;
+}
+
+.menu,
+.dropdown {
+    position: relative;
+}
+
+.menu-item,
+.button,
+.tab,
+.tree-node-row,
+.status-item {
+    min-width: 0;
+}
+
+.tree-node-row {
+    min-width: 100%;
+    white-space: nowrap;
+    width: max-content;
+}
+
+.tree-node-label {
+    white-space: nowrap;
+}
+
+.menu-item-arrow {
+    margin-left: auto;
+}
+
+.tab {
+    border: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.tab.is-selected {
+    border: 1px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    outline: 0;
+}
+
+.tree-node-children.is-collapsed {
+    display: none;
+}
+
+.tree-node-toggle {
+    align-items: center;
+    border: 0;
+    flex: 0 0 var(--grid-unit);
+    height: var(--grid-unit);
+    justify-content: center;
+    padding: 0;
+    width: var(--grid-unit);
+}
+
+.tree-node-toggle-icon {
+    font-size: .75rem;
+}
+
+.tab-close {
+    background: transparent;
+    border: 0;
+    padding: 0;
+}

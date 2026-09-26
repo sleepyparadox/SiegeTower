@@ -1,0 +1,22 @@
+@namespace SiegeTower.Client.Views.Components
+
+@if (Preview.IsImage)
+{
+    <img class="grid-dock-content grid-overflow-y grid-padded" src="data:@Preview.MimeType;base64,@Preview.Contents" alt="@Preview.FilePath" />
+}
+else
+{
+    <textarea class="grid-dock-content grid-overflow-y grid-padded" value="@Preview.Contents" readonly="@(!Preview.IsEditable)" @oninput="UpdateContents"></textarea>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public FilePreviewComponent Preview { get; set; } = default!;
+
+    void UpdateContents(ChangeEventArgs args)
+    {
+        Preview.Contents = args.Value?.ToString() ?? string.Empty;
+        var window = Preview.GetComponent<DockWindow>();
+        window.Name = Preview.IsDirty ? $"{Preview.FilePath}*" : Preview.FilePath;
+    }
+}

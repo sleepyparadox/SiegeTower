@@ -1,0 +1,11 @@
+@namespace SiegeTower.Client.Views.Components
+
+<ControlView Entity="@Control.Entity" Session="@Session" />
+
+@code {
+    [Parameter, EditorRequired]
+    public ControlLayoutControl Control { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Session Session { get; set; } = default!;
+}

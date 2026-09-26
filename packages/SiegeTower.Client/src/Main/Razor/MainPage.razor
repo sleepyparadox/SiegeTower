@@ -1,50 +1,10 @@
 @page "/"
 @page "/{*Path}"
+@using SiegeTower.Client.Views
 @inject Session Session
 @implements IDisposable
 
-<PageTitle>@Session.ActiveScreen.Title</PageTitle>
-
-<div class="app-background" @onmouseup="StopDrag">
-	@if (Session.ActiveScreen is WorkspaceListScreen workspaceListScreen)
-	{
-		<WorkspaceListScreenView WorkspaceListScreen="workspaceListScreen" />
-	}
-	else if (Session.ActiveScreen is HomeScreen homeScreen)
-	{
-		<HomeScreenView HomeScreen="homeScreen" />
-	}
-	else if (Session.ActiveScreen is OllamaScreen ollamaScreen)
-	{
-		<OllamaScreenView OllamaScreen="ollamaScreen" />
-	}
-	else if (Session.ActiveScreen is WorkspaceFilesScreen workspaceFilesScreen)
-	{
-		<WorkspaceFilesScreenView WorkspaceFilesScreen="workspaceFilesScreen" />
-	}
-
-	<div id="DragPreview"
-	     class="drag-preview @(Session.DragOperation.Target is not null ? "drag-preview-active" : "")"
-	     aria-hidden="true">
-		@if (Session.DragOperation.Target is not null)
-		{
-			@switch (Session.DragOperation.Target)
-			{
-				case Toolbar toolbar:
-					<ToolbarDragPreview Toolbar="toolbar" />
-					break;
-				case IDockContent dockContent:
-					<DockTabDragPreview Content="dockContent" />
-					break;
-				case DockGrid.Divider:
-					break;
-				default:
-					<div>@Session.DragOperation.Target?.GetType().Name</div>
-					break;
-			}
-		}
-	</div>
-</div>
+<ScreenView Screen="@Session.ActiveScreen" />
 
 @code {
 	[Parameter]
@@ -52,21 +12,13 @@
 
 	protected override void OnInitialized()
 	{
-		Session.RedrawRequested += HandleRedrawRequested;
-	}
-
-	private void HandleRedrawRequested(object? sender, EventArgs args)
-	{
-		_ = InvokeAsync(StateHasChanged);
-	}
-
-	private void StopDrag(MouseEventArgs args)
-	{
-		Session.DragStop(args);
+		Session.RedrawRequested += Redraw;
 	}
 
 	public void Dispose()
 	{
-		Session.RedrawRequested -= HandleRedrawRequested;
+		Session.RedrawRequested -= Redraw;
 	}
+
+	void Redraw() => InvokeAsync(StateHasChanged);
 }
